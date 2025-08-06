@@ -1,105 +1,105 @@
 {
   "summary": {
-    "passed": 19,
-    "failed": 5
+    "passed": 22,
+    "failed": 2
   },
   "detailed_results": [
     {
       "test": "API Root",
       "success": true,
       "details": "Root endpoint accessible: ETF Intelligence System API - Enhanced Version",
-      "timestamp": "2025-08-06T10:42:43.299655",
+      "timestamp": "2025-08-06T11:22:18.559865",
       "response_data": null
     },
     {
       "test": "Authentication System",
       "success": true,
       "details": "Complete authentication system working: login, JWT tokens, user info, password updates, forgot password",
-      "timestamp": "2025-08-06T10:42:44.562599",
+      "timestamp": "2025-08-06T11:22:19.767110",
       "response_data": null
     },
     {
       "test": "AI Chat Integration",
-      "success": false,
-      "details": "Create session failed: HTTP 422",
-      "timestamp": "2025-08-06T10:42:44.621419",
+      "success": true,
+      "details": "AI chat system fully functional: model selection, sessions, chat with/without chart context, message history",
+      "timestamp": "2025-08-06T11:22:24.826170",
       "response_data": null
     },
     {
       "test": "Enhanced Company Search",
       "success": true,
       "details": "Company search system working: ticker/name search, detailed info, logos, sector rotation analysis",
-      "timestamp": "2025-08-06T10:42:45.216891",
+      "timestamp": "2025-08-06T11:22:25.368436",
       "response_data": null
     },
     {
       "test": "TradingView Integration",
-      "success": false,
-      "details": "Connect account failed: HTTP 422",
-      "timestamp": "2025-08-06T10:42:45.227174",
+      "success": true,
+      "details": "TradingView integration working: account connection, chart drawing save/retrieve",
+      "timestamp": "2025-08-06T11:22:25.502637",
       "response_data": null
     },
     {
       "test": "Interactive Charts",
       "success": true,
       "details": "Interactive charts working: multiple timeframes (4), indices and individual tickers, OHLCV data",
-      "timestamp": "2025-08-06T10:42:47.453975",
+      "timestamp": "2025-08-06T11:22:27.408762",
       "response_data": null
     },
     {
       "test": "Spreadsheet Interface",
       "success": true,
       "details": "Spreadsheet interface working: Excel-style formulas, formula transparency, sector filtering",
-      "timestamp": "2025-08-06T10:42:47.474518",
+      "timestamp": "2025-08-06T11:22:27.426178",
       "response_data": null
     },
     {
       "test": "Enhanced Watchlist Management",
       "success": false,
-      "details": "Add stock failed: HTTP 422",
-      "timestamp": "2025-08-06T10:42:47.549463",
+      "details": "Watchlist missing fields: ['stocks']",
+      "timestamp": "2025-08-06T11:22:27.518133",
       "response_data": null
     },
     {
       "test": "Historical Data Pruning",
       "success": true,
       "details": "Historical data pruning working: configurable retention periods, multiple data types, deletion counts",
-      "timestamp": "2025-08-06T10:42:47.612859",
+      "timestamp": "2025-08-06T11:22:27.554028",
       "response_data": null
     },
     {
       "test": "Enhanced Dashboard API",
       "success": true,
       "details": "All enhanced dashboard features working: SA greetings, dual timezone, major indices, ZAR/USD, Fear & Greed integration",
-      "timestamp": "2025-08-06T10:42:48.243803",
+      "timestamp": "2025-08-06T11:22:28.602570",
       "response_data": null
     },
     {
       "test": "Live Market Data APIs",
-      "success": false,
-      "details": "Missing live index: VIX",
-      "timestamp": "2025-08-06T10:42:48.998985",
+      "success": true,
+      "details": "All live market data APIs working: indices, Fear & Greed, forex rates",
+      "timestamp": "2025-08-06T11:22:29.297586",
       "response_data": null
     },
     {
       "test": "Export & Integration APIs",
       "success": true,
       "details": "Export APIs working: ETF CSV export and market score export",
-      "timestamp": "2025-08-06T10:42:49.060142",
+      "timestamp": "2025-08-06T11:22:29.354412",
       "response_data": null
     },
     {
       "test": "Formula Configuration APIs",
       "success": false,
-      "details": "Missing config sections: ['relative_strength', 'sata_weights', 'atr_calculation', 'gmma_pattern']",
-      "timestamp": "2025-08-06T10:42:49.069130",
+      "details": "Missing config sections: ['relative_strength', 'sata_weights', 'atr_calculation', 'gmma_patterns']",
+      "timestamp": "2025-08-06T11:22:29.361535",
       "response_data": null
     },
     {
       "test": "ETF Data Update",
       "success": true,
       "details": "Successfully updated 26 ETFs from yfinance",
-      "timestamp": "2025-08-06T10:42:56.998863",
+      "timestamp": "2025-08-06T11:22:37.865478",
       "response_data": {
         "message": "Updated 26 ETFs",
         "count": 26
@@ -109,72 +109,72 @@
       "test": "Get ETFs",
       "success": true,
       "details": "Retrieved 26 ETFs, filtering works correctly",
-      "timestamp": "2025-08-06T10:42:57.072033",
+      "timestamp": "2025-08-06T11:22:37.928569",
       "response_data": null
     },
     {
       "test": "Enhanced Calculations",
       "success": true,
       "details": "All enhanced calculations mathematically accurate and professionally formatted",
-      "timestamp": "2025-08-06T10:42:57.132600",
+      "timestamp": "2025-08-06T11:22:37.942207",
       "response_data": null
     },
     {
       "test": "Swing Leaders",
       "success": true,
       "details": "Top 5 swing leaders returned with correct SATA + RS scoring",
-      "timestamp": "2025-08-06T10:42:57.143207",
+      "timestamp": "2025-08-06T11:22:37.949977",
       "response_data": null
     },
     {
       "test": "Universal Stock Lookup",
       "success": true,
       "details": "Successfully retrieved data for 5 different stock tickers",
-      "timestamp": "2025-08-06T10:42:58.658979",
+      "timestamp": "2025-08-06T11:22:39.777214",
       "response_data": null
     },
     {
       "test": "Watchlist Management",
       "success": true,
       "details": "All CRUD operations working correctly",
-      "timestamp": "2025-08-06T10:42:58.795366",
+      "timestamp": "2025-08-06T11:22:39.944135",
       "response_data": null
     },
     {
       "test": "Custom Watchlist Lists",
       "success": true,
       "details": "Custom watchlist lists management working correctly",
-      "timestamp": "2025-08-06T10:42:58.813461",
+      "timestamp": "2025-08-06T11:22:39.999257",
       "response_data": null
     },
     {
       "test": "Market Score",
       "success": true,
       "details": "MSAE scoring system working correctly",
-      "timestamp": "2025-08-06T10:42:58.872645",
+      "timestamp": "2025-08-06T11:22:40.097599",
       "response_data": null
     },
     {
       "test": "Chart Analysis",
       "success": true,
       "details": "AI Chart Analysis working for 3 tickers with realistic recommendations",
-      "timestamp": "2025-08-06T10:42:59.662300",
+      "timestamp": "2025-08-06T11:22:40.739764",
       "response_data": null
     },
     {
       "test": "Journal Management",
       "success": true,
       "details": "Journal CRUD operations working correctly",
-      "timestamp": "2025-08-06T10:42:59.690521",
+      "timestamp": "2025-08-06T11:22:40.760342",
       "response_data": null
     },
     {
       "test": "Historical Data",
       "success": true,
       "details": "Historical snapshots endpoint working correctly",
-      "timestamp": "2025-08-06T10:42:59.758258",
+      "timestamp": "2025-08-06T11:22:40.863894",
       "response_data": null
     }
   ],
-  "timestamp": "2025-08-06T10:42:59.767035"
+  "timestamp": "2025-08-06T11:22:40.910628"
 }
