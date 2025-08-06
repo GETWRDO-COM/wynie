@@ -1573,7 +1573,8 @@ async def get_formula_config():
                     "performance": 0.40,
                     "relative_strength": 0.30,
                     "volume": 0.20,
-                    "volatility": 0.10
+                    "volatility": 0.10,
+                    "formula": "Weighted_Score = (Performance × 0.40) + (RS × 0.30) + (Volume × 0.20) + (Volatility × 0.10)"
                 },
                 "atr_calculation": {
                     "period_days": 14,
