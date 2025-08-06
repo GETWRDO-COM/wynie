@@ -739,3 +739,593 @@ const IndexChart = ({ data, title, timeframe }) => {
     </div>
   );
 };
+
+// Main App Component
+function App() {
+  const [user, setUser] = useState(null);
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [loading, setLoading] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
+  
+  // Dashboard data
+  const [dashboardData, setDashboardData] = useState(null);
+  const [etfs, setEtfs] = useState([]);
+  const [sectors, setSectors] = useState([]);
+  const [selectedSector, setSelectedSector] = useState("");
+  const [marketScore, setMarketScore] = useState(null);
+  const [swingLeaders, setSwingLeaders] = useState([]);
+  
+  // Enhanced features
+  const [chartData, setChartData] = useState({});
+  const [selectedTimeframe, setSelectedTimeframe] = useState('1m');
+  const [watchlists, setWatchlists] = useState([]);
+  const [selectedStock, setSelectedStock] = useState(null);
+  const [showFormulas, setShowFormulas] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
+  
+  // Check authentication on app load
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    const userData = localStorage.getItem('user');
+    
+    if (token && userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+      } catch (err) {
+        console.error('Invalid user data:', err);
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+      }
+    }
+    setLoading(false);
+  }, []);
+
+  // Fetch data when user is authenticated
+  useEffect(() => {
+    if (user) {
+      fetchInitialData();
+      // Set up periodic data refresh
+      const interval = setInterval(fetchInitialData, 30000); // Every 30 seconds
+      return () => clearInterval(interval);
+    }
+  }, [user]);
+
+  const fetchInitialData = async () => {
+    try {
+      await Promise.all([
+        fetchDashboardData(),
+        fetchETFs(),
+        fetchSectors(),
+        fetchMarketScore(),
+        fetchSwingLeaders(),
+        fetchWatchlists(),
+        fetchChartData()
+      ]);
+    } catch (err) {
+      console.error('Failed to fetch initial data:', err);
+    }
+  };
+
+  const fetchDashboardData = async () => {
+    try {
+      const response = await api.get('/api/dashboard');
+      setDashboardData(response.data);
+    } catch (err) {
+      console.error('Failed to fetch dashboard data:', err);
+    }
+  };
+
+  const fetchETFs = async () => {
+    try {
+      const response = await api.get('/api/etfs?limit=200');
+      setEtfs(response.data);
+    } catch (err) {
+      console.error('Failed to fetch ETFs:', err);
+    }
+  };
+
+  const fetchSectors = async () => {
+    try {
+      const response = await api.get('/api/etfs/sectors');
+      setSectors(response.data.sectors);
+    } catch (err) {
+      console.error('Failed to fetch sectors:', err);
+    }
+  };
+
+  const fetchMarketScore = async () => {
+    try {
+      const response = await api.get('/api/market-score');
+      setMarketScore(response.data);
+    } catch (err) {
+      console.error('Failed to fetch market score:', err);
+    }
+  };
+
+  const fetchSwingLeaders = async () => {
+    try {
+      const response = await api.get('/api/etfs/swing-leaders');
+      setSwingLeaders(response.data);
+    } catch (err) {
+      console.error('Failed to fetch swing leaders:', err);
+    }
+  };
+
+  const fetchWatchlists = async () => {
+    try {
+      const response = await api.get('/api/watchlists/custom');
+      setWatchlists(response.data);
+    } catch (err) {
+      console.error('Failed to fetch watchlists:', err);
+    }
+  };
+
+  const fetchChartData = async (timeframe = '1m') => {
+    try {
+      const response = await api.get(`/api/charts/indices?timeframe=${timeframe}`);
+      setChartData(response.data.data);
+    } catch (err) {
+      console.error('Failed to fetch chart data:', err);
+    }
+  };
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    setUser(null);
+    setActiveTab('dashboard');
+  };
+
+  const analyzeChart = async (ticker) => {
+    try {
+      setLoading(true);
+      const response = await api.get(`/api/charts/${ticker}/analysis`);
+      setSelectedStock(response.data);
+      setActiveTab('ai-analysis');
+    } catch (err) {
+      alert('Failed to analyze chart. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addToWatchlist = async (ticker, name, listName = 'Default') => {
+    try {
+      const watchlistItem = {
+        ticker: ticker,
+        name: name,
+        list_name: listName,
+        notes: '',
+        priority: 1
+      };
+      
+      await api.post(`/api/watchlists/custom/${listName}/add-stock`, watchlistItem);
+      await fetchWatchlists(); // Refresh watchlists
+      alert(`Added ${ticker} to ${listName} watchlist!`);
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Failed to add to watchlist');
+    }
+  };
+
+  const exportToGoogleSheets = async () => {
+    setExportLoading(true);
+    try {
+      const response = await api.get('/api/export/etfs');
+      
+      // Convert to CSV format
+      const csvData = response.data.data;
+      const headers = Object.keys(csvData[0]).join(',');
+      const rows = csvData.map(row => Object.values(row).join(',')).join('\n');
+      const csvContent = headers + '\n' + rows;
+      
+      // Download CSV file
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `etf-data-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      
+      alert('ETF data exported successfully!');
+    } catch (err) {
+      alert('Failed to export data. Please try again.');
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  const updateETFData = async () => {
+    try {
+      setLoading(true);
+      await api.post('/api/etfs/update');
+      await fetchETFs();
+      alert('ETF data updated successfully!');
+    } catch (err) {
+      alert('Failed to update ETF data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Utility functions
+  const getChangeColor = (change) => {
+    if (change > 0) return 'text-green-400';
+    if (change < 0) return 'text-red-400';
+    return 'text-gray-400';
+  };
+
+  const getScoreColor = (score) => {
+    if (score >= 28) return 'bg-green-600';
+    if (score >= 20) return 'bg-yellow-600';
+    return 'bg-red-600';
+  };
+
+  const getRSBadge = (rs) => {
+    if (rs > 0.1) return <span className="bg-green-600 text-white px-2 py-1 rounded-full text-xs font-bold">Y</span>;
+    if (rs > 0.02) return <span className="bg-yellow-600 text-white px-2 py-1 rounded-full text-xs font-bold">M</span>;
+    return <span className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-bold">N</span>;
+  };
+
+  const getSwingDaysColor = (days) => {
+    if (days <= 5) return 'text-green-400';
+    if (days <= 15) return 'text-yellow-400';
+    return 'text-red-400';
+  };
+
+  const filteredEtfs = useMemo(() => {
+    return selectedSector ? etfs.filter(etf => etf.sector === selectedSector) : etfs;
+  }, [etfs, selectedSector]);
+
+  // Show loading spinner while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <FaSpinner className="animate-spin text-4xl text-blue-400 mx-auto mb-4" />
+          <p className="text-gray-400">Loading ETF Intelligence System...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login form if not authenticated
+  if (!user) {
+    return <LoginForm onLogin={handleLogin} />;
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-900 text-white">
+      {/* Top Navigation */}
+      <nav className="bg-gray-800 border-b border-gray-700 px-6 py-4">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-8">
+            <h1 className="text-2xl font-bold text-blue-400">ETF Intelligence Engine</h1>
+            <div className="flex space-x-1">
+              {[
+                { id: "dashboard", label: "🏠 Dashboard", icon: FaChartLine },
+                { id: "swing-grid", label: "📊 Analysis Grid", icon: FaTable },
+                { id: "ai-analysis", label: "🧠 AI Assistant", icon: FaRobot },
+                { id: "spreadsheet", label: "📋 Spreadsheet", icon: FaTable },
+                { id: "ai-chat", label: "💬 AI Chat", icon: FaRobot }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    activeTab === tab.id
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-300 hover:text-white hover:bg-gray-700"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setShowSettings(true)}
+              className="text-gray-300 hover:text-white p-2 rounded-lg hover:bg-gray-700"
+              title="Settings"
+            >
+              <FaCog className="text-lg" />
+            </button>
+            <button
+              onClick={handleLogout}
+              className="text-gray-300 hover:text-white p-2 rounded-lg hover:bg-gray-700"
+              title="Logout"
+            >
+              <FaSignOutAlt className="text-lg" />
+            </button>
+            <div className="text-sm text-gray-400">
+              Welcome, {user.email}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Settings Modal */}
+      <SettingsModal 
+        isOpen={showSettings} 
+        onClose={() => setShowSettings(false)} 
+        user={user} 
+      />
+
+      {/* Main Content */}
+      <main className="p-6">
+        {activeTab === "dashboard" && (
+          <div className="space-y-6">
+            {/* Dashboard Header with SA Greetings */}
+            {dashboardData && (
+              <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center">
+                    <h1 className="text-4xl font-bold mb-2">{dashboardData.greeting}</h1>
+                    <p className="text-gray-400">Your Personal Trading Command Center</p>
+                  </div>
+                  
+                  <div className="text-center">
+                    <div className="bg-gray-700 rounded-lg p-4 mb-2">
+                      <div className="flex items-center justify-center gap-2 text-lg font-semibold">
+                        {dashboardData.sa_time.flag} {dashboardData.sa_time.time}
+                      </div>
+                      <div className="text-sm text-gray-400">{dashboardData.sa_time.date}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-center">
+                    <div className="bg-gray-700 rounded-lg p-4 mb-2">
+                      <div className="flex items-center justify-center gap-2 text-lg font-semibold">
+                        {dashboardData.ny_time.flag} {dashboardData.ny_time.time}
+                      </div>
+                      <div className="text-sm text-gray-400">Market opens in: {dashboardData.market_countdown}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Major Indices with Interactive Charts */}
+            <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold">📈 Major Market Indices</h2>
+                <div className="flex gap-2">
+                  {['1d', '1w', '1m', '1y', '5y'].map((timeframe) => (
+                    <button
+                      key={timeframe}
+                      onClick={() => {
+                        setSelectedTimeframe(timeframe);
+                        fetchChartData(timeframe);
+                      }}
+                      className={`px-3 py-1 rounded-lg text-sm ${
+                        selectedTimeframe === timeframe 
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      {timeframe.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {['SPY', 'QQQ', 'DIA', 'IWM'].map((index) => (
+                  <div key={index} className="bg-gray-700 rounded-lg p-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="font-semibold text-blue-300">{index}</h3>
+                      {dashboardData?.major_indices[index] && (
+                        <span className={`font-bold ${getChangeColor(dashboardData.major_indices[index].change_1d)}`}>
+                          {dashboardData.major_indices[index].change_1d > 0 ? '+' : ''}{dashboardData.major_indices[index].change_1d.toFixed(2)}%
+                        </span>
+                      )}
+                    </div>
+                    {chartData[index] && (
+                      <IndexChart data={chartData[index]} title={index} timeframe={selectedTimeframe} />
+                    )}
+                    {dashboardData?.major_indices[index] && (
+                      <div className="text-sm text-gray-400 mt-2">
+                        ${dashboardData.major_indices[index].price.toFixed(2)}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Enhanced Market Score Card with Editable Formulas */}
+            {marketScore && (
+              <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-2xl font-bold">🎯 Market Situational Awareness Engine (MSAE)</h2>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => setShowFormulas(!showFormulas)}
+                      className="bg-gray-600 hover:bg-gray-700 px-3 py-2 rounded text-sm"
+                    >
+                      ⚙️ {showFormulas ? 'Hide' : 'Show'} Formulas
+                    </button>
+                    <button 
+                      onClick={exportToGoogleSheets}
+                      disabled={exportLoading}
+                      className="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-sm disabled:opacity-50"
+                    >
+                      {exportLoading ? 'Exporting...' : '📊 Export to CSV'}
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center">
+                    <div className={`text-5xl font-bold p-6 rounded-xl text-white ${getScoreColor(marketScore.total_score)}`}>
+                      {marketScore.total_score}/40
+                    </div>
+                    <p className="text-2xl font-semibold mt-3">{marketScore.classification}</p>
+                  </div>
+                  
+                  <div className="md:col-span-2">
+                    <h3 className="text-lg font-semibold mb-2">🎯 Current Recommendation:</h3>
+                    <p className="text-gray-300 mb-4 text-lg">{marketScore.recommendation}</p>
+                    
+                    <div className="grid grid-cols-4 gap-3 text-sm">
+                      {[
+                        { label: 'SATA Score', value: marketScore.sata_score, color: 'text-blue-400' },
+                        { label: 'ADX Trend', value: marketScore.adx_score, color: 'text-green-400' },
+                        { label: 'VIX Fear', value: marketScore.vix_score, color: 'text-red-400' },
+                        { label: 'ATR Vol', value: marketScore.atr_score, color: 'text-yellow-400' },
+                        { label: 'GMI Index', value: marketScore.gmi_score, color: 'text-purple-400' },
+                        { label: 'NH-NL', value: marketScore.nhnl_score, color: 'text-indigo-400' },
+                        { label: 'F&G Index', value: marketScore.fg_index_score, color: 'text-pink-400' },
+                        { label: 'QQQ ATH', value: marketScore.qqq_ath_distance_score, color: 'text-cyan-400' }
+                      ].map((metric, index) => (
+                        <div key={index} className="bg-gray-700 p-3 rounded-lg text-center">
+                          <div className="text-gray-400 text-xs">{metric.label}</div>
+                          <div className={`text-lg font-bold ${metric.color}`}>{metric.value}/5</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Formula Display Section */}
+                {showFormulas && (
+                  <div className="mt-6 pt-4 border-t border-gray-700">
+                    <div className="bg-gray-900 p-4 rounded-lg text-sm">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono">
+                        <div>
+                          <div className="text-blue-400 font-semibold">SATA Score Formula:</div>
+                          <div className="text-gray-300">Performance(40%) + RelStrength(30%) + Volume(20%) + Volatility(10%)</div>
+                        </div>
+                        <div>
+                          <div className="text-green-400 font-semibold">Relative Strength:</div>
+                          <div className="text-gray-300">RS = (ETF_Return - SPY_Return) / |SPY_Return|</div>
+                        </div>
+                        <div>
+                          <div className="text-red-400 font-semibold">ATR Calculation:</div>
+                          <div className="text-gray-300">ATR% = 14-day ATR / Current_Price * 100</div>
+                        </div>
+                        <div>
+                          <div className="text-yellow-400 font-semibold">GMMA Pattern:</div>
+                          <div className="text-gray-300">RWB: 1W&gt;0 &amp; 1M&gt;0 &amp; RS&gt;0, BWR: All negative</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Top 5 Swing Leaders */}
+            <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+              <h2 className="text-2xl font-bold mb-4">🚀 Top 5 Swing Leaders (SATA + RS Combined)</h2>
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                {swingLeaders.map((etf, index) => (
+                  <div key={etf.ticker} className="bg-gray-700 rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold mb-2">#{index + 1}</div>
+                    <div className="text-lg font-semibold text-blue-300">{etf.ticker}</div>
+                    <div className="text-sm text-gray-400 mb-2">{etf.name?.slice(0, 20)}...</div>
+                    <div className="text-sm">
+                      <div>SATA: <span className="font-semibold">{etf.sata_score}/10</span></div>
+                      <div className="mt-1">{getRSBadge(etf.relative_strength_1m)}</div>
+                      <div className={`mt-1 font-semibold ${getChangeColor(etf.change_1m)}`}>
+                        {etf.change_1m > 0 ? '+' : ''}{etf.change_1m?.toFixed(2)}% (1M)
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-1 mt-2">
+                      <button
+                        onClick={() => analyzeChart(etf.ticker)}
+                        className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs"
+                      >
+                        📈 Analyze
+                      </button>
+                      <button
+                        onClick={() => addToWatchlist(etf.ticker, etf.name, 'Leaders')}
+                        className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs"
+                      >
+                        ➕ Watch
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Risk-On/Off Summary */}
+            <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+              <h2 className="text-2xl font-bold mb-4">⚖️ Risk-On vs Risk-Off Signals</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-green-400 mb-3">🟢 Risk-On Signals</h3>
+                  <div className="space-y-2">
+                    {swingLeaders.filter(etf => 
+                      ['TQQQ', 'FFTY', 'MGK', 'QQQ', 'SPXL'].includes(etf.ticker) && etf.change_1d > 0
+                    ).map(etf => (
+                      <div key={etf.ticker} className="flex justify-between bg-green-900 bg-opacity-30 p-2 rounded">
+                        <span className="font-semibold">{etf.ticker}</span>
+                        <span className="text-green-400">+{etf.change_1d?.toFixed(2)}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-semibold text-red-400 mb-3">🔴 Risk-Off Signals</h3>
+                  <div className="space-y-2">
+                    {swingLeaders.filter(etf => 
+                      ['SQQQ', 'VIX', 'TLT', 'GLD'].includes(etf.ticker) && etf.change_1d > 0
+                    ).map(etf => (
+                      <div key={etf.ticker} className="flex justify-between bg-red-900 bg-opacity-30 p-2 rounded">
+                        <span className="font-semibold">{etf.ticker}</span>
+                        <span className="text-red-400">+{etf.change_1d?.toFixed(2)}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Update Data Button */}
+            <div className="text-center">
+              <button
+                onClick={updateETFData}
+                disabled={loading}
+                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 px-6 py-3 rounded-lg font-medium"
+              >
+                {loading ? 'Updating...' : '🔄 Update Market Data'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "ai-chat" && <AIChat user={user} />}
+
+        {/* Other tabs would continue here... */}
+        {activeTab !== "dashboard" && activeTab !== "ai-chat" && (
+          <div className="bg-gray-800 rounded-xl p-8 text-center">
+            <h2 className="text-2xl font-bold mb-4">🚧 Under Development</h2>
+            <p className="text-gray-400">
+              The {activeTab.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())} feature is being enhanced with all the new capabilities you requested.
+            </p>
+            <p className="text-gray-300 mt-2">
+              ✅ Authentication system integrated<br />
+              ✅ AI chat with OpenAI models<br />
+              ✅ Enhanced stock search with company logos<br />
+              ✅ TradingView integration ready<br />
+              ✅ Interactive charts with multiple timeframes<br />
+              🔄 Spreadsheet-style interface coming next...
+            </p>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
+
+export default App;
