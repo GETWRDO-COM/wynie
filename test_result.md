@@ -164,15 +164,18 @@ backend:
 
   - task: "TradingView Integration and Chart Drawing"
     implemented: true
-    working: unknown
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: unknown
-        agent: main"
+        agent: "main"
         comment: "Implemented TradingView account connection, chart drawing/annotation saving, interactive chart opening. Users can connect accounts, save custom drawings, and access advanced charting features with full drawing capabilities."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: TradingView integration working: account connection, chart drawing save/retrieve. All TradingView endpoints functional with proper authentication."
 
   - task: "Interactive Charts with Multiple Timeframes"
     implemented: true
