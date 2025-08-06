@@ -1589,9 +1589,14 @@ async def get_formula_config():
             return default_config
         
         # Remove MongoDB ObjectId from response and extract config
-        config_data = config[0]
+        config_data = dict(config[0])
         if '_id' in config_data:
             del config_data['_id']
+        
+        # Convert any datetime objects to strings
+        for key, value in config_data.items():
+            if isinstance(value, datetime):
+                config_data[key] = value.isoformat()
         
         # If config is wrapped in a 'config' key, extract it
         if 'config' in config_data:
