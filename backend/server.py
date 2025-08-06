@@ -555,13 +555,89 @@ async def get_sectors():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@api_router.get("/etfs/leaders")
-async def get_leaders(timeframe: str = Query("1m", description="1d, 1w, 1m, 3m, 6m")):
-    """Get top performing ETFs by timeframe"""
+@api_router.get("/etfs/swing-leaders")
+async def get_swing_leaders():
+    """Get top 5 ETFs based on SATA + RS combination"""
     try:
-        sort_field = f"change_{timeframe}"
-        etfs = await db.etfs.find().sort(sort_field, -1).limit(20).to_list(length=20)
-        return [ETFData(**etf) for etf in etfs]
+        etfs = await db.etfs.find().to_list(length=None)
+        
+        # Calculate combined swing score
+        for etf in etfs:
+            swing_score = etf.get('sata_score', 0) + (etf.get('relative_strength_1m', 0) * 10)
+            etf['swing_score'] = swing_score
+        
+        # Sort by swing score
+        top_etfs = sorted(etfs, key=lambda x: x.get('swing_score', 0), reverse=True)[:5]
+        
+        return [ETFData(**etf) for etf in top_etfs]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Stock lookup for any ticker
+@api_router.get("/stocks/{ticker}")
+async def get_stock_info(ticker: str):
+    """Get stock data for any ticker"""
+    try:
+        stock_data = await get_stock_data(ticker.upper())
+        if not stock_data:
+            raise HTTPException(status_code=404, detail=f"Could not fetch data for {ticker}")
+        return stock_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Custom Watchlists Management
+@api_router.post("/watchlists/lists", response_model=CustomWatchlist)
+async def create_custom_watchlist(watchlist: CustomWatchlist):
+    """Create a new custom watchlist"""
+    try:
+        await db.custom_watchlists.insert_one(watchlist.dict())
+        return watchlist
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/watchlists/lists", response_model=List[CustomWatchlist])
+async def get_custom_watchlists():
+    """Get all custom watchlists"""
+    try:
+        lists = await db.custom_watchlists.find().to_list(length=None)
+        return [CustomWatchlist(**wl) for wl in lists]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Historical Data Routes
+@api_router.get("/history", response_model=List[HistoricalSnapshot])
+async def get_historical_snapshots(days: int = Query(30, description="Number of days")):
+    """Get historical snapshots"""
+    try:
+        cutoff_date = datetime.utcnow() - timedelta(days=days)
+        snapshots = await db.historical_snapshots.find(
+            {"date": {"$gte": cutoff_date}}
+        ).sort("date", -1).to_list(length=days)
+        
+        return [HistoricalSnapshot(**snapshot) for snapshot in snapshots]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Journal Routes
+@api_router.post("/journal", response_model=JournalEntry)
+async def create_journal_entry(entry: JournalEntry):
+    """Create new journal entry"""
+    try:
+        await db.journal_entries.insert_one(entry.dict())
+        return entry
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/journal", response_model=List[JournalEntry])
+async def get_journal_entries(days: int = Query(30)):
+    """Get recent journal entries"""
+    try:
+        cutoff_date = datetime.utcnow() - timedelta(days=days)
+        entries = await db.journal_entries.find(
+            {"date": {"$gte": cutoff_date}}
+        ).sort("date", -1).to_list(length=100)
+        
+        return [JournalEntry(**entry) for entry in entries]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
