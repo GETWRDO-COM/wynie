@@ -1250,12 +1250,18 @@ async def get_custom_watchlists_with_stocks(current_user: User = Depends(get_cur
     try:
         watchlists = await db.custom_watchlists.find().to_list(length=None)
         
+        result = []
         for watchlist in watchlists:
             # Get stocks in this watchlist
             stocks = await db.watchlists.find({"list_name": watchlist["name"]}).to_list(length=None)
-            watchlist["stocks"] = [WatchlistItem(**stock) for stock in stocks]
+            
+            # Convert to dict and add stocks
+            watchlist_dict = dict(watchlist)
+            watchlist_dict["stocks"] = [WatchlistItem(**stock) for stock in stocks]
+            
+            result.append(watchlist_dict)
         
-        return [CustomWatchlist(**wl) for wl in watchlists]
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
