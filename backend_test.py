@@ -24,6 +24,8 @@ class ETFBackendTester:
         self.session = requests.Session()
         self.test_results = []
         self.watchlist_items_created = []
+        self.auth_token = None
+        self.chat_session_id = None
         
     def log_test(self, test_name: str, success: bool, details: str = "", response_data: Any = None):
         """Log test results"""
