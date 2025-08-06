@@ -429,44 +429,114 @@ const ETFIntelligenceSystem = () => {
               <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
                 <h2 className="text-2xl font-bold mb-4">📊 Major Market Indices</h2>
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-gray-700 rounded-lg">
+                  <div className="flex justify-between items-center p-4 bg-gray-700 rounded-lg border-l-4 border-blue-500">
                     <div>
-                      <span className="font-bold text-lg">S&P 500</span>
+                      <span className="font-bold text-xl">S&P 500</span>
                       <span className="text-gray-400 ml-2">(SPY)</span>
                     </div>
                     <div className="text-right">
-                      <div className="text-xl font-bold">Loading...</div>
-                      <div className="text-sm text-gray-400">Last: --:--</div>
+                      <div className="text-2xl font-bold">
+                        {liveIndices.SPY ? `$${liveIndices.SPY.price?.toFixed(2)}` : 'Loading...'}
+                      </div>
+                      <div className={`text-sm font-semibold ${
+                        liveIndices.SPY ? getChangeColor(liveIndices.SPY.change_1d) : 'text-gray-400'
+                      }`}>
+                        {liveIndices.SPY ? 
+                          `${liveIndices.SPY.change_1d > 0 ? '+' : ''}${liveIndices.SPY.change_1d?.toFixed(2)}%` 
+                          : 'Loading...'
+                        }
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        Last: {liveIndices.SPY?.last_updated || '--:--'}
+                      </div>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-700 rounded-lg">
+                  <div className="flex justify-between items-center p-4 bg-gray-700 rounded-lg border-l-4 border-green-500">
                     <div>
-                      <span className="font-bold text-lg">NASDAQ</span>
+                      <span className="font-bold text-xl">NASDAQ</span>
                       <span className="text-gray-400 ml-2">(QQQ)</span>
                     </div>
                     <div className="text-right">
-                      <div className="text-xl font-bold">Loading...</div>
-                      <div className="text-sm text-gray-400">Last: --:--</div>
+                      <div className="text-2xl font-bold">
+                        {liveIndices.QQQ ? `$${liveIndices.QQQ.price?.toFixed(2)}` : 'Loading...'}
+                      </div>
+                      <div className={`text-sm font-semibold ${
+                        liveIndices.QQQ ? getChangeColor(liveIndices.QQQ.change_1d) : 'text-gray-400'
+                      }`}>
+                        {liveIndices.QQQ ? 
+                          `${liveIndices.QQQ.change_1d > 0 ? '+' : ''}${liveIndices.QQQ.change_1d?.toFixed(2)}%` 
+                          : 'Loading...'
+                        }
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        Last: {liveIndices.QQQ?.last_updated || '--:--'}
+                      </div>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-700 rounded-lg">
+                  <div className="flex justify-between items-center p-4 bg-gray-700 rounded-lg border-l-4 border-purple-500">
                     <div>
-                      <span className="font-bold text-lg">Dow Jones</span>
+                      <span className="font-bold text-xl">Dow Jones</span>
                       <span className="text-gray-400 ml-2">(DIA)</span>
                     </div>
                     <div className="text-right">
-                      <div className="text-xl font-bold">Loading...</div>
-                      <div className="text-sm text-gray-400">Last: --:--</div>
+                      <div className="text-2xl font-bold">
+                        {liveIndices.DIA ? `$${liveIndices.DIA.price?.toFixed(2)}` : 'Loading...'}
+                      </div>
+                      <div className={`text-sm font-semibold ${
+                        liveIndices.DIA ? getChangeColor(liveIndices.DIA.change_1d) : 'text-gray-400'
+                      }`}>
+                        {liveIndices.DIA ? 
+                          `${liveIndices.DIA.change_1d > 0 ? '+' : ''}${liveIndices.DIA.change_1d?.toFixed(2)}%` 
+                          : 'Loading...'
+                        }
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        Last: {liveIndices.DIA?.last_updated || '--:--'}
+                      </div>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-700 rounded-lg">
+                  <div className="flex justify-between items-center p-4 bg-gray-700 rounded-lg border-l-4 border-orange-500">
                     <div>
-                      <span className="font-bold text-lg">Russell 2000</span>
+                      <span className="font-bold text-xl">Russell 2000</span>
                       <span className="text-gray-400 ml-2">(IWM)</span>
                     </div>
                     <div className="text-right">
-                      <div className="text-xl font-bold">Loading...</div>
-                      <div className="text-sm text-gray-400">Last: --:--</div>
+                      <div className="text-2xl font-bold">
+                        {liveIndices.IWM ? `$${liveIndices.IWM.price?.toFixed(2)}` : 'Loading...'}
+                      </div>
+                      <div className={`text-sm font-semibold ${
+                        liveIndices.IWM ? getChangeColor(liveIndices.IWM.change_1d) : 'text-gray-400'
+                      }`}>
+                        {liveIndices.IWM ? 
+                          `${liveIndices.IWM.change_1d > 0 ? '+' : ''}${liveIndices.IWM.change_1d?.toFixed(2)}%` 
+                          : 'Loading...'
+                        }
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        Last: {liveIndices.IWM?.last_updated || '--:--'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center p-4 bg-gray-700 rounded-lg border-l-4 border-red-500">
+                    <div>
+                      <span className="font-bold text-xl">VIX</span>
+                      <span className="text-gray-400 ml-2">(Volatility)</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold">
+                        {liveIndices.VIX ? `${liveIndices.VIX.price?.toFixed(2)}` : 'Loading...'}
+                      </div>
+                      <div className={`text-sm font-semibold ${
+                        liveIndices.VIX ? getChangeColor(liveIndices.VIX.change_1d) : 'text-gray-400'
+                      }`}>
+                        {liveIndices.VIX ? 
+                          `${liveIndices.VIX.change_1d > 0 ? '+' : ''}${liveIndices.VIX.change_1d?.toFixed(2)}%` 
+                          : 'Loading...'
+                        }
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        Last: {liveIndices.VIX?.last_updated || '--:--'}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -476,41 +546,69 @@ const ETFIntelligenceSystem = () => {
               <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
                 <h2 className="text-2xl font-bold mb-4">😨 CNN Fear & Greed Index</h2>
                 <div className="text-center">
-                  <div className="relative w-40 h-40 mx-auto mb-4">
-                    <div className="w-full h-full rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 p-1">
+                  <div className="relative w-48 h-48 mx-auto mb-6">
+                    <div className="w-full h-full rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 p-2">
                       <div className="w-full h-full rounded-full bg-gray-800 flex items-center justify-center">
                         <div className="text-center">
-                          <div className="text-3xl font-bold">Loading...</div>
+                          <div className="text-4xl font-bold text-white">
+                            {fearGreedData ? fearGreedData.index : 'Loading...'}
+                          </div>
                           <div className="text-sm text-gray-400">Index Score</div>
                         </div>
                       </div>
                     </div>
+                    {/* Needle indicator based on score */}
+                    {fearGreedData && (
+                      <div 
+                        className="absolute top-1/2 left-1/2 w-1 h-20 bg-white transform -translate-x-1/2 origin-bottom"
+                        style={{
+                          transform: `translate(-50%, -100%) rotate(${(fearGreedData.index - 50) * 1.8}deg)`,
+                          transformOrigin: 'bottom center'
+                        }}
+                      />
+                    )}
                   </div>
-                  <div className="space-y-2">
-                    <div className="text-xl font-semibold">Loading...</div>
+                  <div className="space-y-3">
+                    <div className={`text-2xl font-bold ${
+                      fearGreedData?.rating === 'Extreme Greed' ? 'text-green-400' :
+                      fearGreedData?.rating === 'Greed' ? 'text-green-300' :
+                      fearGreedData?.rating === 'Neutral' ? 'text-yellow-400' :
+                      fearGreedData?.rating === 'Fear' ? 'text-orange-400' :
+                      'text-red-400'
+                    }`}>
+                      {fearGreedData ? fearGreedData.rating : 'Loading...'}
+                    </div>
                     <div className="text-sm text-gray-400">Market Sentiment</div>
                     <div className="text-xs text-gray-500">
-                      Last Updated: Loading...
+                      Last Updated: {fearGreedData ? fearGreedData.last_updated : 'Loading...'}
                     </div>
                   </div>
                 </div>
                 
-                <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-                  <div className="bg-gray-700 p-3 rounded">
-                    <div className="text-gray-400">Stock Price Momentum</div>
-                    <div className="font-semibold">Loading...</div>
+                <div className="mt-6 grid grid-cols-2 gap-3 text-sm">
+                  <div className="bg-gray-700 p-3 rounded-lg">
+                    <div className="text-gray-400 text-xs">Stock Price Momentum</div>
+                    <div className="font-semibold text-lg">
+                      {fearGreedData ? `${fearGreedData.components?.stock_price_momentum || 0}` : 'Loading...'}
+                    </div>
                   </div>
-                  <div className="bg-gray-700 p-3 rounded">
-                    <div className="text-gray-400">Market Volatility</div>
-                    <div className="font-semibold">Loading...</div>
+                  <div className="bg-gray-700 p-3 rounded-lg">
+                    <div className="text-gray-400 text-xs">Market Volatility</div>
+                    <div className="font-semibold text-lg">
+                      {fearGreedData ? `${fearGreedData.components?.market_volatility || 0}` : 'Loading...'}
+                    </div>
                   </div>
-                  <div className="bg-gray-700 p-3 rounded">
-                    <div className="text-gray-400">Safe Haven Demand</div>
-                    <div className="font-semibold">Loading...</div>
+                  <div className="bg-gray-700 p-3 rounded-lg">
+                    <div className="text-gray-400 text-xs">Safe Haven Demand</div>
+                    <div className="font-semibold text-lg">
+                      {fearGreedData ? `${fearGreedData.components?.safe_haven_demand || 0}` : 'Loading...'}
+                    </div>
                   </div>
-                  <div className="bg-gray-700 p-3 rounded">
-                    <div className="text-gray-400">Put/Call Ratio</div>
-                    <div className="font-semibold">Loading...</div>
+                  <div className="bg-gray-700 p-3 rounded-lg">
+                    <div className="text-gray-400 text-xs">Put/Call Ratio</div>
+                    <div className="font-semibold text-lg">
+                      {fearGreedData ? `${fearGreedData.components?.put_call_ratio || 0}` : 'Loading...'}
+                    </div>
                   </div>
                 </div>
               </div>
