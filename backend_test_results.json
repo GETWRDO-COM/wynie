@@ -1,103 +1,121 @@
 {
   "summary": {
-    "passed": 13,
-    "failed": 0
+    "passed": 0,
+    "failed": 16
   },
   "detailed_results": [
     {
       "test": "API Root",
-      "success": true,
-      "details": "Root endpoint accessible: ETF Intelligence System API",
-      "timestamp": "2025-08-06T08:52:15.657655",
+      "success": false,
+      "details": "HTTP 404: {\"detail\":\"Not Found\"}",
+      "timestamp": "2025-08-06T10:03:25.709697",
       "response_data": null
     },
     {
-      "test": "Dashboard API",
-      "success": true,
-      "details": "SA greetings, dual timezone display, and market countdown working correctly",
-      "timestamp": "2025-08-06T08:52:15.706190",
+      "test": "Enhanced Dashboard API",
+      "success": false,
+      "details": "HTTP 404: {\"detail\":\"Not Found\"}",
+      "timestamp": "2025-08-06T10:03:25.719578",
+      "response_data": null
+    },
+    {
+      "test": "Live Market Data APIs",
+      "success": false,
+      "details": "Live indices failed: HTTP 404",
+      "timestamp": "2025-08-06T10:03:25.729508",
+      "response_data": null
+    },
+    {
+      "test": "Export & Integration APIs",
+      "success": false,
+      "details": "ETF export failed: HTTP 404",
+      "timestamp": "2025-08-06T10:03:25.778450",
+      "response_data": null
+    },
+    {
+      "test": "Formula Configuration APIs",
+      "success": false,
+      "details": "Get config failed: HTTP 404",
+      "timestamp": "2025-08-06T10:03:25.786274",
       "response_data": null
     },
     {
       "test": "ETF Data Update",
-      "success": true,
-      "details": "Successfully updated 23 ETFs from yfinance",
-      "timestamp": "2025-08-06T08:52:19.918280",
-      "response_data": {
-        "message": "Updated 23 ETFs",
-        "count": 23
-      }
-    },
-    {
-      "test": "Get ETFs",
-      "success": true,
-      "details": "Retrieved 23 ETFs, filtering works correctly",
-      "timestamp": "2025-08-06T08:52:19.983632",
+      "success": false,
+      "details": "HTTP 404: {\"detail\":\"Not Found\"}",
+      "timestamp": "2025-08-06T10:03:25.792107",
       "response_data": null
     },
     {
-      "test": "ETF Calculations",
-      "success": true,
-      "details": "All calculations appear mathematically correct",
-      "timestamp": "2025-08-06T08:52:19.991183",
+      "test": "Get ETFs",
+      "success": false,
+      "details": "HTTP 404: {\"detail\":\"Not Found\"}",
+      "timestamp": "2025-08-06T10:03:25.838861",
+      "response_data": null
+    },
+    {
+      "test": "Enhanced Calculations",
+      "success": false,
+      "details": "HTTP 404",
+      "timestamp": "2025-08-06T10:03:25.847248",
       "response_data": null
     },
     {
       "test": "Swing Leaders",
-      "success": true,
-      "details": "Top 5 swing leaders returned with correct SATA + RS scoring",
-      "timestamp": "2025-08-06T08:52:19.999472",
+      "success": false,
+      "details": "HTTP 404: {\"detail\":\"Not Found\"}",
+      "timestamp": "2025-08-06T10:03:25.895389",
       "response_data": null
     },
     {
       "test": "Universal Stock Lookup",
-      "success": true,
-      "details": "Successfully retrieved data for 5 different stock tickers",
-      "timestamp": "2025-08-06T08:52:21.668373",
+      "success": false,
+      "details": "Failed for AAPL: HTTP 404",
+      "timestamp": "2025-08-06T10:03:25.902471",
       "response_data": null
     },
     {
       "test": "Watchlist Management",
-      "success": true,
-      "details": "All CRUD operations working correctly",
-      "timestamp": "2025-08-06T08:52:21.833742",
+      "success": false,
+      "details": "Create failed: HTTP 404",
+      "timestamp": "2025-08-06T10:03:25.950028",
       "response_data": null
     },
     {
       "test": "Custom Watchlist Lists",
-      "success": true,
-      "details": "Custom watchlist lists management working correctly",
-      "timestamp": "2025-08-06T08:52:21.847314",
+      "success": false,
+      "details": "Create failed: HTTP 404",
+      "timestamp": "2025-08-06T10:03:25.956537",
       "response_data": null
     },
     {
       "test": "Market Score",
-      "success": true,
-      "details": "MSAE scoring system working correctly",
-      "timestamp": "2025-08-06T08:52:21.901100",
+      "success": false,
+      "details": "Get failed: HTTP 404",
+      "timestamp": "2025-08-06T10:03:25.963204",
       "response_data": null
     },
     {
       "test": "Chart Analysis",
-      "success": true,
-      "details": "AI Chart Analysis working for 3 tickers with realistic recommendations",
-      "timestamp": "2025-08-06T08:52:22.626783",
+      "success": false,
+      "details": "HTTP 404 for SPY: {\"detail\":\"Not Found\"}",
+      "timestamp": "2025-08-06T10:03:26.010284",
       "response_data": null
     },
     {
       "test": "Journal Management",
-      "success": true,
-      "details": "Journal CRUD operations working correctly",
-      "timestamp": "2025-08-06T08:52:22.686950",
+      "success": false,
+      "details": "Create failed: HTTP 404",
+      "timestamp": "2025-08-06T10:03:26.017430",
       "response_data": null
     },
     {
       "test": "Historical Data",
-      "success": true,
-      "details": "Historical snapshots endpoint working correctly",
-      "timestamp": "2025-08-06T08:52:22.747683",
+      "success": false,
+      "details": "HTTP 404: {\"detail\":\"Not Found\"}",
+      "timestamp": "2025-08-06T10:03:26.023646",
       "response_data": null
     }
   ],
-  "timestamp": "2025-08-06T08:52:22.794890"
+  "timestamp": "2025-08-06T10:03:26.023859"
 }
