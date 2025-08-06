@@ -1535,7 +1535,7 @@ class ETFBackendTester:
             config_data = get_response.json()
             
             # Validate configuration structure
-            expected_config_sections = ['relative_strength', 'sata_weights', 'atr_calculation', 'gmma_pattern']
+            expected_config_sections = ['relative_strength', 'sata_weights', 'atr_calculation', 'gmma_patterns']
             missing_sections = [section for section in expected_config_sections if section not in config_data]
             if missing_sections:
                 self.log_test("Formula Configuration APIs", False, f"Missing config sections: {missing_sections}")
