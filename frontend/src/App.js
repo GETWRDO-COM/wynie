@@ -8,46 +8,87 @@ const API = `${BACKEND_URL}/api`;
 const ETFIntelligenceSystem = () => {
   const [etfs, setEtfs] = useState([]);
   const [watchlists, setWatchlists] = useState([]);
+  const [customWatchlists, setCustomWatchlists] = useState([]);
   const [marketScore, setMarketScore] = useState(null);
+  const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [selectedSector, setSelectedSector] = useState("");
   const [sectors, setSectors] = useState([]);
   const [leaders, setLeaders] = useState([]);
+  const [swingLeaders, setSwingLeaders] = useState([]);
   const [chartAnalysis, setChartAnalysis] = useState(null);
   const [selectedTicker, setSelectedTicker] = useState("");
+  const [historicalData, setHistoricalData] = useState([]);
+  const [journalEntries, setJournalEntries] = useState([]);
+  const [stockLookup, setStockLookup] = useState("");
+  const [stockData, setStockData] = useState(null);
+  
   const [watchlistForm, setWatchlistForm] = useState({
     ticker: "",
     name: "",
-    list_name: "Growth Watchlist",
+    list_name: "",
     notes: "",
     tags: "",
     priority: 3
   });
 
+  const [newWatchlistForm, setNewWatchlistForm] = useState({
+    name: "",
+    description: "",
+    color: "#3B82F6"
+  });
+
+  const [journalForm, setJournalForm] = useState({
+    title: "",
+    content: "",
+    tags: "",
+    mood: "neutral"
+  });
+
   // Fetch initial data
   useEffect(() => {
     fetchData();
+    const interval = setInterval(fetchDashboardData, 30000); // Update every 30 seconds
+    return () => clearInterval(interval);
   }, []);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [etfRes, marketRes, sectorsRes, leadersRes] = await Promise.all([
+      const [etfRes, marketRes, sectorsRes, leadersRes, dashboardRes, customWatchlistsRes] = await Promise.all([
         axios.get(`${API}/etfs`),
         axios.get(`${API}/market-score`),
         axios.get(`${API}/etfs/sectors`),
-        axios.get(`${API}/etfs/leaders?timeframe=1m`)
+        axios.get(`${API}/etfs/leaders?timeframe=1m`),
+        axios.get(`${API}/dashboard`),
+        axios.get(`${API}/watchlists/lists`)
       ]);
 
       setEtfs(etfRes.data);
       setMarketScore(marketRes.data);
       setSectors(sectorsRes.data.sectors);
       setLeaders(leadersRes.data);
+      setDashboardData(dashboardRes.data);
+      setCustomWatchlists(customWatchlistsRes.data);
+      
+      // Fetch swing leaders
+      const swingRes = await axios.get(`${API}/etfs/swing-leaders`);
+      setSwingLeaders(swingRes.data);
+
     } catch (error) {
       console.error("Error fetching data:", error);
     }
     setLoading(false);
+  };
+
+  const fetchDashboardData = async () => {
+    try {
+      const response = await axios.get(`${API}/dashboard`);
+      setDashboardData(response.data);
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    }
   };
 
   const updateETFs = async () => {
@@ -61,44 +102,31 @@ const ETFIntelligenceSystem = () => {
     setLoading(false);
   };
 
-  const fetchWatchlists = async () => {
-    try {
-      const response = await axios.get(`${API}/watchlists`);
-      setWatchlists(response.data);
-    } catch (error) {
-      console.error("Error fetching watchlists:", error);
-    }
-  };
-
-  const addToWatchlist = async (e) => {
-    e.preventDefault();
-    try {
-      const formData = {
-        ...watchlistForm,
-        tags: watchlistForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
-      };
-      await axios.post(`${API}/watchlists`, formData);
-      setWatchlistForm({
-        ticker: "",
-        name: "",
-        list_name: "Growth Watchlist",
-        notes: "",
-        tags: "",
-        priority: 3
-      });
-      fetchWatchlists();
-    } catch (error) {
-      console.error("Error adding to watchlist:", error);
-    }
-  };
-
   const analyzeChart = async (ticker) => {
     setSelectedTicker(ticker);
     try {
+      setLoading(true);
       const response = await axios.get(`${API}/charts/${ticker}/analysis`);
       setChartAnalysis(response.data);
     } catch (error) {
       console.error("Error getting chart analysis:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const lookupStock = async () => {
+    if (!stockLookup.trim()) return;
+    
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API}/stocks/${stockLookup.trim().toUpperCase()}`);
+      setStockData({...response.data, ticker: stockLookup.trim().toUpperCase()});
+    } catch (error) {
+      console.error("Error looking up stock:", error);
+      setStockData(null);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -109,27 +137,33 @@ const ETFIntelligenceSystem = () => {
   };
 
   const getChangeColor = (change) => {
-    if (change > 0) return "text-green-600";
-    if (change < 0) return "text-red-600";
-    return "text-gray-600";
+    if (change > 0) return "text-green-400";
+    if (change < 0) return "text-red-400";
+    return "text-gray-400";
   };
 
   const getRSBadge = (rs) => {
-    if (rs > 0.1) return <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Strong</span>;
-    if (rs > 0) return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">Moderate</span>;
-    return <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">Weak</span>;
+    if (rs > 0.1) return <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded font-semibold">🔥 Strong</span>;
+    if (rs > 0.02) return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">➡️ Moderate</span>;
+    return <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">📉 Weak</span>;
+  };
+
+  const getSwingDaysColor = (days) => {
+    if (days <= 5) return "text-green-400"; // Early swing
+    if (days <= 15) return "text-yellow-400"; // Mid swing
+    return "text-red-400"; // Late swing
   };
 
   const filteredEtfs = etfs.filter(etf => 
     selectedSector === "" || etf.sector === selectedSector
   );
 
-  if (loading && etfs.length === 0) {
+  if (loading && !dashboardData) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="text-white mt-4 text-lg">Loading ETF Intelligence System...</p>
+          <p className="text-white mt-4 text-lg">Loading ETF Intelligence Engine...</p>
         </div>
       </div>
     );
