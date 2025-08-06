@@ -147,6 +147,10 @@ class TradingViewAccount(BaseModel):
     access_token: Optional[str] = None
     connected_at: datetime = Field(default_factory=datetime.utcnow)
 
+class TradingViewAccountCreate(BaseModel):
+    username: str
+    access_token: Optional[str] = None
+
 class ChartDrawing(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
@@ -154,6 +158,11 @@ class ChartDrawing(BaseModel):
     drawing_data: Dict  # TradingView drawing data
     timeframe: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class ChartDrawingCreate(BaseModel):
+    ticker: str
+    drawing_data: Dict
+    timeframe: str
 
 # Enhanced ETF Data Models (keeping existing structure)
 class ETFData(BaseModel):
