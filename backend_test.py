@@ -40,6 +40,25 @@ class ETFBackendTester:
         status = "✅ PASS" if success else "❌ FAIL"
         print(f"{status} {test_name}: {details}")
         
+    def test_api_root(self):
+        """Test root API endpoint"""
+        try:
+            response = self.session.get(f"{API_BASE}/")
+            if response.status_code == 200:
+                data = response.json()
+                if "message" in data:
+                    self.log_test("API Root", True, f"Root endpoint accessible: {data['message']}")
+                    return True
+                else:
+                    self.log_test("API Root", False, "Root endpoint missing message field")
+                    return False
+            else:
+                self.log_test("API Root", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("API Root", False, f"Connection error: {str(e)}")
+            return False
+
     def test_authentication_system(self):
         """Test Authentication System with JWT and User Management"""
         try:
