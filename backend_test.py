@@ -432,58 +432,162 @@ class ETFBackendTester:
             self.log_test("Market Score", False, f"Error: {str(e)}")
             return False
     
-    def test_chart_analysis(self):
-        """Test AI Chart Analysis endpoint"""
+    def test_universal_stock_lookup(self):
+        """Test Universal Stock Lookup for any ticker"""
         try:
-            # Test with a common ticker
-            ticker = "SPY"
-            response = self.session.get(f"{API_BASE}/charts/{ticker}/analysis")
+            # Test with popular stocks beyond ETFs
+            test_tickers = ['AAPL', 'TSLA', 'MSFT', 'GOOGL', 'NVDA']
             
-            if response.status_code != 200:
-                self.log_test("Chart Analysis", False, f"HTTP {response.status_code}: {response.text}")
-                return False
+            for ticker in test_tickers:
+                response = self.session.get(f"{API_BASE}/stocks/{ticker}")
+                if response.status_code != 200:
+                    self.log_test("Universal Stock Lookup", False, f"Failed for {ticker}: HTTP {response.status_code}")
+                    return False
+                
+                stock_data = response.json()
+                
+                # Validate stock data structure
+                required_fields = ['current_price', 'change_1d', 'change_1w', 'change_1m', 
+                                 'change_3m', 'change_6m', 'atr_percent', 'volume']
+                missing_fields = [field for field in required_fields if field not in stock_data]
+                if missing_fields:
+                    self.log_test("Universal Stock Lookup", False, f"{ticker} missing fields: {missing_fields}")
+                    return False
+                
+                # Validate data types and ranges
+                if stock_data['current_price'] <= 0:
+                    self.log_test("Universal Stock Lookup", False, f"{ticker} invalid price: {stock_data['current_price']}")
+                    return False
+                
+                if stock_data['atr_percent'] < 0:
+                    self.log_test("Universal Stock Lookup", False, f"{ticker} invalid ATR: {stock_data['atr_percent']}")
+                    return False
             
-            analysis = response.json()
-            
-            # Validate analysis structure
-            required_fields = ['ticker', 'timeframe', 'pattern_analysis', 'support_levels', 
-                             'resistance_levels', 'trend_analysis', 'risk_reward', 
-                             'recommendation', 'confidence']
-            
-            missing_fields = [field for field in required_fields if field not in analysis]
-            if missing_fields:
-                self.log_test("Chart Analysis", False, f"Missing fields: {missing_fields}")
-                return False
-            
-            # Validate data types
-            if analysis['ticker'] != ticker:
-                self.log_test("Chart Analysis", False, f"Ticker mismatch: {analysis['ticker']} != {ticker}")
-                return False
-            
-            if not isinstance(analysis['support_levels'], list):
-                self.log_test("Chart Analysis", False, "Support levels not a list")
-                return False
-            
-            if not isinstance(analysis['resistance_levels'], list):
-                self.log_test("Chart Analysis", False, "Resistance levels not a list")
-                return False
-            
-            confidence = analysis.get('confidence', 0)
-            if not (0 <= confidence <= 1):
-                self.log_test("Chart Analysis", False, f"Confidence {confidence} not in range 0-1")
-                return False
-            
-            # Test with different timeframe
-            response_1h = self.session.get(f"{API_BASE}/charts/{ticker}/analysis?timeframe=1h")
-            if response_1h.status_code != 200:
-                self.log_test("Chart Analysis", False, f"Timeframe parameter not working: HTTP {response_1h.status_code}")
-                return False
-            
-            self.log_test("Chart Analysis", True, "AI Chart Analysis endpoint working correctly")
+            self.log_test("Universal Stock Lookup", True, f"Successfully retrieved data for {len(test_tickers)} different stock tickers")
             return True
             
         except Exception as e:
-            self.log_test("Chart Analysis", False, f"Error: {str(e)}")
+            self.log_test("Universal Stock Lookup", False, f"Error: {str(e)}")
+            return False
+    
+    def test_journal_management(self):
+        """Test Journal Management CRUD operations"""
+        try:
+            # Test CREATE journal entry
+            test_entry = {
+                "title": "Test Trading Journal Entry",
+                "content": "This is a test journal entry for API testing. Market conditions were favorable today.",
+                "tags": ["test", "swing-trading", "bullish"],
+                "market_score": 25,
+                "trades_mentioned": ["SPY", "QQQ"],
+                "mood": "positive"
+            }
+            
+            create_response = self.session.post(f"{API_BASE}/journal", json=test_entry)
+            if create_response.status_code != 200:
+                self.log_test("Journal Management", False, f"Create failed: HTTP {create_response.status_code}")
+                return False
+            
+            created_entry = create_response.json()
+            entry_id = created_entry.get('id')
+            if not entry_id:
+                self.log_test("Journal Management", False, "Created entry missing ID")
+                return False
+            
+            # Test READ journal entries
+            get_response = self.session.get(f"{API_BASE}/journal")
+            if get_response.status_code != 200:
+                self.log_test("Journal Management", False, f"Get failed: HTTP {get_response.status_code}")
+                return False
+            
+            entries = get_response.json()
+            created_found = any(entry.get('id') == entry_id for entry in entries)
+            if not created_found:
+                self.log_test("Journal Management", False, "Created entry not found in get all")
+                return False
+            
+            # Test with days parameter
+            days_response = self.session.get(f"{API_BASE}/journal?days=7")
+            if days_response.status_code != 200:
+                self.log_test("Journal Management", False, f"Days parameter failed: HTTP {days_response.status_code}")
+                return False
+            
+            self.log_test("Journal Management", True, "Journal CRUD operations working correctly")
+            return True
+            
+        except Exception as e:
+            self.log_test("Journal Management", False, f"Error: {str(e)}")
+            return False
+    
+    def test_historical_data(self):
+        """Test Historical Data snapshots"""
+        try:
+            # Test GET historical snapshots
+            response = self.session.get(f"{API_BASE}/history")
+            if response.status_code != 200:
+                self.log_test("Historical Data", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            snapshots = response.json()
+            # It's OK if no historical data exists yet, but endpoint should work
+            
+            # Test with days parameter
+            days_response = self.session.get(f"{API_BASE}/history?days=7")
+            if days_response.status_code != 200:
+                self.log_test("Historical Data", False, f"Days parameter failed: HTTP {days_response.status_code}")
+                return False
+            
+            # Test with different days parameter
+            days_response_30 = self.session.get(f"{API_BASE}/history?days=30")
+            if days_response_30.status_code != 200:
+                self.log_test("Historical Data", False, f"30 days parameter failed: HTTP {days_response_30.status_code}")
+                return False
+            
+            self.log_test("Historical Data", True, "Historical snapshots endpoint working correctly")
+            return True
+            
+        except Exception as e:
+            self.log_test("Historical Data", False, f"Error: {str(e)}")
+            return False
+    
+    def test_custom_watchlist_lists(self):
+        """Test Custom Watchlist Lists management"""
+        try:
+            # Test CREATE custom watchlist
+            test_list = {
+                "name": "Test Growth Portfolio",
+                "description": "Test watchlist for growth stocks and ETFs",
+                "color": "#10B981"
+            }
+            
+            create_response = self.session.post(f"{API_BASE}/watchlists/lists", json=test_list)
+            if create_response.status_code != 200:
+                self.log_test("Custom Watchlist Lists", False, f"Create failed: HTTP {create_response.status_code}")
+                return False
+            
+            created_list = create_response.json()
+            list_id = created_list.get('id')
+            if not list_id:
+                self.log_test("Custom Watchlist Lists", False, "Created list missing ID")
+                return False
+            
+            # Test GET custom watchlists
+            get_response = self.session.get(f"{API_BASE}/watchlists/lists")
+            if get_response.status_code != 200:
+                self.log_test("Custom Watchlist Lists", False, f"Get failed: HTTP {get_response.status_code}")
+                return False
+            
+            lists = get_response.json()
+            created_found = any(wl.get('id') == list_id for wl in lists)
+            if not created_found:
+                self.log_test("Custom Watchlist Lists", False, "Created list not found in get all")
+                return False
+            
+            self.log_test("Custom Watchlist Lists", True, "Custom watchlist lists management working correctly")
+            return True
+            
+        except Exception as e:
+            self.log_test("Custom Watchlist Lists", False, f"Error: {str(e)}")
             return False
     
     def cleanup(self):
