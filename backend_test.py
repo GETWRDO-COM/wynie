@@ -1004,24 +1004,27 @@ class ETFBackendTester:
                 pass  # Ignore cleanup errors
     
     def run_all_tests(self):
-        """Run all backend tests"""
-        print(f"🚀 Starting ETF Intelligence System Backend Tests")
+        """Run all backend tests including enhanced professional features"""
+        print(f"🚀 Starting ENHANCED ETF Intelligence System Backend Tests")
         print(f"📡 Backend URL: {BACKEND_URL}")
         print(f"🔗 API Base: {API_BASE}")
-        print("=" * 60)
+        print("=" * 80)
         
         tests = [
             ("API Connectivity", self.test_api_root),
-            ("Dashboard API", self.test_dashboard_api),
+            ("Enhanced Dashboard API", self.test_enhanced_dashboard_api),
+            ("Live Market Data APIs", self.test_live_market_data_apis),
+            ("Export & Integration APIs", self.test_export_integration_apis),
+            ("Formula Configuration APIs", self.test_formula_configuration_apis),
             ("ETF Data Update", self.test_etf_data_update),
             ("ETF Data Retrieval", self.test_get_etfs),
-            ("ETF Calculations", self.test_etf_calculations),
+            ("Enhanced Calculations", self.test_enhanced_calculations),
             ("Swing Leaders", self.test_swing_leaders),
             ("Universal Stock Lookup", self.test_universal_stock_lookup),
             ("Watchlist Management", self.test_watchlist_management),
             ("Custom Watchlist Lists", self.test_custom_watchlist_lists),
             ("Market Score (MSAE)", self.test_market_score),
-            ("Chart Analysis", self.test_chart_analysis),
+            ("AI Chart Analysis", self.test_chart_analysis),
             ("Journal Management", self.test_journal_management),
             ("Historical Data", self.test_historical_data),
         ]
@@ -1043,11 +1046,12 @@ class ETFBackendTester:
         # Cleanup
         self.cleanup()
         
-        print("\n" + "=" * 60)
-        print(f"📊 TEST SUMMARY")
+        print("\n" + "=" * 80)
+        print(f"📊 ENHANCED ETF INTELLIGENCE SYSTEM TEST SUMMARY")
         print(f"✅ Passed: {passed}")
         print(f"❌ Failed: {failed}")
         print(f"📈 Success Rate: {(passed/(passed+failed)*100):.1f}%")
+        print(f"🏆 Professional Trading Platform Status: {'READY' if failed == 0 else 'NEEDS ATTENTION'}")
         
         return passed, failed, self.test_results
 
