@@ -176,10 +176,32 @@ const ETFIntelligenceSystem = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-white">📊 ETF Intelligence System</h1>
-              <p className="text-gray-300 mt-1">Real-time market intelligence for swing traders</p>
+              <h1 className="text-3xl font-bold text-white">📊 ETF Intelligence Engine</h1>
+              {dashboardData && (
+                <p className="text-blue-300 mt-1">{dashboardData.greeting}</p>
+              )}
             </div>
-            <div className="flex space-x-4">
+            <div className="flex items-center space-x-6">
+              {dashboardData && (
+                <div className="flex space-x-4 text-sm">
+                  <div className="text-center">
+                    <div className="flex items-center">
+                      <span className="mr-1">{dashboardData.sa_time.flag}</span>
+                      <span className="font-mono text-blue-300">{dashboardData.sa_time.time}</span>
+                      <span className="ml-1 text-gray-400">{dashboardData.sa_time.timezone}</span>
+                    </div>
+                    <div className="text-xs text-gray-400">{dashboardData.sa_time.date}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="flex items-center">
+                      <span className="mr-1">{dashboardData.ny_time.flag}</span>
+                      <span className="font-mono text-green-300">{dashboardData.ny_time.time}</span>
+                      <span className="ml-1 text-gray-400">{dashboardData.ny_time.timezone}</span>
+                    </div>
+                    <div className="text-xs text-gray-400">Opens in: {dashboardData.market_countdown}</div>
+                  </div>
+                </div>
+              )}
               <button
                 onClick={updateETFs}
                 disabled={loading}
@@ -187,9 +209,6 @@ const ETFIntelligenceSystem = () => {
               >
                 {loading ? "Updating..." : "🔄 Update Data"}
               </button>
-              <div className="text-sm text-gray-300">
-                Last updated: {new Date().toLocaleTimeString()}
-              </div>
             </div>
           </div>
         </div>
@@ -200,10 +219,10 @@ const ETFIntelligenceSystem = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex space-x-8">
             {[
-              { id: "dashboard", label: "📈 Dashboard" },
-              { id: "etfs", label: "📊 ETF Tracker" },
-              { id: "watchlists", label: "📋 Watchlists" },
-              { id: "analysis", label: "🧠 AI Analysis" }
+              { id: "dashboard", label: "🏠 Dashboard" },
+              { id: "swing-grid", label: "📊 Swing Analysis" },
+              { id: "ai-analysis", label: "🧠 AI Analysis" },
+              { id: "watchlists", label: "📈 Watchlists" }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -228,7 +247,7 @@ const ETFIntelligenceSystem = () => {
             {/* Market Score Card */}
             {marketScore && (
               <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
-                <h2 className="text-2xl font-bold mb-4">🎯 Market Situational Awareness</h2>
+                <h2 className="text-2xl font-bold mb-4">🎯 Market Situational Awareness Engine (MSAE)</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="text-center">
                     <div className={`text-4xl font-bold p-4 rounded-lg ${getScoreColor(marketScore.total_score)}`}>
@@ -240,54 +259,77 @@ const ETFIntelligenceSystem = () => {
                     <h3 className="text-lg font-semibold mb-2">Current Recommendation:</h3>
                     <p className="text-gray-300 mb-4">{marketScore.recommendation}</p>
                     <div className="grid grid-cols-4 gap-2 text-sm">
-                      <div>SATA: {marketScore.sata_score}/4</div>
-                      <div>ADX: {marketScore.adx_score}/4</div>
-                      <div>VIX: {marketScore.vix_score}/4</div>
-                      <div>ATR: {marketScore.atr_score}/4</div>
+                      <div className="bg-gray-700 p-2 rounded">SATA: {marketScore.sata_score}/5</div>
+                      <div className="bg-gray-700 p-2 rounded">ADX: {marketScore.adx_score}/5</div>
+                      <div className="bg-gray-700 p-2 rounded">VIX: {marketScore.vix_score}/5</div>
+                      <div className="bg-gray-700 p-2 rounded">ATR: {marketScore.atr_score}/5</div>
+                      <div className="bg-gray-700 p-2 rounded">GMI: {marketScore.gmi_score}/5</div>
+                      <div className="bg-gray-700 p-2 rounded">NH-NL: {marketScore.nhnl_score}/5</div>
+                      <div className="bg-gray-700 p-2 rounded">F&G: {marketScore.fg_index_score}/5</div>
+                      <div className="bg-gray-700 p-2 rounded">QQQ ATH: {marketScore.qqq_ath_distance_score}/5</div>
                     </div>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Market Leaders */}
+            {/* Top 5 Swing Leaders */}
             <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
-              <h2 className="text-2xl font-bold mb-4">🚀 Current Market Leaders</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-700">
-                      <th className="text-left py-2">Ticker</th>
-                      <th className="text-left py-2">Sector</th>
-                      <th className="text-left py-2">1M Change</th>
-                      <th className="text-left py-2">Relative Strength</th>
-                      <th className="text-left py-2">SATA</th>
-                      <th className="text-left py-2">Pattern</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {leaders.slice(0, 10).map((etf) => (
-                      <tr key={etf.ticker} className="border-b border-gray-700 hover:bg-gray-700">
-                        <td className="py-2 font-semibold">{etf.ticker}</td>
-                        <td className="py-2 text-gray-300">{etf.sector}</td>
-                        <td className={`py-2 font-semibold ${getChangeColor(etf.change_1m)}`}>
-                          {etf.change_1m > 0 ? '+' : ''}{etf.change_1m.toFixed(2)}%
-                        </td>
-                        <td className="py-2">{getRSBadge(etf.relative_strength_1m)}</td>
-                        <td className="py-2">{etf.sata_score}/10</td>
-                        <td className="py-2">
-                          <span className={`px-2 py-1 text-xs rounded ${
-                            etf.gmma_pattern === 'RWB' ? 'bg-green-100 text-green-800' :
-                            etf.gmma_pattern === 'BWR' ? 'bg-red-100 text-red-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {etf.gmma_pattern}
-                          </span>
-                        </td>
-                      </tr>
+              <h2 className="text-2xl font-bold mb-4">🚀 Top 5 Swing Leaders (SATA + RS Combined)</h2>
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                {swingLeaders.map((etf, index) => (
+                  <div key={etf.ticker} className="bg-gray-700 rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold mb-2">#{index + 1}</div>
+                    <div className="text-lg font-semibold text-blue-300">{etf.ticker}</div>
+                    <div className="text-sm text-gray-400 mb-2">{etf.name?.slice(0, 20)}...</div>
+                    <div className="text-sm">
+                      <div>SATA: <span className="font-semibold">{etf.sata_score}/10</span></div>
+                      <div className="mt-1">{getRSBadge(etf.relative_strength_1m)}</div>
+                      <div className={`mt-1 font-semibold ${getChangeColor(etf.change_1m)}`}>
+                        {etf.change_1m > 0 ? '+' : ''}{etf.change_1m?.toFixed(2)}% (1M)
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => analyzeChart(etf.ticker)}
+                      className="mt-2 bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs"
+                    >
+                      📈 Analyze
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Risk-On/Off Summary */}
+            <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+              <h2 className="text-2xl font-bold mb-4">⚖️ Risk-On vs Risk-Off Signals</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-green-400 mb-3">🟢 Risk-On Signals</h3>
+                  <div className="space-y-2">
+                    {leaders.filter(etf => 
+                      ['TQQQ', 'FFTY', 'MGK', 'QQQ', 'SPXL'].includes(etf.ticker) && etf.change_1d > 0
+                    ).map(etf => (
+                      <div key={etf.ticker} className="flex justify-between bg-green-900 bg-opacity-30 p-2 rounded">
+                        <span className="font-semibold">{etf.ticker}</span>
+                        <span className="text-green-400">+{etf.change_1d.toFixed(2)}%</span>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-red-400 mb-3">🔴 Risk-Off Signals</h3>
+                  <div className="space-y-2">
+                    {leaders.filter(etf => 
+                      ['SQQQ', 'VIX', 'TLT', 'GLD'].includes(etf.ticker) && etf.change_1d > 0
+                    ).map(etf => (
+                      <div key={etf.ticker} className="flex justify-between bg-red-900 bg-opacity-30 p-2 rounded">
+                        <span className="font-semibold">{etf.ticker}</span>
+                        <span className="text-red-400">+{etf.change_1d.toFixed(2)}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
