@@ -24,6 +24,10 @@ const ETFIntelligenceSystem = () => {
   const [stockLookup, setStockLookup] = useState("");
   const [stockData, setStockData] = useState(null);
   const [showFormulas, setShowFormulas] = useState(false);
+  const [liveIndices, setLiveIndices] = useState({});
+  const [fearGreedData, setFearGreedData] = useState(null);
+  const [forexRates, setForexRates] = useState(null);
+  const [exportLoading, setExportLoading] = useState(false);
   
   const [watchlistForm, setWatchlistForm] = useState({
     ticker: "",
