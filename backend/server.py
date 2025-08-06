@@ -1667,18 +1667,20 @@ async def get_live_forex():
     try:
         # For now, return mock data - in production you'd use a forex API
         forex_data = {
-            "ZARUSD": {
+            "ZAR_USD": {
                 "rate": 18.75,
                 "change": -0.15,
                 "change_percent": -0.80,
                 "last_updated": datetime.utcnow().strftime("%H:%M:%S")
             },
-            "EURUSD": {"rate": 1.0521, "change": 0.0012, "change_percent": 0.11},
-            "GBPUSD": {"rate": 1.2345, "change": -0.0023, "change_percent": -0.19},
-            "JPYUSD": {"rate": 0.0067, "change": 0.0001, "change_percent": 1.49}
+            "major_pairs": {
+                "EURUSD": {"rate": 1.0521, "change": 0.0012, "change_percent": 0.11},
+                "GBPUSD": {"rate": 1.2345, "change": -0.0023, "change_percent": -0.19},
+                "JPYUSD": {"rate": 0.0067, "change": 0.0001, "change_percent": 1.49}
+            }
         }
         
-        return {"data": forex_data, "timestamp": datetime.utcnow().isoformat()}
+        return forex_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
