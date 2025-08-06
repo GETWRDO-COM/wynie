@@ -1260,7 +1260,7 @@ async def get_custom_watchlists_with_stocks(current_user: User = Depends(get_cur
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.post("/watchlists/custom/{list_name}/add-stock")
-async def add_stock_to_watchlist(list_name: str, item: WatchlistItem, current_user: User = Depends(get_current_user)):
+async def add_stock_to_watchlist(list_name: str, item_data: WatchlistItemCreate, current_user: User = Depends(get_current_user)):
     """Add stock to watchlist manually"""
     try:
         # Verify the watchlist exists
@@ -1269,19 +1269,33 @@ async def add_stock_to_watchlist(list_name: str, item: WatchlistItem, current_us
             raise HTTPException(status_code=404, detail="Watchlist not found")
         
         # Check if stock already exists in this list
-        existing = await db.watchlists.find_one({"ticker": item.ticker, "list_name": list_name})
+        existing = await db.watchlists.find_one({"ticker": item_data.ticker, "list_name": list_name})
         if existing:
             raise HTTPException(status_code=400, detail="Stock already in watchlist")
         
         # Get company info to populate name if not provided
-        if not item.name or item.name == item.ticker:
-            company_info = await get_company_info(item.ticker)
-            item.name = company_info.company_name
+        name = item_data.name
+        if not name or name == item_data.ticker:
+            company_info = await get_company_info(item_data.ticker)
+            name = company_info.company_name
         
-        item.list_name = list_name
+        # Create full WatchlistItem
+        item = WatchlistItem(
+            ticker=item_data.ticker,
+            name=name,
+            list_name=list_name,
+            notes=item_data.notes,
+            tags=item_data.tags,
+            priority=item_data.priority,
+            entry_price=item_data.entry_price,
+            target_price=item_data.target_price,
+            stop_loss=item_data.stop_loss,
+            position_size=item_data.position_size
+        )
+        
         await db.watchlists.insert_one(item.dict())
         
-        return {"message": f"Added {item.ticker} to {list_name}", "item": item}
+        return {"message": f"Added {item_data.ticker} to {list_name}", "item": item}
     except HTTPException:
         raise
     except Exception as e:
