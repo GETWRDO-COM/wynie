@@ -1650,14 +1650,14 @@ async def get_live_indices():
             data = await fetch_etf_data(index)
             if data:
                 live_data[index] = {
+                    "symbol": index,
                     "price": data["current_price"],
-                    "change": data["change_1d"],
-                    "change_percent": data["change_1d"],
+                    "change_1d": data["change_1d"],
                     "volume": data["volume"],
                     "last_updated": datetime.utcnow().strftime("%H:%M:%S")
                 }
         
-        return {"data": live_data, "timestamp": datetime.utcnow().isoformat()}
+        return live_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
