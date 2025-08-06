@@ -501,10 +501,41 @@ async def root():
 
 @api_router.get("/dashboard")
 async def get_dashboard_data():
-    """Get dashboard data with SA greetings and market info"""
+    """Get enhanced dashboard data with SA greetings, market info, and live indices"""
     try:
         sa_time = datetime.now(SA_TZ)
         ny_time = datetime.now(NY_TZ)
+        
+        # Fetch major indices data
+        major_indices = {}
+        try:
+            indices_data = ['SPY', 'QQQ', 'DIA', 'IWM']
+            for symbol in indices_data:
+                data = await fetch_etf_data(symbol)
+                if data:
+                    major_indices[symbol] = {
+                        'price': data['current_price'],
+                        'change_1d': data['change_1d'],
+                        'last_updated': datetime.utcnow().strftime("%H:%M")
+                    }
+        except Exception as e:
+            logging.error(f"Error fetching indices data: {e}")
+        
+        # Fetch ZAR/USD exchange rate (mock for now)
+        zar_usd_rate = 18.75  # This would be fetched from forex API
+        
+        # Fetch CNN Fear & Greed Index (mock for now)
+        fear_greed_data = {
+            'index': 73,
+            'rating': 'Greed',
+            'last_updated': datetime.utcnow().strftime("%Y-%m-%d %H:%M"),
+            'components': {
+                'stock_price_momentum': 85,
+                'market_volatility': 45,
+                'safe_haven_demand': 25,
+                'put_call_ratio': 70
+            }
+        }
         
         dashboard_data = {
             "greeting": get_south_african_greeting(),
@@ -521,6 +552,9 @@ async def get_dashboard_data():
                 "flag": "🇺🇸"
             },
             "market_countdown": get_market_countdown(),
+            "major_indices": major_indices,
+            "zar_usd_rate": zar_usd_rate,
+            "fear_greed_index": fear_greed_data,
             "last_updated": datetime.utcnow().isoformat()
         }
         
