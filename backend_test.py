@@ -175,36 +175,93 @@ class ETFBackendTester:
             self.log_test("ETF Calculations", False, f"Error: {str(e)}")
             return False
     
-    def test_etf_leaders(self):
-        """Test ETF leaders endpoint"""
+    def test_dashboard_api(self):
+        """Test Dashboard API with SA greetings and dual timezone display"""
         try:
-            # Test different timeframes
-            timeframes = ['1d', '1w', '1m', '3m', '6m']
+            response = self.session.get(f"{API_BASE}/dashboard")
+            if response.status_code != 200:
+                self.log_test("Dashboard API", False, f"HTTP {response.status_code}: {response.text}")
+                return False
             
-            for timeframe in timeframes:
-                response = self.session.get(f"{API_BASE}/etfs/leaders?timeframe={timeframe}")
-                if response.status_code != 200:
-                    self.log_test("ETF Leaders", False, f"HTTP {response.status_code} for timeframe {timeframe}")
-                    return False
-                
-                leaders = response.json()
-                if not leaders:
-                    self.log_test("ETF Leaders", False, f"No leaders returned for timeframe {timeframe}")
-                    return False
-                
-                # Verify leaders are sorted by performance
-                change_field = f"change_{timeframe}"
-                if len(leaders) > 1:
-                    for i in range(len(leaders) - 1):
-                        if leaders[i].get(change_field, 0) < leaders[i + 1].get(change_field, 0):
-                            self.log_test("ETF Leaders", False, f"Leaders not properly sorted for {timeframe}")
-                            return False
+            dashboard_data = response.json()
             
-            self.log_test("ETF Leaders", True, f"Leaders endpoint working for all timeframes")
+            # Validate required fields
+            required_fields = ['greeting', 'sa_time', 'ny_time', 'market_countdown', 'last_updated']
+            missing_fields = [field for field in required_fields if field not in dashboard_data]
+            if missing_fields:
+                self.log_test("Dashboard API", False, f"Missing fields: {missing_fields}")
+                return False
+            
+            # Validate SA greeting format
+            greeting = dashboard_data['greeting']
+            valid_greetings = ['Goeie More Alwyn!', 'Goeie Middag Alwyn!', 'Goeie Naand Alwyn!']
+            if not any(valid_greeting in greeting for valid_greeting in valid_greetings):
+                self.log_test("Dashboard API", False, f"Invalid SA greeting format: {greeting}")
+                return False
+            
+            # Validate timezone data structure
+            sa_time = dashboard_data['sa_time']
+            ny_time = dashboard_data['ny_time']
+            
+            for tz_data, tz_name in [(sa_time, 'SA'), (ny_time, 'NY')]:
+                required_tz_fields = ['time', 'timezone', 'date', 'flag']
+                missing_tz_fields = [field for field in required_tz_fields if field not in tz_data]
+                if missing_tz_fields:
+                    self.log_test("Dashboard API", False, f"Missing {tz_name} timezone fields: {missing_tz_fields}")
+                    return False
+            
+            # Validate market countdown format
+            countdown = dashboard_data['market_countdown']
+            if not ('h' in countdown and 'm' in countdown and 's' in countdown):
+                self.log_test("Dashboard API", False, f"Invalid countdown format: {countdown}")
+                return False
+            
+            self.log_test("Dashboard API", True, "SA greetings, dual timezone display, and market countdown working correctly")
             return True
             
         except Exception as e:
-            self.log_test("ETF Leaders", False, f"Error: {str(e)}")
+            self.log_test("Dashboard API", False, f"Error: {str(e)}")
+            return False
+    
+    def test_swing_leaders(self):
+        """Test Swing Leaders endpoint (SATA + RS combined scoring)"""
+        try:
+            response = self.session.get(f"{API_BASE}/etfs/swing-leaders")
+            if response.status_code != 200:
+                self.log_test("Swing Leaders", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            leaders = response.json()
+            if not leaders:
+                self.log_test("Swing Leaders", False, "No swing leaders returned")
+                return False
+            
+            if len(leaders) != 5:
+                self.log_test("Swing Leaders", False, f"Expected 5 leaders, got {len(leaders)}")
+                return False
+            
+            # Validate each leader has required fields
+            for leader in leaders:
+                required_fields = ['ticker', 'name', 'sata_score', 'relative_strength_1m']
+                missing_fields = [field for field in required_fields if field not in leader]
+                if missing_fields:
+                    self.log_test("Swing Leaders", False, f"Leader missing fields: {missing_fields}")
+                    return False
+            
+            # Verify leaders are sorted by swing score (SATA + RS combination)
+            if len(leaders) > 1:
+                for i in range(len(leaders) - 1):
+                    current_score = leaders[i].get('sata_score', 0) + (leaders[i].get('relative_strength_1m', 0) * 10)
+                    next_score = leaders[i + 1].get('sata_score', 0) + (leaders[i + 1].get('relative_strength_1m', 0) * 10)
+                    if current_score < next_score:
+                        self.log_test("Swing Leaders", False, "Leaders not properly sorted by swing score")
+                        return False
+            
+            self.log_test("Swing Leaders", True, f"Top 5 swing leaders returned with correct SATA + RS scoring")
+            return True
+            
+        except Exception as e:
+            self.log_test("Swing Leaders", False, f"Error: {str(e)}")
             return False
     
     def test_watchlist_management(self):
