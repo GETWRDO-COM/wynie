@@ -66,6 +66,7 @@ class ETFData(BaseModel):
     swing_days: Optional[int] = 0
     last_updated: datetime = Field(default_factory=datetime.utcnow)
 
+# New Model Classes for Enhanced Features
 class WatchlistItem(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     ticker: str
@@ -79,6 +80,108 @@ class WatchlistItem(BaseModel):
     stop_loss: Optional[float] = None
     position_size: Optional[float] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class CustomWatchlist(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: str = ""
+    color: str = "#3B82F6"  # Default blue
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class JournalEntry(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    date: datetime = Field(default_factory=datetime.utcnow)
+    title: str
+    content: str
+    tags: List[str] = []
+    market_score: Optional[int] = None
+    trades_mentioned: List[str] = []
+    mood: str = "neutral"  # positive, neutral, negative
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class HistoricalSnapshot(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    date: datetime = Field(default_factory=datetime.utcnow)
+    market_score: int
+    top_etfs: List[Dict[str, Any]]
+    market_leaders: List[str]
+    sector_rotation: Dict[str, float]
+    vix_level: float
+    key_metrics: Dict[str, Any]
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Enhanced ETF Universe
+ETF_UNIVERSE = [
+    # Major Indices
+    {"ticker": "SPY", "name": "SPDR S&P 500 ETF", "sector": "Broad Market", "theme": "Large Cap"},
+    {"ticker": "QQQ", "name": "Invesco QQQ Trust", "sector": "Technology", "theme": "Large Cap Growth"},
+    {"ticker": "IWM", "name": "iShares Russell 2000 ETF", "sector": "Small Cap", "theme": "Small Cap"},
+    {"ticker": "DIA", "name": "SPDR Dow Jones Industrial ETF", "sector": "Broad Market", "theme": "Blue Chip"},
+    
+    # Leveraged ETFs
+    {"ticker": "TQQQ", "name": "ProShares UltraPro QQQ", "sector": "Technology", "theme": "3x Leveraged"},
+    {"ticker": "SQQQ", "name": "ProShares UltraPro Short QQQ", "sector": "Technology", "theme": "3x Inverse"},
+    {"ticker": "TNA", "name": "Direxion Daily Small Cap Bull 3X", "sector": "Small Cap", "theme": "3x Leveraged"},
+    {"ticker": "SPXL", "name": "Direxion Daily S&P 500 Bull 3X", "sector": "Large Cap", "theme": "3x Leveraged"},
+    {"ticker": "QLD", "name": "ProShares Ultra QQQ", "sector": "Technology", "theme": "2x Leveraged"},
+    
+    # Sector ETFs
+    {"ticker": "XLK", "name": "Technology Select Sector SPDR", "sector": "Technology", "theme": "Sector"},
+    {"ticker": "XLF", "name": "Financial Select Sector SPDR", "sector": "Financials", "theme": "Sector"},
+    {"ticker": "XLV", "name": "Health Care Select Sector SPDR", "sector": "Healthcare", "theme": "Sector"},
+    {"ticker": "XLE", "name": "Energy Select Sector SPDR", "sector": "Energy", "theme": "Sector"},
+    {"ticker": "XLI", "name": "Industrial Select Sector SPDR", "sector": "Industrials", "theme": "Sector"},
+    {"ticker": "XLU", "name": "Utilities Select Sector SPDR", "sector": "Utilities", "theme": "Sector"},
+    {"ticker": "XLP", "name": "Consumer Staples Select Sector", "sector": "Consumer Staples", "theme": "Sector"},
+    {"ticker": "XLY", "name": "Consumer Discretionary Select Sector", "sector": "Consumer Discretionary", "theme": "Sector"},
+    
+    # Growth & Momentum
+    {"ticker": "MGK", "name": "Vanguard Mega Cap Growth ETF", "sector": "Growth", "theme": "Large Cap Growth"},
+    {"ticker": "ARKK", "name": "ARK Innovation ETF", "sector": "Innovation", "theme": "Disruptive Growth"},
+    {"ticker": "FFTY", "name": "Innovator IBD 50 ETF", "sector": "Growth", "theme": "Momentum"},
+    {"ticker": "VUG", "name": "Vanguard Growth ETF", "sector": "Growth", "theme": "Large Cap Growth"},
+    {"ticker": "QQQE", "name": "Invesco NASDAQ 100 Equal Weight", "sector": "Technology", "theme": "Equal Weight"},
+    {"ticker": "QQQI", "name": "Invesco NASDAQ Internet ETF", "sector": "Technology", "theme": "Internet"},
+    
+    # Specialty & Thematic
+    {"ticker": "GLD", "name": "SPDR Gold Shares", "sector": "Commodities", "theme": "Precious Metals"},
+    {"ticker": "TLT", "name": "iShares 20+ Year Treasury Bond", "sector": "Bonds", "theme": "Long Term Treasury"},
+    {"ticker": "UVXY", "name": "ProShares Ultra VIX Short-Term", "sector": "Volatility", "theme": "2x Volatility"},
+]
+
+def get_south_african_greeting():
+    """Get appropriate South African greeting based on time"""
+    sa_time = datetime.now(SA_TZ)
+    hour = sa_time.hour
+    
+    if 5 <= hour < 12:
+        return "Goeie More Alwyn! 🌅"
+    elif 12 <= hour < 18:
+        return "Goeie Middag Alwyn! ☀️"
+    else:
+        return "Goeie Naand Alwyn! 🌙"
+
+def get_market_countdown():
+    """Calculate time until NYSE opens"""
+    ny_time = datetime.now(NY_TZ)
+    
+    # NYSE opens at 9:30 AM ET
+    market_open = ny_time.replace(hour=9, minute=30, second=0, microsecond=0)
+    
+    # If it's past market open today, calculate for tomorrow
+    if ny_time.time() > market_open.time():
+        market_open += timedelta(days=1)
+    
+    # Skip weekends
+    while market_open.weekday() > 4:  # 0-4 is Mon-Fri
+        market_open += timedelta(days=1)
+    
+    time_diff = market_open - ny_time
+    hours = int(time_diff.seconds // 3600)
+    minutes = int((time_diff.seconds % 3600) // 60)
+    seconds = int(time_diff.seconds % 60)
+    
+    return f"{hours}h {minutes}m {seconds}s"
 
 class MarketScore(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
