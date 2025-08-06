@@ -54,7 +54,11 @@ const ETFIntelligenceSystem = () => {
   // Fetch initial data
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchDashboardData, 30000); // Update every 30 seconds
+    fetchLiveData();
+    const interval = setInterval(() => {
+      fetchDashboardData();
+      fetchLiveData();
+    }, 30000); // Update every 30 seconds
     return () => clearInterval(interval);
   }, []);
 
