@@ -205,6 +205,17 @@ class WatchlistItem(BaseModel):
     position_size: Optional[float] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
+class WatchlistItemCreate(BaseModel):
+    ticker: str
+    name: str = ""
+    notes: str = ""
+    tags: List[str] = []
+    priority: int = 1
+    entry_price: Optional[float] = None
+    target_price: Optional[float] = None
+    stop_loss: Optional[float] = None
+    position_size: Optional[float] = None
+
 class CustomWatchlist(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
