@@ -623,8 +623,12 @@ const ETFIntelligenceSystem = () => {
                     <button className="bg-gray-600 hover:bg-gray-700 px-3 py-2 rounded text-sm">
                       ⚙️ Edit Formulas
                     </button>
-                    <button className="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-sm">
-                      📊 Export to Sheets
+                    <button 
+                      onClick={exportToGoogleSheets}
+                      disabled={exportLoading}
+                      className="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-sm disabled:opacity-50"
+                    >
+                      {exportLoading ? 'Exporting...' : '📊 Export to CSV'}
                     </button>
                   </div>
                 </div>
