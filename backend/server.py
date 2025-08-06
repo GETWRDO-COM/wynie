@@ -1648,7 +1648,7 @@ async def prune_historical_data(days: int = 60, current_user: User = Depends(get
 async def get_live_indices():
     """Get live major indices data"""
     try:
-        indices = ["SPY", "QQQ", "DIA", "IWM", "VIX"]
+        indices = ["SPY", "QQQ", "DIA", "IWM", "^VIX"]
         live_data = {}
         
         for index in indices:
