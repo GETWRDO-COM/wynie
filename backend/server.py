@@ -885,10 +885,15 @@ async def get_chat_sessions(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.post("/ai/sessions")
-async def create_chat_session(session: ChatSession, current_user: User = Depends(get_current_user)):
+async def create_chat_session(session_data: ChatSessionCreate, current_user: User = Depends(get_current_user)):
     """Create new chat session"""
     try:
-        session.user_id = current_user.id
+        session = ChatSession(
+            user_id=current_user.id,
+            title=session_data.title,
+            model=session_data.model,
+            system_message=session_data.system_message
+        )
         await db.chat_sessions.insert_one(session.dict())
         return session
     except Exception as e:
