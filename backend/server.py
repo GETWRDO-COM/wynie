@@ -199,6 +199,16 @@ class MarketScore(BaseModel):
     recommendation: str
     last_updated: datetime = Field(default_factory=datetime.utcnow)
 
+class MarketScoreInput(BaseModel):
+    sata_score: int
+    adx_score: int
+    vix_score: int
+    atr_score: int
+    gmi_score: int
+    nhnl_score: int
+    fg_index_score: int
+    qqq_ath_distance_score: int
+
 class ChartAnalysis(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     ticker: str
