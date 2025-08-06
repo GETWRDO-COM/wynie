@@ -1578,10 +1578,14 @@ async def get_formula_config():
             await db.formula_configs.insert_one(default_config)
             return default_config
         
-        # Remove MongoDB ObjectId from response
+        # Remove MongoDB ObjectId from response and extract config
         config_data = config[0]
         if '_id' in config_data:
             del config_data['_id']
+        
+        # If config is wrapped in a 'config' key, extract it
+        if 'config' in config_data:
+            return config_data['config']
         
         return config_data
     except Exception as e:
