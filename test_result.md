@@ -227,11 +227,7 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus:
-    - "Enhanced ETF Data API with SA greetings and real-time tracking"
-    - "Dashboard API with dual timezone display and greetings"
-    - "Market Situational Awareness Engine (MSAE) with 8 metrics"
-    - "Universal Stock Lookup and AI Chart Analysis"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
