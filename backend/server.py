@@ -1638,6 +1638,74 @@ async def prune_historical_data(days: int = 60, current_user: User = Depends(get
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Live Data Routes (for compatibility with existing frontend)
+@api_router.get("/live/indices")
+async def get_live_indices():
+    """Get live major indices data"""
+    try:
+        indices = ["SPY", "QQQ", "DIA", "IWM", "VIX"]
+        live_data = {}
+        
+        for index in indices:
+            data = await fetch_etf_data(index)
+            if data:
+                live_data[index] = {
+                    "price": data["current_price"],
+                    "change": data["change_1d"],
+                    "change_percent": data["change_1d"],
+                    "volume": data["volume"],
+                    "last_updated": datetime.utcnow().strftime("%H:%M:%S")
+                }
+        
+        return {"data": live_data, "timestamp": datetime.utcnow().isoformat()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/live/forex")
+async def get_live_forex():
+    """Get live forex data"""
+    try:
+        # For now, return mock data - in production you'd use a forex API
+        forex_data = {
+            "ZARUSD": {
+                "rate": 18.75,
+                "change": -0.15,
+                "change_percent": -0.80,
+                "last_updated": datetime.utcnow().strftime("%H:%M:%S")
+            },
+            "EURUSD": {"rate": 1.0521, "change": 0.0012, "change_percent": 0.11},
+            "GBPUSD": {"rate": 1.2345, "change": -0.0023, "change_percent": -0.19},
+            "JPYUSD": {"rate": 0.0067, "change": 0.0001, "change_percent": 1.49}
+        }
+        
+        return {"data": forex_data, "timestamp": datetime.utcnow().isoformat()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/live/fear-greed")
+async def get_live_fear_greed():
+    """Get CNN Fear & Greed Index"""
+    try:
+        # Mock data - in production you'd fetch from CNN API
+        fear_greed_data = {
+            "index": 73,
+            "rating": "Greed",
+            "last_updated": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+            "components": {
+                "stock_price_momentum": 85,
+                "market_volatility": 45,
+                "safe_haven_demand": 25,
+                "put_call_ratio": 70,
+                "junk_bond_demand": 65,
+                "market_breadth": 80,
+                "options_activity": 75
+            }
+        }
+        
+        return {"data": fear_greed_data, "timestamp": datetime.utcnow().isoformat()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Mount the router
 app.include_router(api_router)
 
