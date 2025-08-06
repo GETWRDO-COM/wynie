@@ -209,15 +209,18 @@ backend:
 
   - task: "Manual Stock/ETF Management and Watchlists"
     implemented: true
-    working: unknown
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: unknown
         agent: "main"
         comment: "Enhanced watchlist system with manual stock addition/removal, custom watchlist creation, company information auto-population, and advanced watchlist management with notes, tags, and priority levels."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Enhanced watchlist management working: custom lists, manual stock add/remove, detailed stock info. Fixed ObjectId serialization issue and added stocks field to watchlist response."
 
   - task: "Historical Data Pruning and Administration"
     implemented: true
