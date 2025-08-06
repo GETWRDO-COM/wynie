@@ -805,8 +805,216 @@ async def get_chart_analysis(ticker: str, timeframe: str = "1d"):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Include the router in the main app
-app.include_router(api_router)
+# Export Routes
+@api_router.get("/export/etfs")
+async def export_etfs_data():
+    """Export ETF data for Google Sheets integration"""
+    try:
+        etfs = await db.etfs.find().to_list(length=None)
+        
+        # Format data for export
+        export_data = []
+        for etf in etfs:
+            export_data.append({
+                'Ticker': etf.get('ticker', ''),
+                'Name': etf.get('name', ''),
+                'Sector': etf.get('sector', ''),
+                'Theme': etf.get('theme', ''),
+                'Current_Price': etf.get('current_price', 0),
+                'Change_1D': etf.get('change_1d', 0),
+                'Change_1W': etf.get('change_1w', 0),
+                'Change_1M': etf.get('change_1m', 0),
+                'Change_3M': etf.get('change_3m', 0),
+                'Change_6M': etf.get('change_6m', 0),
+                'RS_1M': etf.get('relative_strength_1m', 0),
+                'RS_3M': etf.get('relative_strength_3m', 0),
+                'RS_6M': etf.get('relative_strength_6m', 0),
+                'ATR_Percent': etf.get('atr_percent', 0),
+                'SATA_Score': etf.get('sata_score', 0),
+                'GMMA_Pattern': etf.get('gmma_pattern', ''),
+                'SMA20_Trend': etf.get('sma20_trend', ''),
+                'Volume': etf.get('volume', 0),
+                'Market_Cap': etf.get('market_cap', 0),
+                'Last_Updated': etf.get('last_updated', '')
+            })
+        
+        return {
+            "data": export_data,
+            "total_records": len(export_data),
+            "export_timestamp": datetime.utcnow().isoformat(),
+            "format": "csv_compatible"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/export/market-score")
+async def export_market_score():
+    """Export current market score data"""
+    try:
+        score = await db.market_scores.find().sort("date", -1).limit(1).to_list(1)
+        if not score:
+            raise HTTPException(status_code=404, detail="No market score data found")
+        
+        return {
+            "market_score_data": score[0],
+            "export_timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Formula Configuration Routes
+@api_router.get("/formulas/config")
+async def get_formula_config():
+    """Get current formula configuration"""
+    try:
+        config = await db.formula_configs.find().to_list(length=None)
+        
+        # Default configuration if none exists
+        if not config:
+            default_config = {
+                "relative_strength": {
+                    "strong_threshold": 0.10,
+                    "moderate_threshold": 0.02,
+                    "formula": "(ETF_Return - SPY_Return) / |SPY_Return|"
+                },
+                "sata_weights": {
+                    "performance": 30,
+                    "relative_strength": 30,
+                    "volume": 20,
+                    "volatility": 20,
+                    "formula": "Σ(Factor × Weight / 100)"
+                },
+                "atr_calculation": {
+                    "period": 14,
+                    "high_volatility_threshold": 3.0,
+                    "formula": "(14-day ATR / Current_Price) × 100"
+                },
+                "gmma_pattern": {
+                    "rwb_condition": "1W>0 AND 1M>0 AND RS>0",
+                    "bwr_condition": "1W<0 AND 1M<0 AND RS<0",
+                    "mixed_condition": "All other combinations"
+                }
+            }
+            await db.formula_configs.insert_one({"config": default_config})
+            return default_config
+        
+        return config[0].get('config', {})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/formulas/config")
+async def update_formula_config(config_data: dict):
+    """Update formula configuration"""
+    try:
+        # Update the configuration
+        await db.formula_configs.replace_one(
+            {},
+            {"config": config_data, "last_updated": datetime.utcnow()},
+            upsert=True
+        )
+        
+        # Trigger recalculation of ETF data with new formulas
+        await update_etf_data()
+        
+        return {"message": "Formula configuration updated successfully", "config": config_data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Live Market Data Routes
+@api_router.get("/live/indices")
+async def get_live_indices():
+    """Get live data for major market indices"""
+    try:
+        indices = ['SPY', 'QQQ', 'DIA', 'IWM', 'VIX']
+        indices_data = {}
+        
+        for symbol in indices:
+            data = await fetch_etf_data(symbol)
+            if data:
+                indices_data[symbol] = {
+                    'symbol': symbol,
+                    'price': data['current_price'],
+                    'change_1d': data['change_1d'],
+                    'volume': data['volume'],
+                    'last_updated': datetime.utcnow().strftime("%H:%M:%S")
+                }
+        
+        return indices_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/live/fear-greed")
+async def get_fear_greed_index():
+    """Get CNN Fear & Greed Index (mock implementation)"""
+    try:
+        # In a real implementation, this would scrape or call CNN's API
+        # For now, we'll return realistic mock data
+        import random
+        
+        # Generate realistic fear/greed data
+        index_value = random.randint(20, 95)
+        
+        if index_value >= 75:
+            rating = "Extreme Greed"
+            color = "green"
+        elif index_value >= 55:
+            rating = "Greed" 
+            color = "lightgreen"
+        elif index_value >= 45:
+            rating = "Neutral"
+            color = "yellow"
+        elif index_value >= 25:
+            rating = "Fear"
+            color = "orange"
+        else:
+            rating = "Extreme Fear"
+            color = "red"
+        
+        return {
+            "index": index_value,
+            "rating": rating,
+            "color": color,
+            "last_updated": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+            "components": {
+                "stock_price_momentum": random.randint(10, 95),
+                "market_volatility": random.randint(10, 95),
+                "safe_haven_demand": random.randint(10, 95),
+                "put_call_ratio": random.randint(10, 95),
+                "junk_bond_demand": random.randint(10, 95),
+                "market_momentum": random.randint(10, 95),
+                "stock_price_strength": random.randint(10, 95)
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/live/forex")
+async def get_forex_rates():
+    """Get live forex rates including ZAR/USD"""
+    try:
+        # In production, integrate with forex API like fixer.io or exchangerate-api.com
+        # For now, return mock data with realistic fluctuations
+        import random
+        
+        base_zar_usd = 18.75
+        fluctuation = random.uniform(-0.5, 0.5)
+        current_rate = base_zar_usd + fluctuation
+        
+        return {
+            "ZAR_USD": {
+                "rate": round(current_rate, 4),
+                "change": round(fluctuation, 4),
+                "change_percent": round((fluctuation / base_zar_usd) * 100, 2),
+                "last_updated": datetime.utcnow().strftime("%H:%M:%S")
+            },
+            "major_pairs": {
+                "EUR_USD": round(1.0850 + random.uniform(-0.02, 0.02), 4),
+                "GBP_USD": round(1.2650 + random.uniform(-0.02, 0.02), 4),
+                "USD_JPY": round(148.50 + random.uniform(-2, 2), 2)
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 app.add_middleware(
     CORSMiddleware,
