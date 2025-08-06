@@ -664,7 +664,7 @@ async def get_watchlists(list_name: Optional[str] = Query(None)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@api_router.get("/watchlists/lists")
+@api_router.get("/watchlists/names")
 async def get_watchlist_names():
     """Get unique watchlist names"""
     try:
