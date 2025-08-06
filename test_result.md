@@ -224,15 +224,18 @@ backend:
 
   - task: "Historical Data Pruning and Administration"
     implemented: true
-    working: unknown
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: unknown
         agent: "main"
         comment: "Implemented automated historical data pruning script with configurable retention periods (default 60 days), admin endpoints for data cleanup, and intelligent message history management to maintain system performance."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Historical data pruning working: configurable retention periods, multiple data types, deletion counts. All admin endpoints functional."
 
 frontend:
   - task: "Complete Enhanced Frontend with Authentication"
