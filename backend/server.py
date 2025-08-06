@@ -946,10 +946,14 @@ async def get_company_details(ticker: str):
 
 # TradingView Integration Routes
 @api_router.post("/tradingview/connect")
-async def connect_tradingview_account(account: TradingViewAccount, current_user: User = Depends(get_current_user)):
+async def connect_tradingview_account(account_data: TradingViewAccountCreate, current_user: User = Depends(get_current_user)):
     """Connect TradingView account"""
     try:
-        account.user_id = current_user.id
+        account = TradingViewAccount(
+            user_id=current_user.id,
+            username=account_data.username,
+            access_token=account_data.access_token
+        )
         
         # Check if account already exists
         existing = await db.tradingview_accounts.find_one({"user_id": current_user.id})
@@ -978,10 +982,15 @@ async def get_tradingview_account(current_user: User = Depends(get_current_user)
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.post("/tradingview/drawings")
-async def save_chart_drawing(drawing: ChartDrawing, current_user: User = Depends(get_current_user)):
+async def save_chart_drawing(drawing_data: ChartDrawingCreate, current_user: User = Depends(get_current_user)):
     """Save chart drawing/annotation"""
     try:
-        drawing.user_id = current_user.id
+        drawing = ChartDrawing(
+            user_id=current_user.id,
+            ticker=drawing_data.ticker,
+            drawing_data=drawing_data.drawing_data,
+            timeframe=drawing_data.timeframe
+        )
         await db.chart_drawings.insert_one(drawing.dict())
         return {"message": "Chart drawing saved successfully", "drawing": drawing}
     except Exception as e:
