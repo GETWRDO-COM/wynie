@@ -740,26 +740,12 @@ async def update_market_score(score: MarketScore):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Chart Analysis Route (placeholder for AI integration)
+# AI Chart Analysis Routes
 @api_router.get("/charts/{ticker}/analysis", response_model=ChartAnalysis)
 async def get_chart_analysis(ticker: str, timeframe: str = "1d"):
     """Get AI-powered chart analysis for a ticker"""
     try:
-        # This would integrate with OpenAI's vision API
-        # For now, return mock analysis
-        analysis = ChartAnalysis(
-            ticker=ticker,
-            timeframe=timeframe,
-            pattern_analysis=f"Analyzing {ticker} on {timeframe} timeframe: Strong uptrend with consolidation pattern forming near resistance.",
-            support_levels=[100.0, 95.0],
-            resistance_levels=[110.0, 115.0],
-            trend_analysis="Bullish momentum with decreasing volume - possible exhaustion.",
-            risk_reward="Risk/Reward: 1:2.5 with stop at $95 and target at $115",
-            recommendation="Wait for breakout above $110 with volume confirmation.",
-            confidence=0.75
-        )
-        
-        await db.chart_analyses.insert_one(analysis.dict())
+        analysis = await get_ai_chart_analysis(ticker.upper(), timeframe)
         return analysis
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
