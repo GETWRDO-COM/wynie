@@ -489,6 +489,35 @@ async def update_etf_data():
 async def root():
     return {"message": "ETF Intelligence System API"}
 
+@api_router.get("/dashboard")
+async def get_dashboard_data():
+    """Get dashboard data with SA greetings and market info"""
+    try:
+        sa_time = datetime.now(SA_TZ)
+        ny_time = datetime.now(NY_TZ)
+        
+        dashboard_data = {
+            "greeting": get_south_african_greeting(),
+            "sa_time": {
+                "time": sa_time.strftime("%H:%M:%S"),
+                "timezone": "SAST",
+                "date": sa_time.strftime("%A, %d %B %Y"),
+                "flag": "🇿🇦"
+            },
+            "ny_time": {
+                "time": ny_time.strftime("%H:%M:%S"), 
+                "timezone": "EST" if ny_time.dst() else "EST",
+                "date": ny_time.strftime("%A, %d %B %Y"),
+                "flag": "🇺🇸"
+            },
+            "market_countdown": get_market_countdown(),
+            "last_updated": datetime.utcnow().isoformat()
+        }
+        
+        return dashboard_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/etfs", response_model=List[ETFData])
 async def get_etfs(
     sector: Optional[str] = Query(None, description="Filter by sector"),
