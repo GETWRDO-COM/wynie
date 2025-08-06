@@ -179,15 +179,18 @@ backend:
 
   - task: "Interactive Charts with Multiple Timeframes"
     implemented: true
-    working: unknown
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: unknown
         agent: "main"
         comment: "Added comprehensive chart data endpoints for indices and individual tickers with support for 1d, 1w, 1m, 1y, 5y timeframes. Charts include OHLCV data and are integrated with React Chart.js for interactive visualization."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Interactive charts working: multiple timeframes (4), indices and individual tickers, OHLCV data. All chart endpoints returning proper data structure."
 
   - task: "Spreadsheet-Style Interface with Formula Transparency"
     implemented: true
