@@ -40,7 +40,667 @@ class ETFBackendTester:
         status = "✅ PASS" if success else "❌ FAIL"
         print(f"{status} {test_name}: {details}")
         
-    def test_api_root(self):
+    def test_authentication_system(self):
+        """Test Authentication System with JWT and User Management"""
+        try:
+            # Test login with provided credentials
+            login_data = {
+                "email": "beetge@mwebbiz.co.za",
+                "password": "Albee1990!"
+            }
+            
+            login_response = self.session.post(f"{API_BASE}/auth/login", json=login_data)
+            if login_response.status_code != 200:
+                self.log_test("Authentication System", False, f"Login failed: HTTP {login_response.status_code}: {login_response.text}")
+                return False
+            
+            login_result = login_response.json()
+            
+            # Validate login response structure
+            required_fields = ['access_token', 'token_type', 'user']
+            missing_fields = [field for field in required_fields if field not in login_result]
+            if missing_fields:
+                self.log_test("Authentication System", False, f"Login response missing fields: {missing_fields}")
+                return False
+            
+            # Store auth token for subsequent requests
+            self.auth_token = login_result['access_token']
+            auth_headers = {"Authorization": f"Bearer {self.auth_token}"}
+            
+            # Test /auth/me endpoint
+            me_response = self.session.get(f"{API_BASE}/auth/me", headers=auth_headers)
+            if me_response.status_code != 200:
+                self.log_test("Authentication System", False, f"Get current user failed: HTTP {me_response.status_code}")
+                return False
+            
+            user_info = me_response.json()
+            if user_info.get('email') != login_data['email']:
+                self.log_test("Authentication System", False, f"User email mismatch: {user_info.get('email')} != {login_data['email']}")
+                return False
+            
+            # Test password update (settings)
+            settings_data = {
+                "current_password": "Albee1990!",
+                "new_password": "Albee1990!New"
+            }
+            
+            settings_response = self.session.post(f"{API_BASE}/auth/settings", json=settings_data, headers=auth_headers)
+            if settings_response.status_code != 200:
+                self.log_test("Authentication System", False, f"Password update failed: HTTP {settings_response.status_code}")
+                return False
+            
+            # Change password back
+            settings_back_data = {
+                "current_password": "Albee1990!New",
+                "new_password": "Albee1990!"
+            }
+            
+            settings_back_response = self.session.post(f"{API_BASE}/auth/settings", json=settings_back_data, headers=auth_headers)
+            if settings_back_response.status_code != 200:
+                self.log_test("Authentication System", False, f"Password revert failed: HTTP {settings_back_response.status_code}")
+                return False
+            
+            # Test forgot password endpoint
+            forgot_data = {"email": "beetge@mwebbiz.co.za"}
+            forgot_response = self.session.post(f"{API_BASE}/auth/forgot-password", json=forgot_data)
+            if forgot_response.status_code != 200:
+                self.log_test("Authentication System", False, f"Forgot password failed: HTTP {forgot_response.status_code}")
+                return False
+            
+            forgot_result = forgot_response.json()
+            if 'message' not in forgot_result:
+                self.log_test("Authentication System", False, "Forgot password response missing message")
+                return False
+            
+            self.log_test("Authentication System", True, "Complete authentication system working: login, JWT tokens, user info, password updates, forgot password")
+            return True
+            
+        except Exception as e:
+            self.log_test("Authentication System", False, f"Error: {str(e)}")
+            return False
+
+    def test_ai_chat_integration(self):
+        """Test AI Chat Integration with OpenAI Models"""
+        try:
+            if not self.auth_token:
+                self.log_test("AI Chat Integration", False, "No auth token available - run authentication test first")
+                return False
+            
+            auth_headers = {"Authorization": f"Bearer {self.auth_token}"}
+            
+            # Test get available models
+            models_response = self.session.get(f"{API_BASE}/ai/models")
+            if models_response.status_code != 200:
+                self.log_test("AI Chat Integration", False, f"Get models failed: HTTP {models_response.status_code}")
+                return False
+            
+            models_data = models_response.json()
+            required_model_fields = ['models', 'latest_model', 'recommended']
+            missing_model_fields = [field for field in required_model_fields if field not in models_data]
+            if missing_model_fields:
+                self.log_test("AI Chat Integration", False, f"Models response missing fields: {missing_model_fields}")
+                return False
+            
+            # Validate model list contains expected models
+            models = models_data.get('models', {})
+            expected_models = ['latest', 'gpt-4.1', 'o3', 'o1-pro']
+            missing_models = [model for model in expected_models if model not in models]
+            if missing_models:
+                self.log_test("AI Chat Integration", False, f"Missing expected models: {missing_models}")
+                return False
+            
+            # Create a chat session
+            session_data = {
+                "title": "Test Trading Session",
+                "model": "gpt-4.1",
+                "system_message": "You are a financial advisor for testing."
+            }
+            
+            session_response = self.session.post(f"{API_BASE}/ai/sessions", json=session_data, headers=auth_headers)
+            if session_response.status_code != 200:
+                self.log_test("AI Chat Integration", False, f"Create session failed: HTTP {session_response.status_code}")
+                return False
+            
+            session_result = session_response.json()
+            self.chat_session_id = session_result.get('id')
+            if not self.chat_session_id:
+                self.log_test("AI Chat Integration", False, "Created session missing ID")
+                return False
+            
+            # Test chat with AI
+            chat_data = {
+                "session_id": self.chat_session_id,
+                "message": "What is the current market sentiment for tech stocks?",
+                "model": "gpt-4.1",
+                "include_chart_data": False
+            }
+            
+            chat_response = self.session.post(f"{API_BASE}/ai/chat", json=chat_data, headers=auth_headers)
+            if chat_response.status_code != 200:
+                self.log_test("AI Chat Integration", False, f"AI chat failed: HTTP {chat_response.status_code}")
+                return False
+            
+            chat_result = chat_response.json()
+            required_chat_fields = ['response', 'session_id', 'model_used']
+            missing_chat_fields = [field for field in required_chat_fields if field not in chat_result]
+            if missing_chat_fields:
+                self.log_test("AI Chat Integration", False, f"Chat response missing fields: {missing_chat_fields}")
+                return False
+            
+            # Validate AI response is meaningful
+            ai_response = chat_result.get('response', '')
+            if len(ai_response) < 50:  # AI should provide substantial response
+                self.log_test("AI Chat Integration", False, f"AI response too short: {len(ai_response)} characters")
+                return False
+            
+            # Test chat with chart context
+            chart_chat_data = {
+                "session_id": self.chat_session_id,
+                "message": "Analyze AAPL chart for swing trading opportunities",
+                "model": "gpt-4.1",
+                "ticker": "AAPL",
+                "include_chart_data": True
+            }
+            
+            chart_chat_response = self.session.post(f"{API_BASE}/ai/chat", json=chart_chat_data, headers=auth_headers)
+            if chart_chat_response.status_code != 200:
+                self.log_test("AI Chat Integration", False, f"Chart-context chat failed: HTTP {chart_chat_response.status_code}")
+                return False
+            
+            # Test get chat sessions
+            sessions_response = self.session.get(f"{API_BASE}/ai/sessions", headers=auth_headers)
+            if sessions_response.status_code != 200:
+                self.log_test("AI Chat Integration", False, f"Get sessions failed: HTTP {sessions_response.status_code}")
+                return False
+            
+            sessions = sessions_response.json()
+            session_found = any(session.get('id') == self.chat_session_id for session in sessions)
+            if not session_found:
+                self.log_test("AI Chat Integration", False, "Created session not found in sessions list")
+                return False
+            
+            # Test get session messages
+            messages_response = self.session.get(f"{API_BASE}/ai/sessions/{self.chat_session_id}/messages", headers=auth_headers)
+            if messages_response.status_code != 200:
+                self.log_test("AI Chat Integration", False, f"Get messages failed: HTTP {messages_response.status_code}")
+                return False
+            
+            messages = messages_response.json()
+            if len(messages) < 2:  # Should have at least user message and AI response
+                self.log_test("AI Chat Integration", False, f"Expected at least 2 messages, got {len(messages)}")
+                return False
+            
+            self.log_test("AI Chat Integration", True, "AI chat system fully functional: model selection, sessions, chat with/without chart context, message history")
+            return True
+            
+        except Exception as e:
+            self.log_test("AI Chat Integration", False, f"Error: {str(e)}")
+            return False
+
+    def test_enhanced_company_search(self):
+        """Test Enhanced Company Search and Stock Analysis"""
+        try:
+            # Test company search by ticker
+            search_response = self.session.get(f"{API_BASE}/companies/search?query=AAPL&limit=5")
+            if search_response.status_code != 200:
+                self.log_test("Enhanced Company Search", False, f"Search by ticker failed: HTTP {search_response.status_code}")
+                return False
+            
+            search_result = search_response.json()
+            if 'companies' not in search_result or 'count' not in search_result:
+                self.log_test("Enhanced Company Search", False, "Search response missing companies or count")
+                return False
+            
+            companies = search_result.get('companies', [])
+            if not companies:
+                self.log_test("Enhanced Company Search", False, "No companies returned for AAPL search")
+                return False
+            
+            # Validate company data structure
+            sample_company = companies[0]
+            required_company_fields = ['ticker', 'company_name', 'sector', 'industry', 'market_cap', 'rotation_status']
+            missing_company_fields = [field for field in required_company_fields if field not in sample_company]
+            if missing_company_fields:
+                self.log_test("Enhanced Company Search", False, f"Company data missing fields: {missing_company_fields}")
+                return False
+            
+            # Test company search by name
+            name_search_response = self.session.get(f"{API_BASE}/companies/search?query=Apple&limit=5")
+            if name_search_response.status_code != 200:
+                self.log_test("Enhanced Company Search", False, f"Search by name failed: HTTP {name_search_response.status_code}")
+                return False
+            
+            # Test detailed company information
+            detail_response = self.session.get(f"{API_BASE}/companies/AAPL")
+            if detail_response.status_code != 200:
+                self.log_test("Enhanced Company Search", False, f"Company details failed: HTTP {detail_response.status_code}")
+                return False
+            
+            detail_result = detail_response.json()
+            required_detail_fields = ['company', 'market_data']
+            missing_detail_fields = [field for field in required_detail_fields if field not in detail_result]
+            if missing_detail_fields:
+                self.log_test("Enhanced Company Search", False, f"Company details missing fields: {missing_detail_fields}")
+                return False
+            
+            # Validate company info includes logo URL
+            company_info = detail_result.get('company', {})
+            if 'logo_url' not in company_info:
+                self.log_test("Enhanced Company Search", False, "Company info missing logo_url")
+                return False
+            
+            # Validate market data
+            market_data = detail_result.get('market_data', {})
+            required_market_fields = ['current_price', 'change_1d', 'change_1w', 'change_1m']
+            missing_market_fields = [field for field in required_market_fields if field not in market_data]
+            if missing_market_fields:
+                self.log_test("Enhanced Company Search", False, f"Market data missing fields: {missing_market_fields}")
+                return False
+            
+            # Test rotation status validation
+            rotation_status = company_info.get('rotation_status', '')
+            valid_rotation_statuses = ['Rotating In', 'Rotating Out', 'Neutral', 'Unknown']
+            if rotation_status not in valid_rotation_statuses:
+                self.log_test("Enhanced Company Search", False, f"Invalid rotation status: {rotation_status}")
+                return False
+            
+            self.log_test("Enhanced Company Search", True, "Company search system working: ticker/name search, detailed info, logos, sector rotation analysis")
+            return True
+            
+        except Exception as e:
+            self.log_test("Enhanced Company Search", False, f"Error: {str(e)}")
+            return False
+
+    def test_tradingview_integration(self):
+        """Test TradingView Integration and Chart Drawing"""
+        try:
+            if not self.auth_token:
+                self.log_test("TradingView Integration", False, "No auth token available - run authentication test first")
+                return False
+            
+            auth_headers = {"Authorization": f"Bearer {self.auth_token}"}
+            
+            # Test connect TradingView account
+            account_data = {
+                "username": "test_trader_account",
+                "access_token": "test_access_token_123"
+            }
+            
+            connect_response = self.session.post(f"{API_BASE}/tradingview/connect", json=account_data, headers=auth_headers)
+            if connect_response.status_code != 200:
+                self.log_test("TradingView Integration", False, f"Connect account failed: HTTP {connect_response.status_code}")
+                return False
+            
+            connect_result = connect_response.json()
+            if 'message' not in connect_result or 'account' not in connect_result:
+                self.log_test("TradingView Integration", False, "Connect response missing message or account")
+                return False
+            
+            # Test get TradingView account
+            account_response = self.session.get(f"{API_BASE}/tradingview/account", headers=auth_headers)
+            if account_response.status_code != 200:
+                self.log_test("TradingView Integration", False, f"Get account failed: HTTP {account_response.status_code}")
+                return False
+            
+            account_result = account_response.json()
+            if not account_result.get('connected'):
+                self.log_test("TradingView Integration", False, "Account not showing as connected")
+                return False
+            
+            # Test save chart drawing
+            drawing_data = {
+                "ticker": "AAPL",
+                "drawing_data": {
+                    "type": "trendline",
+                    "points": [{"x": 100, "y": 150}, {"x": 200, "y": 160}],
+                    "color": "#FF0000",
+                    "style": "solid"
+                },
+                "timeframe": "1D"
+            }
+            
+            drawing_response = self.session.post(f"{API_BASE}/tradingview/drawings", json=drawing_data, headers=auth_headers)
+            if drawing_response.status_code != 200:
+                self.log_test("TradingView Integration", False, f"Save drawing failed: HTTP {drawing_response.status_code}")
+                return False
+            
+            drawing_result = drawing_response.json()
+            if 'message' not in drawing_result or 'drawing' not in drawing_result:
+                self.log_test("TradingView Integration", False, "Drawing response missing message or drawing")
+                return False
+            
+            # Test get chart drawings for ticker
+            get_drawings_response = self.session.get(f"{API_BASE}/tradingview/drawings/AAPL", headers=auth_headers)
+            if get_drawings_response.status_code != 200:
+                self.log_test("TradingView Integration", False, f"Get drawings failed: HTTP {get_drawings_response.status_code}")
+                return False
+            
+            drawings = get_drawings_response.json()
+            if not isinstance(drawings, list):
+                self.log_test("TradingView Integration", False, "Drawings response not a list")
+                return False
+            
+            # Should find the drawing we just created
+            drawing_found = any(drawing.get('ticker') == 'AAPL' for drawing in drawings)
+            if not drawing_found:
+                self.log_test("TradingView Integration", False, "Created drawing not found in get drawings")
+                return False
+            
+            self.log_test("TradingView Integration", True, "TradingView integration working: account connection, chart drawing save/retrieve")
+            return True
+            
+        except Exception as e:
+            self.log_test("TradingView Integration", False, f"Error: {str(e)}")
+            return False
+
+    def test_interactive_charts(self):
+        """Test Interactive Charts with Multiple Timeframes"""
+        try:
+            # Test indices chart data with different timeframes
+            timeframes = ['1d', '1w', '1m', '1y']
+            
+            for timeframe in timeframes:
+                indices_response = self.session.get(f"{API_BASE}/charts/indices?timeframe={timeframe}")
+                if indices_response.status_code != 200:
+                    self.log_test("Interactive Charts", False, f"Indices chart {timeframe} failed: HTTP {indices_response.status_code}")
+                    return False
+                
+                indices_data = indices_response.json()
+                required_indices_fields = ['data', 'timeframe']
+                missing_indices_fields = [field for field in required_indices_fields if field not in indices_data]
+                if missing_indices_fields:
+                    self.log_test("Interactive Charts", False, f"Indices chart missing fields: {missing_indices_fields}")
+                    return False
+                
+                # Validate chart data structure
+                chart_data = indices_data.get('data', {})
+                expected_indices = ['SPY', 'QQQ', 'DIA', 'IWM']
+                
+                for index in expected_indices:
+                    if index not in chart_data:
+                        self.log_test("Interactive Charts", False, f"Missing index {index} in {timeframe} chart data")
+                        return False
+                    
+                    index_data = chart_data[index]
+                    required_chart_fields = ['dates', 'prices', 'volumes', 'highs', 'lows', 'opens']
+                    missing_chart_fields = [field for field in required_chart_fields if field not in index_data]
+                    if missing_chart_fields:
+                        self.log_test("Interactive Charts", False, f"{index} chart missing fields: {missing_chart_fields}")
+                        return False
+                    
+                    # Validate data arrays have same length
+                    dates = index_data.get('dates', [])
+                    prices = index_data.get('prices', [])
+                    if len(dates) != len(prices) or len(dates) == 0:
+                        self.log_test("Interactive Charts", False, f"{index} chart data arrays length mismatch or empty")
+                        return False
+            
+            # Test individual ticker chart data
+            ticker_response = self.session.get(f"{API_BASE}/charts/AAPL?timeframe=1mo")
+            if ticker_response.status_code != 200:
+                self.log_test("Interactive Charts", False, f"Ticker chart failed: HTTP {ticker_response.status_code}")
+                return False
+            
+            ticker_data = ticker_response.json()
+            required_ticker_fields = ['ticker', 'timeframe', 'data']
+            missing_ticker_fields = [field for field in required_ticker_fields if field not in ticker_data]
+            if missing_ticker_fields:
+                self.log_test("Interactive Charts", False, f"Ticker chart missing fields: {missing_ticker_fields}")
+                return False
+            
+            # Validate ticker chart data
+            ticker_chart_data = ticker_data.get('data', {})
+            required_ticker_chart_fields = ['dates', 'prices', 'volumes', 'highs', 'lows', 'opens']
+            missing_ticker_chart_fields = [field for field in required_ticker_chart_fields if field not in ticker_chart_data]
+            if missing_ticker_chart_fields:
+                self.log_test("Interactive Charts", False, f"Ticker chart data missing fields: {missing_ticker_chart_fields}")
+                return False
+            
+            # Validate OHLCV data consistency
+            ohlcv_data = ticker_chart_data
+            data_lengths = [len(ohlcv_data[field]) for field in required_ticker_chart_fields]
+            if len(set(data_lengths)) > 1:  # All arrays should have same length
+                self.log_test("Interactive Charts", False, f"OHLCV data arrays have inconsistent lengths: {data_lengths}")
+                return False
+            
+            self.log_test("Interactive Charts", True, f"Interactive charts working: multiple timeframes ({len(timeframes)}), indices and individual tickers, OHLCV data")
+            return True
+            
+        except Exception as e:
+            self.log_test("Interactive Charts", False, f"Error: {str(e)}")
+            return False
+
+    def test_spreadsheet_interface(self):
+        """Test Spreadsheet-Style Interface with Formula Transparency"""
+        try:
+            # Test spreadsheet ETF data
+            spreadsheet_response = self.session.get(f"{API_BASE}/spreadsheet/etfs")
+            if spreadsheet_response.status_code != 200:
+                self.log_test("Spreadsheet Interface", False, f"Spreadsheet ETFs failed: HTTP {spreadsheet_response.status_code}")
+                return False
+            
+            spreadsheet_data = spreadsheet_response.json()
+            required_spreadsheet_fields = ['data', 'formulas', 'total_records']
+            missing_spreadsheet_fields = [field for field in required_spreadsheet_fields if field not in spreadsheet_data]
+            if missing_spreadsheet_fields:
+                self.log_test("Spreadsheet Interface", False, f"Spreadsheet response missing fields: {missing_spreadsheet_fields}")
+                return False
+            
+            # Validate spreadsheet data structure
+            data = spreadsheet_data.get('data', [])
+            if not data:
+                self.log_test("Spreadsheet Interface", False, "No spreadsheet data returned")
+                return False
+            
+            # Validate spreadsheet row structure
+            sample_row = data[0]
+            expected_spreadsheet_columns = ['Ticker', 'Name', 'Sector', 'Price', 'SATA', 'GMMA', 'ATR_Percent', 'RS_1M', 'Color_Rule']
+            missing_columns = [col for col in expected_spreadsheet_columns if col not in sample_row]
+            if missing_columns:
+                self.log_test("Spreadsheet Interface", False, f"Spreadsheet row missing columns: {missing_columns}")
+                return False
+            
+            # Validate formulas section
+            formulas = spreadsheet_data.get('formulas', {})
+            expected_formulas = ['swing_days', 'atr_percent', 'relative_strength', 'sata_score', 'color_logic']
+            missing_formulas = [formula for formula in expected_formulas if formula not in formulas]
+            if missing_formulas:
+                self.log_test("Spreadsheet Interface", False, f"Missing formula definitions: {missing_formulas}")
+                return False
+            
+            # Validate formula content
+            for formula_name, formula_content in formulas.items():
+                if not isinstance(formula_content, str) or len(formula_content) < 10:
+                    self.log_test("Spreadsheet Interface", False, f"Formula {formula_name} content invalid or too short")
+                    return False
+            
+            # Test with sector filter
+            sector_response = self.session.get(f"{API_BASE}/spreadsheet/etfs?sector=Technology")
+            if sector_response.status_code != 200:
+                self.log_test("Spreadsheet Interface", False, f"Spreadsheet sector filter failed: HTTP {sector_response.status_code}")
+                return False
+            
+            sector_data = sector_response.json()
+            sector_rows = sector_data.get('data', [])
+            if sector_rows:
+                # Verify all rows are from Technology sector
+                non_tech_rows = [row for row in sector_rows if row.get('Sector') != 'Technology']
+                if non_tech_rows:
+                    self.log_test("Spreadsheet Interface", False, f"Sector filter not working: found {len(non_tech_rows)} non-Technology rows")
+                    return False
+            
+            # Validate Excel-style formulas in data
+            sample_row = data[0]
+            swing_days_formula = sample_row.get('Swing_Days', '')
+            if not swing_days_formula.startswith('='):
+                self.log_test("Spreadsheet Interface", False, "Swing_Days not formatted as Excel formula")
+                return False
+            
+            color_rule_formula = sample_row.get('Color_Rule', '')
+            if not color_rule_formula.startswith('=IF'):
+                self.log_test("Spreadsheet Interface", False, "Color_Rule not formatted as Excel IF formula")
+                return False
+            
+            self.log_test("Spreadsheet Interface", True, "Spreadsheet interface working: Excel-style formulas, formula transparency, sector filtering")
+            return True
+            
+        except Exception as e:
+            self.log_test("Spreadsheet Interface", False, f"Error: {str(e)}")
+            return False
+
+    def test_enhanced_watchlist_management(self):
+        """Test Manual Stock/ETF Management and Enhanced Watchlists"""
+        try:
+            if not self.auth_token:
+                self.log_test("Enhanced Watchlist Management", False, "No auth token available - run authentication test first")
+                return False
+            
+            auth_headers = {"Authorization": f"Bearer {self.auth_token}"}
+            
+            # Test get custom watchlists with stocks
+            custom_watchlists_response = self.session.get(f"{API_BASE}/watchlists/custom", headers=auth_headers)
+            if custom_watchlists_response.status_code != 200:
+                self.log_test("Enhanced Watchlist Management", False, f"Get custom watchlists failed: HTTP {custom_watchlists_response.status_code}")
+                return False
+            
+            # Test add stock to watchlist manually
+            test_watchlist_name = "Test Growth Stocks"
+            
+            # First create a custom watchlist if it doesn't exist
+            create_list_data = {
+                "name": test_watchlist_name,
+                "description": "Test watchlist for manual stock management",
+                "color": "#10B981"
+            }
+            
+            create_list_response = self.session.post(f"{API_BASE}/watchlists/lists", json=create_list_data)
+            # It's OK if this fails (list might already exist)
+            
+            # Add stock to watchlist
+            add_stock_data = {
+                "ticker": "NVDA",
+                "name": "NVIDIA Corporation",
+                "notes": "AI chip leader for swing trading",
+                "tags": ["AI", "semiconductors", "growth"],
+                "priority": 5,
+                "entry_price": 800.0,
+                "target_price": 900.0,
+                "stop_loss": 750.0,
+                "position_size": 50.0
+            }
+            
+            add_stock_response = self.session.post(f"{API_BASE}/watchlists/custom/{test_watchlist_name}/add-stock", 
+                                                 json=add_stock_data, headers=auth_headers)
+            if add_stock_response.status_code not in [200, 400]:  # 400 might be "already exists"
+                self.log_test("Enhanced Watchlist Management", False, f"Add stock failed: HTTP {add_stock_response.status_code}")
+                return False
+            
+            # Test get custom watchlists again to verify stock was added
+            verify_response = self.session.get(f"{API_BASE}/watchlists/custom", headers=auth_headers)
+            if verify_response.status_code != 200:
+                self.log_test("Enhanced Watchlist Management", False, f"Verify watchlists failed: HTTP {verify_response.status_code}")
+                return False
+            
+            watchlists = verify_response.json()
+            test_watchlist = None
+            for wl in watchlists:
+                if wl.get('name') == test_watchlist_name:
+                    test_watchlist = wl
+                    break
+            
+            if not test_watchlist:
+                self.log_test("Enhanced Watchlist Management", False, f"Test watchlist '{test_watchlist_name}' not found")
+                return False
+            
+            # Validate watchlist structure
+            required_watchlist_fields = ['id', 'name', 'description', 'color', 'stocks']
+            missing_watchlist_fields = [field for field in required_watchlist_fields if field not in test_watchlist]
+            if missing_watchlist_fields:
+                self.log_test("Enhanced Watchlist Management", False, f"Watchlist missing fields: {missing_watchlist_fields}")
+                return False
+            
+            # Check if our stock is in the watchlist
+            stocks = test_watchlist.get('stocks', [])
+            nvda_stock = None
+            for stock in stocks:
+                if stock.get('ticker') == 'NVDA':
+                    nvda_stock = stock
+                    break
+            
+            if nvda_stock:
+                # Validate stock data structure
+                required_stock_fields = ['ticker', 'name', 'notes', 'tags', 'priority', 'entry_price', 'target_price', 'stop_loss']
+                missing_stock_fields = [field for field in required_stock_fields if field not in nvda_stock]
+                if missing_stock_fields:
+                    self.log_test("Enhanced Watchlist Management", False, f"Stock missing fields: {missing_stock_fields}")
+                    return False
+                
+                # Test remove stock from watchlist
+                remove_response = self.session.delete(f"{API_BASE}/watchlists/custom/{test_watchlist_name}/remove-stock/NVDA", 
+                                                    headers=auth_headers)
+                if remove_response.status_code != 200:
+                    self.log_test("Enhanced Watchlist Management", False, f"Remove stock failed: HTTP {remove_response.status_code}")
+                    return False
+                
+                remove_result = remove_response.json()
+                if 'message' not in remove_result:
+                    self.log_test("Enhanced Watchlist Management", False, "Remove stock response missing message")
+                    return False
+            
+            self.log_test("Enhanced Watchlist Management", True, "Enhanced watchlist management working: custom lists, manual stock add/remove, detailed stock info")
+            return True
+            
+        except Exception as e:
+            self.log_test("Enhanced Watchlist Management", False, f"Error: {str(e)}")
+            return False
+
+    def test_historical_data_pruning(self):
+        """Test Historical Data Pruning and Administration"""
+        try:
+            if not self.auth_token:
+                self.log_test("Historical Data Pruning", False, "No auth token available - run authentication test first")
+                return False
+            
+            auth_headers = {"Authorization": f"Bearer {self.auth_token}"}
+            
+            # Test historical data pruning
+            prune_response = self.session.post(f"{API_BASE}/admin/prune-historical-data?days=90", headers=auth_headers)
+            if prune_response.status_code != 200:
+                self.log_test("Historical Data Pruning", False, f"Prune data failed: HTTP {prune_response.status_code}")
+                return False
+            
+            prune_result = prune_response.json()
+            required_prune_fields = ['message', 'deleted']
+            missing_prune_fields = [field for field in required_prune_fields if field not in prune_result]
+            if missing_prune_fields:
+                self.log_test("Historical Data Pruning", False, f"Prune response missing fields: {missing_prune_fields}")
+                return False
+            
+            # Validate deleted counts structure
+            deleted_counts = prune_result.get('deleted', {})
+            expected_deletion_types = ['historical_snapshots', 'chart_analyses', 'chat_messages']
+            for deletion_type in expected_deletion_types:
+                if deletion_type not in deleted_counts:
+                    self.log_test("Historical Data Pruning", False, f"Missing deletion count for: {deletion_type}")
+                    return False
+                
+                count = deleted_counts[deletion_type]
+                if not isinstance(count, int) or count < 0:
+                    self.log_test("Historical Data Pruning", False, f"Invalid deletion count for {deletion_type}: {count}")
+                    return False
+            
+            # Test with different retention period
+            prune_30_response = self.session.post(f"{API_BASE}/admin/prune-historical-data?days=30", headers=auth_headers)
+            if prune_30_response.status_code != 200:
+                self.log_test("Historical Data Pruning", False, f"Prune 30 days failed: HTTP {prune_30_response.status_code}")
+                return False
+            
+            self.log_test("Historical Data Pruning", True, "Historical data pruning working: configurable retention periods, multiple data types, deletion counts")
+            return True
+            
+        except Exception as e:
+            self.log_test("Historical Data Pruning", False, f"Error: {str(e)}")
+            return False
         """Test root API endpoint"""
         try:
             response = self.session.get(f"{API_BASE}/")
