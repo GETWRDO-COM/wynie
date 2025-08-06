@@ -723,13 +723,13 @@ async def get_market_score():
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.post("/market-score", response_model=MarketScore)
-async def update_market_score(score: MarketScore):
+async def update_market_score(score_input: MarketScoreInput):
     """Update market score"""
     try:
         # Calculate total and classification
-        total = (score.sata_score + score.adx_score + score.vix_score + 
-                score.atr_score + score.gmi_score + score.nhnl_score + 
-                score.fg_index_score + score.qqq_ath_distance_score)
+        total = (score_input.sata_score + score_input.adx_score + score_input.vix_score + 
+                score_input.atr_score + score_input.gmi_score + score_input.nhnl_score + 
+                score_input.fg_index_score + score_input.qqq_ath_distance_score)
         
         if total >= 28:
             classification = "Green Day"
@@ -741,9 +741,20 @@ async def update_market_score(score: MarketScore):
             classification = "Red Day"
             recommendation = "Risk-off mode. Tight stops or avoid new positions."
         
-        score.total_score = total
-        score.classification = classification
-        score.recommendation = recommendation
+        # Create full MarketScore object
+        score = MarketScore(
+            sata_score=score_input.sata_score,
+            adx_score=score_input.adx_score,
+            vix_score=score_input.vix_score,
+            atr_score=score_input.atr_score,
+            gmi_score=score_input.gmi_score,
+            nhnl_score=score_input.nhnl_score,
+            fg_index_score=score_input.fg_index_score,
+            qqq_ath_distance_score=score_input.qqq_ath_distance_score,
+            total_score=total,
+            classification=classification,
+            recommendation=recommendation
+        )
         
         await db.market_scores.insert_one(score.dict())
         return score
