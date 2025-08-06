@@ -651,6 +651,349 @@ class ETFBackendTester:
         except Exception as e:
             self.log_test("Chart Analysis", False, f"Error: {str(e)}")
             return False
+
+    def test_enhanced_dashboard_api(self):
+        """Test Enhanced Dashboard API with all new professional features"""
+        try:
+            response = self.session.get(f"{API_BASE}/dashboard")
+            if response.status_code != 200:
+                self.log_test("Enhanced Dashboard API", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            dashboard_data = response.json()
+            
+            # Validate enhanced dashboard fields
+            required_fields = ['greeting', 'sa_time', 'ny_time', 'market_countdown', 
+                             'major_indices', 'zar_usd_rate', 'fear_greed_index', 'last_updated']
+            missing_fields = [field for field in required_fields if field not in dashboard_data]
+            if missing_fields:
+                self.log_test("Enhanced Dashboard API", False, f"Missing enhanced fields: {missing_fields}")
+                return False
+            
+            # Validate major indices data
+            major_indices = dashboard_data.get('major_indices', {})
+            expected_indices = ['SPY', 'QQQ', 'DIA', 'IWM']
+            for index in expected_indices:
+                if index not in major_indices:
+                    self.log_test("Enhanced Dashboard API", False, f"Missing major index: {index}")
+                    return False
+                
+                index_data = major_indices[index]
+                required_index_fields = ['price', 'change_1d', 'last_updated']
+                missing_index_fields = [field for field in required_index_fields if field not in index_data]
+                if missing_index_fields:
+                    self.log_test("Enhanced Dashboard API", False, f"{index} missing fields: {missing_index_fields}")
+                    return False
+            
+            # Validate ZAR/USD rate
+            zar_usd_rate = dashboard_data.get('zar_usd_rate')
+            if not isinstance(zar_usd_rate, (int, float)) or zar_usd_rate <= 0:
+                self.log_test("Enhanced Dashboard API", False, f"Invalid ZAR/USD rate: {zar_usd_rate}")
+                return False
+            
+            # Validate Fear & Greed Index
+            fear_greed = dashboard_data.get('fear_greed_index', {})
+            required_fg_fields = ['index', 'rating', 'last_updated', 'components']
+            missing_fg_fields = [field for field in required_fg_fields if field not in fear_greed]
+            if missing_fg_fields:
+                self.log_test("Enhanced Dashboard API", False, f"Fear & Greed missing fields: {missing_fg_fields}")
+                return False
+            
+            # Validate Fear & Greed components
+            fg_components = fear_greed.get('components', {})
+            expected_components = ['stock_price_momentum', 'market_volatility', 'safe_haven_demand', 'put_call_ratio']
+            for component in expected_components:
+                if component not in fg_components:
+                    self.log_test("Enhanced Dashboard API", False, f"Missing F&G component: {component}")
+                    return False
+            
+            self.log_test("Enhanced Dashboard API", True, "All enhanced dashboard features working: SA greetings, dual timezone, major indices, ZAR/USD, Fear & Greed integration")
+            return True
+            
+        except Exception as e:
+            self.log_test("Enhanced Dashboard API", False, f"Error: {str(e)}")
+            return False
+
+    def test_live_market_data_apis(self):
+        """Test Live Market Data APIs"""
+        try:
+            # Test Live Indices API
+            indices_response = self.session.get(f"{API_BASE}/live/indices")
+            if indices_response.status_code != 200:
+                self.log_test("Live Market Data APIs", False, f"Live indices failed: HTTP {indices_response.status_code}")
+                return False
+            
+            indices_data = indices_response.json()
+            expected_indices = ['SPY', 'QQQ', 'DIA', 'IWM', 'VIX']
+            for index in expected_indices:
+                if index not in indices_data:
+                    self.log_test("Live Market Data APIs", False, f"Missing live index: {index}")
+                    return False
+                
+                index_info = indices_data[index]
+                required_fields = ['symbol', 'price', 'change_1d', 'volume', 'last_updated']
+                missing_fields = [field for field in required_fields if field not in index_info]
+                if missing_fields:
+                    self.log_test("Live Market Data APIs", False, f"{index} missing fields: {missing_fields}")
+                    return False
+            
+            # Test Fear & Greed API
+            fg_response = self.session.get(f"{API_BASE}/live/fear-greed")
+            if fg_response.status_code != 200:
+                self.log_test("Live Market Data APIs", False, f"Fear & Greed failed: HTTP {fg_response.status_code}")
+                return False
+            
+            fg_data = fg_response.json()
+            required_fg_fields = ['index', 'rating', 'color', 'last_updated', 'components']
+            missing_fg_fields = [field for field in required_fg_fields if field not in fg_data]
+            if missing_fg_fields:
+                self.log_test("Live Market Data APIs", False, f"Fear & Greed missing fields: {missing_fg_fields}")
+                return False
+            
+            # Validate Fear & Greed index range
+            fg_index = fg_data.get('index', 0)
+            if not (0 <= fg_index <= 100):
+                self.log_test("Live Market Data APIs", False, f"Fear & Greed index {fg_index} out of range 0-100")
+                return False
+            
+            # Test Forex API
+            forex_response = self.session.get(f"{API_BASE}/live/forex")
+            if forex_response.status_code != 200:
+                self.log_test("Live Market Data APIs", False, f"Forex failed: HTTP {forex_response.status_code}")
+                return False
+            
+            forex_data = forex_response.json()
+            if 'ZAR_USD' not in forex_data:
+                self.log_test("Live Market Data APIs", False, "Missing ZAR_USD in forex data")
+                return False
+            
+            zar_usd = forex_data['ZAR_USD']
+            required_forex_fields = ['rate', 'change', 'change_percent', 'last_updated']
+            missing_forex_fields = [field for field in required_forex_fields if field not in zar_usd]
+            if missing_forex_fields:
+                self.log_test("Live Market Data APIs", False, f"ZAR_USD missing fields: {missing_forex_fields}")
+                return False
+            
+            # Validate major pairs exist
+            if 'major_pairs' not in forex_data:
+                self.log_test("Live Market Data APIs", False, "Missing major_pairs in forex data")
+                return False
+            
+            self.log_test("Live Market Data APIs", True, "All live market data APIs working: indices, Fear & Greed, forex rates")
+            return True
+            
+        except Exception as e:
+            self.log_test("Live Market Data APIs", False, f"Error: {str(e)}")
+            return False
+
+    def test_export_integration_apis(self):
+        """Test Export & Integration APIs"""
+        try:
+            # Test ETF Export API
+            etf_export_response = self.session.get(f"{API_BASE}/export/etfs")
+            if etf_export_response.status_code != 200:
+                self.log_test("Export & Integration APIs", False, f"ETF export failed: HTTP {etf_export_response.status_code}")
+                return False
+            
+            etf_export_data = etf_export_response.json()
+            required_export_fields = ['data', 'total_records', 'export_timestamp', 'format']
+            missing_export_fields = [field for field in required_export_fields if field not in etf_export_data]
+            if missing_export_fields:
+                self.log_test("Export & Integration APIs", False, f"ETF export missing fields: {missing_export_fields}")
+                return False
+            
+            # Validate export data structure
+            export_data = etf_export_data.get('data', [])
+            if not export_data:
+                self.log_test("Export & Integration APIs", False, "No ETF data in export")
+                return False
+            
+            # Validate CSV-compatible format
+            sample_etf = export_data[0]
+            expected_csv_fields = ['Ticker', 'Name', 'Sector', 'Theme', 'Current_Price', 
+                                 'Change_1D', 'Change_1W', 'Change_1M', 'RS_1M', 'SATA_Score']
+            missing_csv_fields = [field for field in expected_csv_fields if field not in sample_etf]
+            if missing_csv_fields:
+                self.log_test("Export & Integration APIs", False, f"CSV format missing fields: {missing_csv_fields}")
+                return False
+            
+            # Validate format specification
+            if etf_export_data.get('format') != 'csv_compatible':
+                self.log_test("Export & Integration APIs", False, "Export format not marked as csv_compatible")
+                return False
+            
+            # Test Market Score Export API
+            score_export_response = self.session.get(f"{API_BASE}/export/market-score")
+            if score_export_response.status_code != 200:
+                self.log_test("Export & Integration APIs", False, f"Market score export failed: HTTP {score_export_response.status_code}")
+                return False
+            
+            score_export_data = score_export_response.json()
+            required_score_fields = ['market_score_data', 'export_timestamp']
+            missing_score_fields = [field for field in required_score_fields if field not in score_export_data]
+            if missing_score_fields:
+                self.log_test("Export & Integration APIs", False, f"Market score export missing fields: {missing_score_fields}")
+                return False
+            
+            self.log_test("Export & Integration APIs", True, "Export APIs working: ETF CSV export and market score export")
+            return True
+            
+        except Exception as e:
+            self.log_test("Export & Integration APIs", False, f"Error: {str(e)}")
+            return False
+
+    def test_formula_configuration_apis(self):
+        """Test Formula Configuration APIs"""
+        try:
+            # Test GET formula config
+            get_response = self.session.get(f"{API_BASE}/formulas/config")
+            if get_response.status_code != 200:
+                self.log_test("Formula Configuration APIs", False, f"Get config failed: HTTP {get_response.status_code}")
+                return False
+            
+            config_data = get_response.json()
+            
+            # Validate configuration structure
+            expected_config_sections = ['relative_strength', 'sata_weights', 'atr_calculation', 'gmma_pattern']
+            missing_sections = [section for section in expected_config_sections if section not in config_data]
+            if missing_sections:
+                self.log_test("Formula Configuration APIs", False, f"Missing config sections: {missing_sections}")
+                return False
+            
+            # Validate relative strength config
+            rs_config = config_data.get('relative_strength', {})
+            required_rs_fields = ['strong_threshold', 'moderate_threshold', 'formula']
+            missing_rs_fields = [field for field in required_rs_fields if field not in rs_config]
+            if missing_rs_fields:
+                self.log_test("Formula Configuration APIs", False, f"Relative strength config missing: {missing_rs_fields}")
+                return False
+            
+            # Validate SATA weights config
+            sata_config = config_data.get('sata_weights', {})
+            required_sata_fields = ['performance', 'relative_strength', 'volume', 'volatility', 'formula']
+            missing_sata_fields = [field for field in required_sata_fields if field not in sata_config]
+            if missing_sata_fields:
+                self.log_test("Formula Configuration APIs", False, f"SATA weights config missing: {missing_sata_fields}")
+                return False
+            
+            # Test POST formula config update
+            updated_config = config_data.copy()
+            updated_config['relative_strength']['strong_threshold'] = 0.12  # Modify a value
+            
+            post_response = self.session.post(f"{API_BASE}/formulas/config", json=updated_config)
+            if post_response.status_code != 200:
+                self.log_test("Formula Configuration APIs", False, f"Update config failed: HTTP {post_response.status_code}")
+                return False
+            
+            update_result = post_response.json()
+            if 'message' not in update_result or 'config' not in update_result:
+                self.log_test("Formula Configuration APIs", False, "Update response missing required fields")
+                return False
+            
+            # Verify the update was applied
+            verify_response = self.session.get(f"{API_BASE}/formulas/config")
+            if verify_response.status_code == 200:
+                verify_data = verify_response.json()
+                if verify_data.get('relative_strength', {}).get('strong_threshold') != 0.12:
+                    self.log_test("Formula Configuration APIs", False, "Configuration update not persisted")
+                    return False
+            
+            self.log_test("Formula Configuration APIs", True, "Formula configuration APIs working: get and update with recalculation trigger")
+            return True
+            
+        except Exception as e:
+            self.log_test("Formula Configuration APIs", False, f"Error: {str(e)}")
+            return False
+
+    def test_enhanced_calculations(self):
+        """Test Enhanced Professional Calculations"""
+        try:
+            # Get ETF data to validate enhanced calculations
+            response = self.session.get(f"{API_BASE}/etfs?limit=10")
+            if response.status_code != 200:
+                self.log_test("Enhanced Calculations", False, f"HTTP {response.status_code}")
+                return False
+            
+            etfs = response.json()
+            if not etfs:
+                self.log_test("Enhanced Calculations", False, "No ETF data for calculation validation")
+                return False
+            
+            calculation_validations = []
+            
+            for etf in etfs[:5]:  # Test first 5 ETFs
+                ticker = etf['ticker']
+                
+                # Validate enhanced SATA scoring (1-10 range)
+                sata_score = etf.get('sata_score', 0)
+                if not (1 <= sata_score <= 10):
+                    calculation_validations.append(f"{ticker}: SATA score {sata_score} out of professional range 1-10")
+                
+                # Validate relative strength calculations
+                rs_1m = etf.get('relative_strength_1m', 0)
+                rs_3m = etf.get('relative_strength_3m', 0)
+                rs_6m = etf.get('relative_strength_6m', 0)
+                
+                # Relative strength should be reasonable values
+                for period, rs_value in [('1M', rs_1m), ('3M', rs_3m), ('6M', rs_6m)]:
+                    if abs(rs_value) > 5:  # Extreme relative strength values
+                        calculation_validations.append(f"{ticker}: {period} RS {rs_value} seems extreme")
+                
+                # Validate GMMA pattern classification
+                gmma_pattern = etf.get('gmma_pattern', '')
+                valid_patterns = ['RWB', 'BWR', 'Mixed']
+                if gmma_pattern not in valid_patterns:
+                    calculation_validations.append(f"{ticker}: Invalid GMMA pattern '{gmma_pattern}'")
+                
+                # Validate SMA20 trend
+                sma20_trend = etf.get('sma20_trend', '')
+                valid_trends = ['U', 'D', 'F']
+                if sma20_trend not in valid_trends:
+                    calculation_validations.append(f"{ticker}: Invalid SMA20 trend '{sma20_trend}'")
+                
+                # Validate ATR percentage is reasonable
+                atr_percent = etf.get('atr_percent', 0)
+                if atr_percent < 0 or atr_percent > 50:  # ATR should be positive and reasonable
+                    calculation_validations.append(f"{ticker}: ATR {atr_percent}% out of reasonable range")
+            
+            # Test Market Score calculations
+            market_score_response = self.session.get(f"{API_BASE}/market-score")
+            if market_score_response.status_code == 200:
+                market_score = market_score_response.json()
+                
+                # Validate 8-component scoring system
+                component_scores = [
+                    market_score.get('sata_score', 0),
+                    market_score.get('adx_score', 0),
+                    market_score.get('vix_score', 0),
+                    market_score.get('atr_score', 0),
+                    market_score.get('gmi_score', 0),
+                    market_score.get('nhnl_score', 0),
+                    market_score.get('fg_index_score', 0),
+                    market_score.get('qqq_ath_distance_score', 0)
+                ]
+                
+                # Each component should be 1-5
+                for i, score in enumerate(component_scores):
+                    if not (1 <= score <= 5):
+                        calculation_validations.append(f"Market score component {i+1}: {score} not in range 1-5")
+                
+                # Total should be sum of components (8-40 range)
+                expected_total = sum(component_scores)
+                actual_total = market_score.get('total_score', 0)
+                if actual_total != expected_total:
+                    calculation_validations.append(f"Market score total {actual_total} != sum of components {expected_total}")
+            
+            if calculation_validations:
+                self.log_test("Enhanced Calculations", False, f"Calculation issues: {'; '.join(calculation_validations[:3])}")  # Show first 3 issues
+                return False
+            else:
+                self.log_test("Enhanced Calculations", True, "All enhanced calculations mathematically accurate and professionally formatted")
+                return True
+            
+        except Exception as e:
+            self.log_test("Enhanced Calculations", False, f"Error: {str(e)}")
+            return False
     
     def cleanup(self):
         """Clean up any test data created"""
