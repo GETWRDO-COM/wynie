@@ -1519,7 +1519,12 @@ async def get_formula_config():
             await db.formula_configs.insert_one(default_config)
             return default_config
         
-        return config[0]
+        # Remove MongoDB ObjectId from response
+        config_data = config[0]
+        if '_id' in config_data:
+            del config_data['_id']
+        
+        return config_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
