@@ -532,7 +532,7 @@ const ETFIntelligenceSystem = () => {
                         </div>
                         <div>
                           <div className="text-yellow-400 font-semibold">GMMA Pattern:</div>
-                          <div className="text-gray-300">RWB: 1W>0 & 1M>0 & RS>0, BWR: All negative</div>
+                          <div className="text-gray-300">RWB: 1W&gt;0 &amp; 1M&gt;0 &amp; RS&gt;0, BWR: All negative</div>
                         </div>
                       </div>
                     </div>
