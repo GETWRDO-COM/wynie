@@ -689,8 +689,8 @@ async def delete_watchlist_item(item_id: str):
 async def get_market_score():
     """Get current market situational awareness score"""
     try:
-        score = await db.market_scores.find().sort("date", -1).limit(1).first()
-        if not score:
+        scores = await db.market_scores.find().sort("date", -1).limit(1).to_list(1)
+        if not scores:
             # Create default score
             default_score = MarketScore(
                 sata_score=2,
@@ -708,7 +708,7 @@ async def get_market_score():
             await db.market_scores.insert_one(default_score.dict())
             return default_score
         
-        return MarketScore(**score)
+        return MarketScore(**scores[0])
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
