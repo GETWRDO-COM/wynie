@@ -13,6 +13,11 @@ import {
   Legend,
 } from 'chart.js';
 
+// Import the new components
+import SwingAnalysisGrid from './components/SwingAnalysisGrid';
+import AIAnalysisTab from './components/AIAnalysisTab';
+import SpreadsheetTab from './components/SpreadsheetTab';
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
