@@ -1,28 +1,28 @@
 {
   "summary": {
-    "passed": 11,
-    "failed": 2
+    "passed": 12,
+    "failed": 1
   },
   "detailed_results": [
     {
       "test": "API Root",
       "success": true,
       "details": "Root endpoint accessible: ETF Intelligence System API",
-      "timestamp": "2025-08-06T08:49:34.897126",
+      "timestamp": "2025-08-06T08:51:14.945216",
       "response_data": null
     },
     {
       "test": "Dashboard API",
       "success": true,
       "details": "SA greetings, dual timezone display, and market countdown working correctly",
-      "timestamp": "2025-08-06T08:49:34.944469",
+      "timestamp": "2025-08-06T08:51:14.953424",
       "response_data": null
     },
     {
       "test": "ETF Data Update",
       "success": true,
       "details": "Successfully updated 23 ETFs from yfinance",
-      "timestamp": "2025-08-06T08:49:40.366283",
+      "timestamp": "2025-08-06T08:51:19.277407",
       "response_data": {
         "message": "Updated 23 ETFs",
         "count": 23
@@ -32,72 +32,72 @@
       "test": "Get ETFs",
       "success": true,
       "details": "Retrieved 23 ETFs, filtering works correctly",
-      "timestamp": "2025-08-06T08:49:40.392217",
+      "timestamp": "2025-08-06T08:51:19.340074",
       "response_data": null
     },
     {
       "test": "ETF Calculations",
       "success": true,
       "details": "All calculations appear mathematically correct",
-      "timestamp": "2025-08-06T08:49:40.399348",
+      "timestamp": "2025-08-06T08:51:19.346942",
       "response_data": null
     },
     {
       "test": "Swing Leaders",
       "success": true,
       "details": "Top 5 swing leaders returned with correct SATA + RS scoring",
-      "timestamp": "2025-08-06T08:49:40.407392",
+      "timestamp": "2025-08-06T08:51:19.353740",
       "response_data": null
     },
     {
       "test": "Universal Stock Lookup",
       "success": true,
       "details": "Successfully retrieved data for 5 different stock tickers",
-      "timestamp": "2025-08-06T08:49:42.409326",
+      "timestamp": "2025-08-06T08:51:20.817157",
       "response_data": null
     },
     {
       "test": "Watchlist Management",
-      "success": false,
-      "details": "Error: 'list' object has no attribute 'get'",
-      "timestamp": "2025-08-06T08:49:42.528304",
+      "success": true,
+      "details": "All CRUD operations working correctly",
+      "timestamp": "2025-08-06T08:51:20.939521",
       "response_data": null
     },
     {
       "test": "Custom Watchlist Lists",
       "success": true,
       "details": "Custom watchlist lists management working correctly",
-      "timestamp": "2025-08-06T08:49:42.604289",
+      "timestamp": "2025-08-06T08:51:20.993759",
       "response_data": null
     },
     {
       "test": "Market Score",
       "success": false,
-      "details": "Get failed: HTTP 500",
-      "timestamp": "2025-08-06T08:49:42.609967",
+      "details": "Post failed: HTTP 422",
+      "timestamp": "2025-08-06T08:51:21.061993",
       "response_data": null
     },
     {
       "test": "Chart Analysis",
       "success": true,
       "details": "AI Chart Analysis working for 3 tickers with realistic recommendations",
-      "timestamp": "2025-08-06T08:49:43.300722",
+      "timestamp": "2025-08-06T08:51:21.753268",
       "response_data": null
     },
     {
       "test": "Journal Management",
       "success": true,
       "details": "Journal CRUD operations working correctly",
-      "timestamp": "2025-08-06T08:49:43.414927",
+      "timestamp": "2025-08-06T08:51:21.815548",
       "response_data": null
     },
     {
       "test": "Historical Data",
       "success": true,
       "details": "Historical snapshots endpoint working correctly",
-      "timestamp": "2025-08-06T08:49:43.476389",
+      "timestamp": "2025-08-06T08:51:21.917497",
       "response_data": null
     }
   ],
-  "timestamp": "2025-08-06T08:49:43.524431"
+  "timestamp": "2025-08-06T08:51:21.924018"
 }
