@@ -787,8 +787,19 @@ const ETFIntelligenceSystem = () => {
                     <option key={sector} value={sector}>{sector}</option>
                   ))}
                 </select>
-                <button className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg">
-                  📊 Export to Google Sheets
+                <button 
+                  onClick={exportToGoogleSheets}
+                  disabled={exportLoading}
+                  className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg disabled:opacity-50"
+                >
+                  {exportLoading ? (
+                    <>
+                      <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Exporting...
+                    </>
+                  ) : (
+                    '📊 Export to CSV'
+                  )}
                 </button>
                 <button 
                   onClick={() => setShowFormulas(!showFormulas)}
