@@ -1255,10 +1255,19 @@ async def get_custom_watchlists_with_stocks(current_user: User = Depends(get_cur
             # Get stocks in this watchlist
             stocks = await db.watchlists.find({"list_name": watchlist["name"]}).to_list(length=None)
             
-            # Convert to dict and add stocks
+            # Convert to dict and clean up MongoDB ObjectId
             watchlist_dict = dict(watchlist)
-            watchlist_dict["stocks"] = [WatchlistItem(**stock) for stock in stocks]
+            if '_id' in watchlist_dict:
+                del watchlist_dict['_id']
             
+            # Clean up stock data and convert to WatchlistItem
+            cleaned_stocks = []
+            for stock in stocks:
+                if '_id' in stock:
+                    del stock['_id']
+                cleaned_stocks.append(WatchlistItem(**stock))
+            
+            watchlist_dict["stocks"] = cleaned_stocks
             result.append(watchlist_dict)
         
         return result
