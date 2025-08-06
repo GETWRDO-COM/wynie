@@ -511,13 +511,18 @@ class ETFBackendTester:
         
         tests = [
             ("API Connectivity", self.test_api_root),
+            ("Dashboard API", self.test_dashboard_api),
             ("ETF Data Update", self.test_etf_data_update),
             ("ETF Data Retrieval", self.test_get_etfs),
             ("ETF Calculations", self.test_etf_calculations),
-            ("ETF Leaders", self.test_etf_leaders),
+            ("Swing Leaders", self.test_swing_leaders),
+            ("Universal Stock Lookup", self.test_universal_stock_lookup),
             ("Watchlist Management", self.test_watchlist_management),
+            ("Custom Watchlist Lists", self.test_custom_watchlist_lists),
             ("Market Score (MSAE)", self.test_market_score),
             ("Chart Analysis", self.test_chart_analysis),
+            ("Journal Management", self.test_journal_management),
+            ("Historical Data", self.test_historical_data),
         ]
         
         passed = 0
