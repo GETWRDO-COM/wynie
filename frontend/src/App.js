@@ -273,9 +273,17 @@ const ETFIntelligenceSystem = () => {
                     <div className="flex items-center justify-center">
                       <span className="text-lg mr-2">💱</span>
                       <div>
-                        <div className="text-yellow-300 font-bold text-lg">ZAR/USD</div>
-                        <div className="text-xs text-yellow-200">Live Rate</div>
-                        <div className="text-xs text-gray-400 mt-1">Loading...</div>
+                        <div className="text-yellow-300 font-bold text-lg">
+                          {forexRates ? `R${forexRates.ZAR_USD?.rate?.toFixed(4)}` : 'Loading...'}
+                        </div>
+                        <div className="text-xs text-yellow-200">ZAR/USD</div>
+                        {forexRates?.ZAR_USD && (
+                          <div className={`text-xs font-semibold mt-1 ${
+                            forexRates.ZAR_USD.change > 0 ? 'text-green-400' : 'text-red-400'
+                          }`}>
+                            {forexRates.ZAR_USD.change > 0 ? '+' : ''}{forexRates.ZAR_USD.change_percent?.toFixed(2)}%
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
