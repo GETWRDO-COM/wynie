@@ -1692,6 +1692,7 @@ async def get_live_fear_greed():
         fear_greed_data = {
             "index": 73,
             "rating": "Greed",
+            "color": "#FFA500",  # Orange for Greed
             "last_updated": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
             "components": {
                 "stock_price_momentum": 85,
@@ -1704,7 +1705,7 @@ async def get_live_fear_greed():
             }
         }
         
-        return {"data": fear_greed_data, "timestamp": datetime.utcnow().isoformat()}
+        return fear_greed_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
