@@ -183,32 +183,64 @@ const ETFIntelligenceSystem = () => {
             </div>
             <div className="flex items-center space-x-6">
               {dashboardData && (
-                <div className="flex space-x-4 text-sm">
-                  <div className="text-center">
-                    <div className="flex items-center">
-                      <span className="mr-1">{dashboardData.sa_time.flag}</span>
-                      <span className="font-mono text-blue-300">{dashboardData.sa_time.time}</span>
-                      <span className="ml-1 text-gray-400">{dashboardData.sa_time.timezone}</span>
+                <div className="flex space-x-6 text-sm">
+                  <div className="bg-gray-700 rounded-lg p-3 text-center border-l-4 border-blue-500">
+                    <div className="flex items-center justify-center mb-1">
+                      <span className="text-2xl mr-2">🇿🇦</span>
+                      <div>
+                        <div className="text-blue-300 font-bold text-lg font-mono">{dashboardData.sa_time.time}</div>
+                        <div className="text-xs text-blue-200">Johannesburg ({dashboardData.sa_time.timezone})</div>
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-400">{dashboardData.sa_time.date}</div>
+                    <div className="text-xs text-gray-400 mt-1">{dashboardData.sa_time.date}</div>
                   </div>
-                  <div className="text-center">
-                    <div className="flex items-center">
-                      <span className="mr-1">{dashboardData.ny_time.flag}</span>
-                      <span className="font-mono text-green-300">{dashboardData.ny_time.time}</span>
-                      <span className="ml-1 text-gray-400">{dashboardData.ny_time.timezone}</span>
+                  <div className="bg-gray-700 rounded-lg p-3 text-center border-l-4 border-green-500">
+                    <div className="flex items-center justify-center mb-1">
+                      <span className="text-2xl mr-2">🇺🇸</span>
+                      <div>
+                        <div className="text-green-300 font-bold text-lg font-mono">{dashboardData.ny_time.time}</div>
+                        <div className="text-xs text-green-200">New York ({dashboardData.ny_time.timezone})</div>
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-400">Opens in: {dashboardData.market_countdown}</div>
+                    <div className="text-xs text-orange-400 font-semibold mt-1">
+                      📈 Opens in: {dashboardData.market_countdown}
+                    </div>
+                  </div>
+                  {/* Add ZAR/USD Exchange Rate */}
+                  <div className="bg-gray-700 rounded-lg p-3 text-center border-l-4 border-yellow-500">
+                    <div className="flex items-center justify-center">
+                      <span className="text-lg mr-2">💱</span>
+                      <div>
+                        <div className="text-yellow-300 font-bold text-lg">ZAR/USD</div>
+                        <div className="text-xs text-yellow-200">Live Rate</div>
+                        <div className="text-xs text-gray-400 mt-1">Loading...</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
-              <button
-                onClick={updateETFs}
-                disabled={loading}
-                className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-medium disabled:opacity-50"
-              >
-                {loading ? "Updating..." : "🔄 Update Data"}
-              </button>
+              <div className="flex space-x-3">
+                <button
+                  onClick={updateETFs}
+                  disabled={loading}
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-medium disabled:opacity-50 flex items-center"
+                >
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Updating...
+                    </>
+                  ) : (
+                    <>
+                      🔄 Update Data
+                    </>
+                  )}
+                </button>
+                <div className="bg-gray-700 rounded-lg px-3 py-2 text-xs">
+                  <div className="text-gray-400">Last Updated</div>
+                  <div className="text-white font-mono">{dashboardData ? new Date(dashboardData.last_updated).toLocaleTimeString() : '--:--'}</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
