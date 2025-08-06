@@ -855,8 +855,18 @@ async def export_market_score():
         if not score:
             raise HTTPException(status_code=404, detail="No market score data found")
         
+        # Convert ObjectId to string and clean up the data
+        score_data = score[0]
+        if '_id' in score_data:
+            score_data['_id'] = str(score_data['_id'])
+        
+        # Convert datetime objects to ISO strings
+        for key, value in score_data.items():
+            if isinstance(value, datetime):
+                score_data[key] = value.isoformat()
+        
         return {
-            "market_score_data": score[0],
+            "market_score_data": score_data,
             "export_timestamp": datetime.utcnow().isoformat()
         }
     except Exception as e:
