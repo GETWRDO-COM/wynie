@@ -1667,13 +1667,21 @@ class ETFBackendTester:
     
     def run_all_tests(self):
         """Run all backend tests including enhanced professional features"""
-        print(f"🚀 Starting ENHANCED ETF Intelligence System Backend Tests")
+        print(f"🚀 Starting COMPREHENSIVE ETF Intelligence System Backend Tests")
         print(f"📡 Backend URL: {BACKEND_URL}")
         print(f"🔗 API Base: {API_BASE}")
         print("=" * 80)
         
         tests = [
             ("API Connectivity", self.test_api_root),
+            ("Authentication System", self.test_authentication_system),
+            ("AI Chat Integration", self.test_ai_chat_integration),
+            ("Enhanced Company Search", self.test_enhanced_company_search),
+            ("TradingView Integration", self.test_tradingview_integration),
+            ("Interactive Charts", self.test_interactive_charts),
+            ("Spreadsheet Interface", self.test_spreadsheet_interface),
+            ("Enhanced Watchlist Management", self.test_enhanced_watchlist_management),
+            ("Historical Data Pruning", self.test_historical_data_pruning),
             ("Enhanced Dashboard API", self.test_enhanced_dashboard_api),
             ("Live Market Data APIs", self.test_live_market_data_apis),
             ("Export & Integration APIs", self.test_export_integration_apis),
