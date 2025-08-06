@@ -319,7 +319,7 @@ class ETFBackendTester:
                 return False
             
             # Test get unique list names
-            lists_response = self.session.get(f"{API_BASE}/watchlists/lists")
+            lists_response = self.session.get(f"{API_BASE}/watchlists/names")
             if lists_response.status_code != 200:
                 self.log_test("Watchlist Management", False, f"Get lists failed: HTTP {lists_response.status_code}")
                 return False
