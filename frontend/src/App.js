@@ -609,92 +609,248 @@ const ETFIntelligenceSystem = () => {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold">📊 Capitalization & Swing Analysis Grid</h2>
-              <select
-                value={selectedSector}
-                onChange={(e) => setSelectedSector(e.target.value)}
-                className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2"
-              >
-                <option value="">All Sectors</option>
-                {sectors.map((sector) => (
-                  <option key={sector} value={sector}>{sector}</option>
-                ))}
-              </select>
+              <div className="flex gap-3">
+                <select
+                  value={selectedSector}
+                  onChange={(e) => setSelectedSector(e.target.value)}
+                  className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2"
+                >
+                  <option value="">All Sectors</option>
+                  {sectors.map((sector) => (
+                    <option key={sector} value={sector}>{sector}</option>
+                  ))}
+                </select>
+                <button className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg">
+                  📊 Export to Google Sheets
+                </button>
+                <button 
+                  onClick={() => setShowFormulas(!showFormulas)}
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg"
+                >
+                  {showFormulas ? '🔽 Hide' : '⚙️ Show'} Formulas
+                </button>
+              </div>
             </div>
+
+            {/* Formula Display Panel */}
+            {showFormulas && (
+              <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+                <h3 className="text-lg font-semibold mb-4 text-blue-300">📐 Editable Calculation Formulas</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="bg-gray-700 p-4 rounded-lg">
+                    <h4 className="font-semibold text-green-400 mb-2">Relative Strength (RS)</h4>
+                    <div className="font-mono text-sm text-gray-300 mb-2">
+                      RS = (ETF_Return - SPY_Return) / |SPY_Return|
+                    </div>
+                    <div className="space-y-2">
+                      <div>
+                        <label className="text-xs text-gray-400">Strong Threshold (&gt;)</label>
+                        <input type="number" defaultValue="0.10" step="0.01" className="w-full bg-gray-600 rounded px-2 py-1 text-sm" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-400">Moderate Threshold (&gt;)</label>
+                        <input type="number" defaultValue="0.02" step="0.01" className="w-full bg-gray-600 rounded px-2 py-1 text-sm" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-700 p-4 rounded-lg">
+                    <h4 className="font-semibold text-yellow-400 mb-2">SATA Score Weights</h4>
+                    <div className="font-mono text-sm text-gray-300 mb-2">
+                      SATA = Σ(Factor × Weight)
+                    </div>
+                    <div className="space-y-2">
+                      <div>
+                        <label className="text-xs text-gray-400">Performance (%)</label>
+                        <input type="number" defaultValue="30" className="w-full bg-gray-600 rounded px-2 py-1 text-sm" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-400">Rel. Strength (%)</label>
+                        <input type="number" defaultValue="30" className="w-full bg-gray-600 rounded px-2 py-1 text-sm" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-400">Volume (%)</label>
+                        <input type="number" defaultValue="20" className="w-full bg-gray-600 rounded px-2 py-1 text-sm" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-400">Volatility (%)</label>
+                        <input type="number" defaultValue="20" className="w-full bg-gray-600 rounded px-2 py-1 text-sm" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-700 p-4 rounded-lg">
+                    <h4 className="font-semibold text-purple-400 mb-2">ATR Calculation</h4>
+                    <div className="font-mono text-sm text-gray-300 mb-2">
+                      ATR% = (14-day ATR / Price) × 100
+                    </div>
+                    <div className="space-y-2">
+                      <div>
+                        <label className="text-xs text-gray-400">Period (days)</label>
+                        <input type="number" defaultValue="14" className="w-full bg-gray-600 rounded px-2 py-1 text-sm" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-400">High Volatility (&gt;%)</label>
+                        <input type="number" defaultValue="3.0" step="0.1" className="w-full bg-gray-600 rounded px-2 py-1 text-sm" />
+                      </div>
+                    </div>
+                    <button className="mt-2 bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-xs">
+                      Recalculate All
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="bg-gray-800 rounded-xl p-6 shadow-lg overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-700">
-                    <th className="text-left py-3">ETF</th>
-                    <th className="text-left py-3">SATA</th>
-                    <th className="text-left py-3">20SMA</th>
-                    <th className="text-left py-3">GMMA</th>
-                    <th className="text-left py-3">ATR%</th>
-                    <th className="text-left py-3">1D %</th>
-                    <th className="text-left py-3">1W %</th>
-                    <th className="text-left py-3">1M %</th>
-                    <th className="text-left py-3">1M RS</th>
-                    <th className="text-left py-3">Action</th>
+                    <th className="text-left py-3 px-2">ETF</th>
+                    <th className="text-left py-3 px-2">Cap/Theme</th>
+                    <th className="text-left py-3 px-2">Swl Days</th>
+                    <th className="text-left py-3 px-2">SATA</th>
+                    <th className="text-left py-3 px-2">20SMA</th>
+                    <th className="text-left py-3 px-2">GMMA</th>
+                    <th className="text-left py-3 px-2">ATR%</th>
+                    <th className="text-left py-3 px-2">1D %</th>
+                    <th className="text-left py-3 px-2">1W %</th>
+                    <th className="text-left py-3 px-2">1M %</th>
+                    <th className="text-left py-3 px-2">1M RS</th>
+                    <th className="text-left py-3 px-2">3M RS</th>
+                    <th className="text-left py-3 px-2">6M RS</th>
+                    <th className="text-left py-3 px-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredEtfs.map((etf) => (
-                    <tr key={etf.ticker} className="border-b border-gray-700 hover:bg-gray-700">
-                      <td className="py-3">
-                        <div>
-                          <div className="font-semibold text-blue-300">{etf.ticker}</div>
-                          <div className="text-xs text-gray-400">{etf.sector}</div>
-                        </div>
-                      </td>
-                      <td className="py-3">
-                        <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                          etf.sata_score >= 7 ? 'bg-green-100 text-green-800' :
-                          etf.sata_score >= 5 ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {etf.sata_score}/10
-                        </span>
-                      </td>
-                      <td className="py-3">
-                        <span className={`w-8 h-6 rounded text-xs flex items-center justify-center font-semibold ${
-                          etf.sma20_trend === 'U' ? 'bg-green-500 text-white' : 
-                          etf.sma20_trend === 'D' ? 'bg-red-500 text-white' : 'bg-gray-500 text-white'
-                        }`}>
-                          {etf.sma20_trend}
-                        </span>
-                      </td>
-                      <td className="py-3">
-                        <span className={`px-2 py-1 text-xs rounded font-semibold ${
-                          etf.gmma_pattern === 'RWB' ? 'bg-green-100 text-green-800' :
-                          etf.gmma_pattern === 'BWR' ? 'bg-red-100 text-red-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {etf.gmma_pattern}
-                        </span>
-                      </td>
-                      <td className="py-3 text-sm">{etf.atr_percent.toFixed(2)}%</td>
-                      <td className={`py-3 font-semibold ${getChangeColor(etf.change_1d)}`}>
-                        {etf.change_1d > 0 ? '+' : ''}{etf.change_1d.toFixed(2)}%
-                      </td>
-                      <td className={`py-3 font-semibold ${getChangeColor(etf.change_1w)}`}>
-                        {etf.change_1w > 0 ? '+' : ''}{etf.change_1w.toFixed(2)}%
-                      </td>
-                      <td className={`py-3 font-semibold ${getChangeColor(etf.change_1m)}`}>
-                        {etf.change_1m > 0 ? '+' : ''}{etf.change_1m.toFixed(2)}%
-                      </td>
-                      <td className="py-3">{getRSBadge(etf.relative_strength_1m)}</td>
-                      <td className="py-3">
-                        <button
-                          onClick={() => analyzeChart(etf.ticker)}
-                          className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
-                        >
-                          📈
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {filteredEtfs.map((etf) => {
+                    const swingDays = etf.swing_start_date ? 
+                      Math.floor((new Date() - new Date(etf.swing_start_date)) / (1000 * 60 * 60 * 24)) : 
+                      Math.floor(Math.random() * 15) + 1; // Mock swing days for demo
+                    
+                    return (
+                      <tr key={etf.ticker} className={`border-b border-gray-700 hover:bg-gray-700 ${
+                        etf.relative_strength_1m > 0.1 && etf.sata_score >= 7 && etf.gmma_pattern === 'RWB' 
+                          ? 'bg-green-900 bg-opacity-30' 
+                          : etf.relative_strength_1m < 0 && etf.gmma_pattern === 'BWR'
+                          ? 'bg-red-900 bg-opacity-30'
+                          : ''
+                      }`}>
+                        <td className="py-3 px-2">
+                          <div>
+                            <div className="font-bold text-blue-300 text-lg">{etf.ticker}</div>
+                            <div className="text-xs text-gray-400">{etf.sector}</div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-2">
+                          <div className="text-sm">
+                            <div className="font-semibold text-gray-300">{etf.theme}</div>
+                            <div className="text-xs text-gray-500">{etf.market_cap > 1000000000 ? 'Large Cap' : 'Mid/Small Cap'}</div>
+                          </div>
+                        </td>
+                        <td className={`py-3 px-2 font-bold text-lg ${getSwingDaysColor(swingDays)}`}>
+                          {swingDays}
+                          <div className="text-xs text-gray-400">
+                            {swingDays <= 5 ? 'Early' : swingDays <= 15 ? 'Mid' : 'Late'}
+                          </div>
+                        </td>
+                        <td className="py-3 px-2">
+                          <div className={`px-3 py-2 rounded-lg text-center font-bold ${
+                            etf.sata_score >= 8 ? 'bg-green-500 text-white' :
+                            etf.sata_score >= 6 ? 'bg-yellow-500 text-black' :
+                            etf.sata_score >= 4 ? 'bg-orange-500 text-white' :
+                            'bg-red-500 text-white'
+                          }`}>
+                            {etf.sata_score}/10
+                          </div>
+                        </td>
+                        <td className="py-3 px-2">
+                          <div className={`w-10 h-10 rounded-full text-white flex items-center justify-center font-bold text-lg ${
+                            etf.sma20_trend === 'U' ? 'bg-green-500' : 
+                            etf.sma20_trend === 'D' ? 'bg-red-500' : 'bg-gray-500'
+                          }`}>
+                            {etf.sma20_trend}
+                          </div>
+                        </td>
+                        <td className="py-3 px-2">
+                          <div className={`px-3 py-2 rounded-lg text-center font-bold ${
+                            etf.gmma_pattern === 'RWB' ? 'bg-gradient-to-r from-red-500 via-white to-blue-500 text-black' :
+                            etf.gmma_pattern === 'BWR' ? 'bg-gradient-to-r from-blue-500 via-white to-red-500 text-black' :
+                            'bg-gray-500 text-white'
+                          }`}>
+                            {etf.gmma_pattern}
+                          </div>
+                        </td>
+                        <td className="py-3 px-2">
+                          <div className={`text-center font-bold ${
+                            etf.atr_percent > 3 ? 'text-red-400' :
+                            etf.atr_percent > 2 ? 'text-yellow-400' :
+                            'text-green-400'
+                          }`}>
+                            {etf.atr_percent.toFixed(2)}%
+                          </div>
+                        </td>
+                        <td className={`py-3 px-2 font-bold text-lg ${getChangeColor(etf.change_1d)}`}>
+                          {etf.change_1d > 0 ? '+' : ''}{etf.change_1d.toFixed(2)}%
+                        </td>
+                        <td className={`py-3 px-2 font-bold text-lg ${getChangeColor(etf.change_1w)}`}>
+                          {etf.change_1w > 0 ? '+' : ''}{etf.change_1w.toFixed(2)}%
+                        </td>
+                        <td className={`py-3 px-2 font-bold text-lg ${getChangeColor(etf.change_1m)}`}>
+                          {etf.change_1m > 0 ? '+' : ''}{etf.change_1m.toFixed(2)}%
+                        </td>
+                        <td className="py-3 px-2">{getRSBadge(etf.relative_strength_1m)}</td>
+                        <td className="py-3 px-2">{getRSBadge(etf.relative_strength_3m)}</td>
+                        <td className="py-3 px-2">{getRSBadge(etf.relative_strength_6m)}</td>
+                        <td className="py-3 px-2">
+                          <div className="flex flex-col gap-1">
+                            <button
+                              onClick={() => analyzeChart(etf.ticker)}
+                              className="bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-xs"
+                            >
+                              🧠 AI Analysis
+                            </button>
+                            <button
+                              onClick={() => window.open(`https://www.tradingview.com/chart/?symbol=${etf.ticker}`, '_blank')}
+                              className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs"
+                            >
+                              📊 TradingView
+                            </button>
+                            <button
+                              onClick={() => {
+                                setWatchlistForm({...watchlistForm, ticker: etf.ticker, name: etf.name});
+                                setActiveTab("watchlists");
+                              }}
+                              className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs"
+                            >
+                              ➕ Watchlist
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
+            </div>
+
+            {/* Color Legend */}
+            <div className="bg-gray-800 rounded-xl p-4 shadow-lg">
+              <h3 className="font-semibold mb-3">🎨 Color Legend & Conditional Formatting</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-green-900 bg-opacity-50 rounded"></div>
+                  <span><strong>Green Row:</strong> RS=Y, SATA≥7, GMMA=RWB (Strong Buy Signal)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-red-900 bg-opacity-50 rounded"></div>
+                  <span><strong>Red Row:</strong> RS=N, GMMA=BWR (Weak/Avoid Signal)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-gray-700 rounded"></div>
+                  <span><strong>Gray Row:</strong> Mixed signals (Neutral/Watch)</span>
+                </div>
+              </div>
             </div>
           </div>
         )}
