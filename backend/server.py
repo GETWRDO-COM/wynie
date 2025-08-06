@@ -1024,6 +1024,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include the API router
+app.include_router(api_router)
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
