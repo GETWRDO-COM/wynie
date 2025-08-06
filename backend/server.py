@@ -925,14 +925,18 @@ async def update_formula_config(config_data: dict):
 async def get_live_indices():
     """Get live data for major market indices"""
     try:
-        indices = ['SPY', 'QQQ', 'DIA', 'IWM', 'VIX']
+        indices = ['SPY', 'QQQ', 'DIA', 'IWM', '^VIX']
         indices_data = {}
         
         for symbol in indices:
-            data = await fetch_etf_data(symbol)
+            # Use the correct symbol for VIX
+            fetch_symbol = symbol
+            display_symbol = 'VIX' if symbol == '^VIX' else symbol
+            
+            data = await fetch_etf_data(fetch_symbol)
             if data:
-                indices_data[symbol] = {
-                    'symbol': symbol,
+                indices_data[display_symbol] = {
+                    'symbol': display_symbol,
                     'price': data['current_price'],
                     'change_1d': data['change_1d'],
                     'volume': data['volume'],
