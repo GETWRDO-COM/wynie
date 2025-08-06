@@ -111,6 +111,11 @@ class ChatSession(BaseModel):
     model: str = "gpt-4.1"
     system_message: str = "You are an expert financial analyst and trading advisor."
 
+class ChatSessionCreate(BaseModel):
+    title: str = "New Chat"
+    model: str = "gpt-4.1"
+    system_message: str = "You are an expert financial analyst and trading advisor."
+
 class ChatRequest(BaseModel):
     session_id: str
     message: str
