@@ -335,11 +335,11 @@ const ETFIntelligenceSystem = () => {
           </div>
         )}
 
-        {/* ETF Tracker Tab */}
-        {activeTab === "etfs" && (
+        {/* Swing Analysis Grid Tab */}
+        {activeTab === "swing-grid" && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">ETF Universe Tracker</h2>
+              <h2 className="text-2xl font-bold">📊 Capitalization & Swing Analysis Grid</h2>
               <select
                 value={selectedSector}
                 onChange={(e) => setSelectedSector(e.target.value)}
@@ -356,25 +356,54 @@ const ETFIntelligenceSystem = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-700">
-                    <th className="text-left py-3">Ticker</th>
-                    <th className="text-left py-3">Name</th>
-                    <th className="text-left py-3">Price</th>
-                    <th className="text-left py-3">1D</th>
-                    <th className="text-left py-3">1W</th>
-                    <th className="text-left py-3">1M</th>
-                    <th className="text-left py-3">RS 1M</th>
-                    <th className="text-left py-3">ATR%</th>
+                    <th className="text-left py-3">ETF</th>
                     <th className="text-left py-3">SATA</th>
-                    <th className="text-left py-3">Trend</th>
-                    <th className="text-left py-3">Actions</th>
+                    <th className="text-left py-3">20SMA</th>
+                    <th className="text-left py-3">GMMA</th>
+                    <th className="text-left py-3">ATR%</th>
+                    <th className="text-left py-3">1D %</th>
+                    <th className="text-left py-3">1W %</th>
+                    <th className="text-left py-3">1M %</th>
+                    <th className="text-left py-3">1M RS</th>
+                    <th className="text-left py-3">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredEtfs.map((etf) => (
                     <tr key={etf.ticker} className="border-b border-gray-700 hover:bg-gray-700">
-                      <td className="py-3 font-semibold">{etf.ticker}</td>
-                      <td className="py-3 text-gray-300 max-w-xs truncate">{etf.name}</td>
-                      <td className="py-3">${etf.current_price.toFixed(2)}</td>
+                      <td className="py-3">
+                        <div>
+                          <div className="font-semibold text-blue-300">{etf.ticker}</div>
+                          <div className="text-xs text-gray-400">{etf.sector}</div>
+                        </div>
+                      </td>
+                      <td className="py-3">
+                        <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                          etf.sata_score >= 7 ? 'bg-green-100 text-green-800' :
+                          etf.sata_score >= 5 ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {etf.sata_score}/10
+                        </span>
+                      </td>
+                      <td className="py-3">
+                        <span className={`w-8 h-6 rounded text-xs flex items-center justify-center font-semibold ${
+                          etf.sma20_trend === 'U' ? 'bg-green-500 text-white' : 
+                          etf.sma20_trend === 'D' ? 'bg-red-500 text-white' : 'bg-gray-500 text-white'
+                        }`}>
+                          {etf.sma20_trend}
+                        </span>
+                      </td>
+                      <td className="py-3">
+                        <span className={`px-2 py-1 text-xs rounded font-semibold ${
+                          etf.gmma_pattern === 'RWB' ? 'bg-green-100 text-green-800' :
+                          etf.gmma_pattern === 'BWR' ? 'bg-red-100 text-red-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {etf.gmma_pattern}
+                        </span>
+                      </td>
+                      <td className="py-3 text-sm">{etf.atr_percent.toFixed(2)}%</td>
                       <td className={`py-3 font-semibold ${getChangeColor(etf.change_1d)}`}>
                         {etf.change_1d > 0 ? '+' : ''}{etf.change_1d.toFixed(2)}%
                       </td>
@@ -385,24 +414,12 @@ const ETFIntelligenceSystem = () => {
                         {etf.change_1m > 0 ? '+' : ''}{etf.change_1m.toFixed(2)}%
                       </td>
                       <td className="py-3">{getRSBadge(etf.relative_strength_1m)}</td>
-                      <td className="py-3">{etf.atr_percent.toFixed(2)}%</td>
-                      <td className="py-3">{etf.sata_score}/10</td>
-                      <td className="py-3">
-                        <div className="flex space-x-1">
-                          <span className={`w-6 h-6 rounded text-xs flex items-center justify-center ${
-                            etf.sma20_trend === 'U' ? 'bg-green-500' : 
-                            etf.sma20_trend === 'D' ? 'bg-red-500' : 'bg-gray-500'
-                          }`}>
-                            {etf.sma20_trend}
-                          </span>
-                        </div>
-                      </td>
                       <td className="py-3">
                         <button
                           onClick={() => analyzeChart(etf.ticker)}
                           className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
                         >
-                          📈 Analyze
+                          📈
                         </button>
                       </td>
                     </tr>
@@ -413,167 +430,108 @@ const ETFIntelligenceSystem = () => {
           </div>
         )}
 
-        {/* Watchlists Tab */}
-        {activeTab === "watchlists" && (
+        {/* AI Analysis Tab */}
+        {activeTab === "ai-analysis" && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Stock Watchlists</h2>
+            <h2 className="text-2xl font-bold">🧠 AI-Powered Chart Analysis</h2>
             
-            {/* Add to Watchlist Form */}
+            {/* Stock Lookup */}
             <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
-              <h3 className="text-lg font-semibold mb-4">Add New Stock</h3>
-              <form onSubmit={addToWatchlist} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <h3 className="text-lg font-semibold mb-4">🔍 Universal Stock Lookup & Analysis</h3>
+              <div className="flex gap-4 mb-4">
                 <input
                   type="text"
-                  placeholder="Ticker (e.g., AAPL)"
-                  value={watchlistForm.ticker}
-                  onChange={(e) => setWatchlistForm({...watchlistForm, ticker: e.target.value.toUpperCase()})}
-                  className="bg-gray-700 border border-gray-600 rounded px-3 py-2"
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder="Company Name"
-                  value={watchlistForm.name}
-                  onChange={(e) => setWatchlistForm({...watchlistForm, name: e.target.value})}
-                  className="bg-gray-700 border border-gray-600 rounded px-3 py-2"
-                  required
-                />
-                <select
-                  value={watchlistForm.list_name}
-                  onChange={(e) => setWatchlistForm({...watchlistForm, list_name: e.target.value})}
-                  className="bg-gray-700 border border-gray-600 rounded px-3 py-2"
-                >
-                  <option>Growth Watchlist</option>
-                  <option>Swing Portfolio</option>
-                  <option>Income ETFs</option>
-                  <option>Breakout Candidates</option>
-                  <option>High Momentum</option>
-                </select>
-                <input
-                  type="text"
-                  placeholder="Tags (comma separated)"
-                  value={watchlistForm.tags}
-                  onChange={(e) => setWatchlistForm({...watchlistForm, tags: e.target.value})}
-                  className="bg-gray-700 border border-gray-600 rounded px-3 py-2"
-                />
-                <input
-                  type="text"
-                  placeholder="Notes"
-                  value={watchlistForm.notes}
-                  onChange={(e) => setWatchlistForm({...watchlistForm, notes: e.target.value})}
-                  className="bg-gray-700 border border-gray-600 rounded px-3 py-2"
+                  placeholder="Enter any ticker (AAPL, TSLA, NVDA, etc.)"
+                  value={stockLookup}
+                  onChange={(e) => setStockLookup(e.target.value.toUpperCase())}
+                  className="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2"
+                  onKeyPress={(e) => e.key === 'Enter' && lookupStock()}
                 />
                 <button
-                  type="submit"
-                  className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded font-medium"
+                  onClick={lookupStock}
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded font-medium"
                 >
-                  Add to Watchlist
-                </button>
-              </form>
-            </div>
-
-            {/* Watchlist Display */}
-            <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Your Watchlists</h3>
-                <button
-                  onClick={fetchWatchlists}
-                  className="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-sm"
-                >
-                  Refresh
+                  Lookup Stock
                 </button>
               </div>
-              {watchlists.length === 0 ? (
-                <p className="text-gray-400">No stocks in watchlists yet. Add some above!</p>
-              ) : (
-                <div className="space-y-4">
-                  {/* Group by list_name */}
-                  {Object.entries(
-                    watchlists.reduce((acc, item) => {
-                      if (!acc[item.list_name]) acc[item.list_name] = [];
-                      acc[item.list_name].push(item);
-                      return acc;
-                    }, {})
-                  ).map(([listName, items]) => (
-                    <div key={listName} className="border border-gray-700 rounded-lg p-4">
-                      <h4 className="font-semibold text-lg mb-3">{listName}</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {items.map((item) => (
-                          <div key={item.id} className="bg-gray-700 rounded-lg p-4">
-                            <div className="flex justify-between items-start mb-2">
-                              <h5 className="font-semibold">{item.ticker}</h5>
-                              <button
-                                onClick={() => analyzeChart(item.ticker)}
-                                className="bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-xs"
-                              >
-                                📈
-                              </button>
-                            </div>
-                            <p className="text-sm text-gray-300 mb-2">{item.name}</p>
-                            {item.tags.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mb-2">
-                                {item.tags.map((tag, index) => (
-                                  <span key={index} className="bg-blue-600 text-xs px-2 py-1 rounded">
-                                    {tag}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                            {item.notes && <p className="text-xs text-gray-400">{item.notes}</p>}
-                          </div>
-                        ))}
+              
+              {stockData && (
+                <div className="bg-gray-700 rounded-lg p-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="text-lg font-semibold text-blue-300">{stockData.ticker}</h4>
+                    <button
+                      onClick={() => analyzeChart(stockData.ticker)}
+                      className="bg-purple-600 hover:bg-purple-700 px-3 py-2 rounded text-sm"
+                    >
+                      🧠 Ask AI About This Chart
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <div className="text-sm text-gray-400">Current Price</div>
+                      <div className="font-semibold">${stockData.current_price?.toFixed(2)}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-400">1-Day Change</div>
+                      <div className={`font-semibold ${getChangeColor(stockData.change_1d)}`}>
+                        {stockData.change_1d > 0 ? '+' : ''}{stockData.change_1d?.toFixed(2)}%
                       </div>
                     </div>
-                  ))}
+                    <div>
+                      <div className="text-sm text-gray-400">1-Month Change</div>
+                      <div className={`font-semibold ${getChangeColor(stockData.change_1m)}`}>
+                        {stockData.change_1m > 0 ? '+' : ''}{stockData.change_1m?.toFixed(2)}%
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-400">ATR%</div>
+                      <div className="font-semibold">{stockData.atr_percent?.toFixed(2)}%</div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
-          </div>
-        )}
 
-        {/* AI Analysis Tab */}
-        {activeTab === "analysis" && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold">🧠 AI Chart Analysis</h2>
-            
             <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
               <div className="mb-4">
-                <input
-                  type="text"
-                  placeholder="Enter ticker symbol (e.g., TQQQ, AAPL)"
-                  value={selectedTicker}
-                  onChange={(e) => setSelectedTicker(e.target.value.toUpperCase())}
-                  className="bg-gray-700 border border-gray-600 rounded px-3 py-2 mr-4"
-                />
-                <button
-                  onClick={() => analyzeChart(selectedTicker)}
-                  disabled={!selectedTicker}
-                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded font-medium disabled:opacity-50"
-                >
-                  🔍 Analyze Chart
-                </button>
+                <div className="flex gap-4">
+                  <input
+                    type="text"
+                    placeholder="Or enter ticker for direct analysis"
+                    value={selectedTicker}
+                    onChange={(e) => setSelectedTicker(e.target.value.toUpperCase())}
+                    className="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2"
+                  />
+                  <button
+                    onClick={() => analyzeChart(selectedTicker)}
+                    disabled={!selectedTicker || loading}
+                    className="bg-purple-600 hover:bg-purple-700 px-6 py-2 rounded font-medium disabled:opacity-50"
+                  >
+                    {loading ? "Analyzing..." : "🔍 Analyze Chart"}
+                  </button>
+                </div>
               </div>
 
               {chartAnalysis && (
                 <div className="space-y-4 border-t border-gray-700 pt-4">
                   <div className="flex justify-between items-start">
-                    <h3 className="text-xl font-semibold">{chartAnalysis.ticker} Analysis</h3>
-                    <span className="bg-blue-600 px-3 py-1 rounded text-sm">
+                    <h3 className="text-xl font-semibold text-purple-300">{chartAnalysis.ticker} Analysis</h3>
+                    <span className="bg-purple-600 px-3 py-1 rounded text-sm">
                       Confidence: {(chartAnalysis.confidence * 100).toFixed(0)}%
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <h4 className="font-semibold mb-2">📊 Pattern Analysis</h4>
-                      <p className="text-gray-300 mb-4">{chartAnalysis.pattern_analysis}</p>
+                      <h4 className="font-semibold mb-2 text-blue-300">📊 Pattern Analysis</h4>
+                      <p className="text-gray-300 mb-4 bg-gray-700 p-3 rounded">{chartAnalysis.pattern_analysis}</p>
                       
-                      <h4 className="font-semibold mb-2">📈 Trend Analysis</h4>
-                      <p className="text-gray-300 mb-4">{chartAnalysis.trend_analysis}</p>
+                      <h4 className="font-semibold mb-2 text-green-300">📈 Trend Analysis</h4>
+                      <p className="text-gray-300 mb-4 bg-gray-700 p-3 rounded">{chartAnalysis.trend_analysis}</p>
                     </div>
 
                     <div>
-                      <h4 className="font-semibold mb-2">🎯 Key Levels</h4>
+                      <h4 className="font-semibold mb-2 text-orange-300">🎯 Key Levels</h4>
                       <div className="space-y-2 mb-4">
                         <div>
                           <strong className="text-red-400">Resistance:</strong> 
@@ -593,29 +551,59 @@ const ETFIntelligenceSystem = () => {
                         </div>
                       </div>
 
-                      <h4 className="font-semibold mb-2">⚖️ Risk/Reward</h4>
-                      <p className="text-gray-300 mb-4">{chartAnalysis.risk_reward}</p>
+                      <h4 className="font-semibold mb-2 text-yellow-300">⚖️ Risk/Reward</h4>
+                      <p className="text-gray-300 mb-4 bg-gray-700 p-3 rounded">{chartAnalysis.risk_reward}</p>
                     </div>
                   </div>
 
-                  <div className="bg-blue-900 bg-opacity-50 rounded-lg p-4">
-                    <h4 className="font-semibold mb-2 text-blue-300">🎯 AI Recommendation</h4>
-                    <p className="text-blue-100">{chartAnalysis.recommendation}</p>
+                  <div className="bg-purple-900 bg-opacity-50 rounded-lg p-4">
+                    <h4 className="font-semibold mb-2 text-purple-300">🎯 AI Trading Recommendation</h4>
+                    <p className="text-purple-100">{chartAnalysis.recommendation}</p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* TradingView Widget Placeholder */}
+            {/* Interactive Chart Placeholder */}
             <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
               <h3 className="text-lg font-semibold mb-4">📈 Interactive Chart</h3>
               <div className="bg-gray-700 rounded-lg h-96 flex items-center justify-center">
                 <div className="text-center">
-                  <p className="text-gray-400 mb-2">TradingView Chart Widget</p>
+                  <p className="text-gray-400 mb-2">Professional TradingView Chart</p>
                   <p className="text-gray-500 text-sm">
-                    {selectedTicker ? `Showing chart for ${selectedTicker}` : "Select a ticker to view chart"}
+                    {selectedTicker ? `Chart for ${selectedTicker}` : "Select a ticker to view chart"}
                   </p>
+                  {selectedTicker && (
+                    <a
+                      href={`https://www.tradingview.com/chart/?symbol=${selectedTicker}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 inline-block bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm"
+                    >
+                      📊 Open in TradingView
+                    </a>
+                  )}
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Watchlists Tab */}
+        {activeTab === "watchlists" && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold">📈 Custom Watchlists</h2>
+            
+            <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+              <h3 className="text-lg font-semibold mb-4">🔍 Stock Analysis</h3>
+              <p className="text-gray-400">Use the AI Analysis tab to lookup and analyze any stock, then add it to your custom watchlists.</p>
+              <div className="mt-4 flex gap-4">
+                <button 
+                  onClick={() => setActiveTab("ai-analysis")}
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
+                >
+                  Go to AI Analysis
+                </button>
               </div>
             </div>
           </div>
