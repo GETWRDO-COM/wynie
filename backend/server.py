@@ -16,6 +16,8 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 from collections import defaultdict
+import pytz
+import requests
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -33,6 +35,10 @@ api_router = APIRouter(prefix="/api")
 
 # Configuration
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+
+# Timezone setup for South Africa
+SA_TZ = pytz.timezone('Africa/Johannesburg')
+NY_TZ = pytz.timezone('America/New_York')
 
 # ETF Data Models
 class ETFData(BaseModel):
