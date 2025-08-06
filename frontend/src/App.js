@@ -276,31 +276,267 @@ const ETFIntelligenceSystem = () => {
         {/* Dashboard Tab */}
         {activeTab === "dashboard" && (
           <div className="space-y-8">
-            {/* Market Score Card */}
+            {/* Universal Stock Search Bar */}
+            <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+              <h2 className="text-2xl font-bold mb-4">🔍 Universal Stock & ETF Search</h2>
+              <div className="flex gap-4">
+                <input
+                  type="text"
+                  placeholder="Search any stock or ETF (AAPL, TSLA, QQQ, etc.)"
+                  value={stockLookup}
+                  onChange={(e) => setStockLookup(e.target.value.toUpperCase())}
+                  className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-lg"
+                  onKeyPress={(e) => e.key === 'Enter' && lookupStock()}
+                />
+                <button
+                  onClick={lookupStock}
+                  className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-medium"
+                >
+                  🔍 Search
+                </button>
+              </div>
+              
+              {stockData && (
+                <div className="mt-6 bg-gray-700 rounded-lg p-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      <h3 className="text-2xl font-bold text-blue-300">{stockData.ticker}</h3>
+                      <p className="text-gray-400">Live Market Data</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => analyzeChart(stockData.ticker)}
+                        className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded text-sm"
+                      >
+                        🧠 AI Analysis
+                      </button>
+                      <button
+                        onClick={() => {
+                          setWatchlistForm({...watchlistForm, ticker: stockData.ticker, name: stockData.ticker});
+                          setActiveTab("watchlists");
+                        }}
+                        className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-sm"
+                      >
+                        ➕ Add to Watchlist
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div className="text-center">
+                      <div className="text-sm text-gray-400">Price</div>
+                      <div className="text-2xl font-bold text-white">${stockData.current_price?.toFixed(2)}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm text-gray-400">1-Day</div>
+                      <div className={`text-xl font-bold ${getChangeColor(stockData.change_1d)}`}>
+                        {stockData.change_1d > 0 ? '+' : ''}{stockData.change_1d?.toFixed(2)}%
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm text-gray-400">1-Week</div>
+                      <div className={`text-xl font-bold ${getChangeColor(stockData.change_1w)}`}>
+                        {stockData.change_1w > 0 ? '+' : ''}{stockData.change_1w?.toFixed(2)}%
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm text-gray-400">1-Month</div>
+                      <div className={`text-xl font-bold ${getChangeColor(stockData.change_1m)}`}>
+                        {stockData.change_1m > 0 ? '+' : ''}{stockData.change_1m?.toFixed(2)}%
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm text-gray-400">ATR%</div>
+                      <div className="text-xl font-bold text-yellow-400">{stockData.atr_percent?.toFixed(2)}%</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Major Market Indices & CNN Fear/Greed */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Major Indices */}
+              <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+                <h2 className="text-2xl font-bold mb-4">📊 Major Market Indices</h2>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center p-3 bg-gray-700 rounded-lg">
+                    <div>
+                      <span className="font-bold text-lg">S&P 500</span>
+                      <span className="text-gray-400 ml-2">(SPY)</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xl font-bold">Loading...</div>
+                      <div className="text-sm text-gray-400">Last: --:--</div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-gray-700 rounded-lg">
+                    <div>
+                      <span className="font-bold text-lg">NASDAQ</span>
+                      <span className="text-gray-400 ml-2">(QQQ)</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xl font-bold">Loading...</div>
+                      <div className="text-sm text-gray-400">Last: --:--</div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-gray-700 rounded-lg">
+                    <div>
+                      <span className="font-bold text-lg">Dow Jones</span>
+                      <span className="text-gray-400 ml-2">(DIA)</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xl font-bold">Loading...</div>
+                      <div className="text-sm text-gray-400">Last: --:--</div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-gray-700 rounded-lg">
+                    <div>
+                      <span className="font-bold text-lg">Russell 2000</span>
+                      <span className="text-gray-400 ml-2">(IWM)</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xl font-bold">Loading...</div>
+                      <div className="text-sm text-gray-400">Last: --:--</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* CNN Fear & Greed Index */}
+              <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+                <h2 className="text-2xl font-bold mb-4">😨 CNN Fear & Greed Index</h2>
+                <div className="text-center">
+                  <div className="relative w-40 h-40 mx-auto mb-4">
+                    <div className="w-full h-full rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 p-1">
+                      <div className="w-full h-full rounded-full bg-gray-800 flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="text-3xl font-bold">Loading...</div>
+                          <div className="text-sm text-gray-400">Index Score</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-xl font-semibold">Loading...</div>
+                    <div className="text-sm text-gray-400">Market Sentiment</div>
+                    <div className="text-xs text-gray-500">
+                      Last Updated: Loading...
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+                  <div className="bg-gray-700 p-3 rounded">
+                    <div className="text-gray-400">Stock Price Momentum</div>
+                    <div className="font-semibold">Loading...</div>
+                  </div>
+                  <div className="bg-gray-700 p-3 rounded">
+                    <div className="text-gray-400">Market Volatility</div>
+                    <div className="font-semibold">Loading...</div>
+                  </div>
+                  <div className="bg-gray-700 p-3 rounded">
+                    <div className="text-gray-400">Safe Haven Demand</div>
+                    <div className="font-semibold">Loading...</div>
+                  </div>
+                  <div className="bg-gray-700 p-3 rounded">
+                    <div className="text-gray-400">Put/Call Ratio</div>
+                    <div className="font-semibold">Loading...</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Enhanced Market Score Card with Editable Formulas */}
             {marketScore && (
               <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
-                <h2 className="text-2xl font-bold mb-4">🎯 Market Situational Awareness Engine (MSAE)</h2>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-2xl font-bold">🎯 Market Situational Awareness Engine (MSAE)</h2>
+                  <div className="flex gap-2">
+                    <button className="bg-gray-600 hover:bg-gray-700 px-3 py-2 rounded text-sm">
+                      ⚙️ Edit Formulas
+                    </button>
+                    <button className="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-sm">
+                      📊 Export to Sheets
+                    </button>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="text-center">
-                    <div className={`text-4xl font-bold p-4 rounded-lg ${getScoreColor(marketScore.total_score)}`}>
+                    <div className={`text-5xl font-bold p-6 rounded-xl ${getScoreColor(marketScore.total_score)}`}>
                       {marketScore.total_score}/40
                     </div>
-                    <p className="text-lg font-semibold mt-2">{marketScore.classification}</p>
+                    <p className="text-2xl font-semibold mt-3">{marketScore.classification}</p>
                   </div>
                   <div className="md:col-span-2">
-                    <h3 className="text-lg font-semibold mb-2">Current Recommendation:</h3>
-                    <p className="text-gray-300 mb-4">{marketScore.recommendation}</p>
-                    <div className="grid grid-cols-4 gap-2 text-sm">
-                      <div className="bg-gray-700 p-2 rounded">SATA: {marketScore.sata_score}/5</div>
-                      <div className="bg-gray-700 p-2 rounded">ADX: {marketScore.adx_score}/5</div>
-                      <div className="bg-gray-700 p-2 rounded">VIX: {marketScore.vix_score}/5</div>
-                      <div className="bg-gray-700 p-2 rounded">ATR: {marketScore.atr_score}/5</div>
-                      <div className="bg-gray-700 p-2 rounded">GMI: {marketScore.gmi_score}/5</div>
-                      <div className="bg-gray-700 p-2 rounded">NH-NL: {marketScore.nhnl_score}/5</div>
-                      <div className="bg-gray-700 p-2 rounded">F&G: {marketScore.fg_index_score}/5</div>
-                      <div className="bg-gray-700 p-2 rounded">QQQ ATH: {marketScore.qqq_ath_distance_score}/5</div>
+                    <h3 className="text-lg font-semibold mb-2">🎯 Current Recommendation:</h3>
+                    <p className="text-gray-300 mb-4 text-lg">{marketScore.recommendation}</p>
+                    <div className="grid grid-cols-4 gap-3 text-sm">
+                      <div className="bg-gray-700 p-3 rounded-lg text-center">
+                        <div className="text-gray-400 text-xs">SATA Score</div>
+                        <div className="text-lg font-bold text-blue-400">{marketScore.sata_score}/5</div>
+                      </div>
+                      <div className="bg-gray-700 p-3 rounded-lg text-center">
+                        <div className="text-gray-400 text-xs">ADX Trend</div>
+                        <div className="text-lg font-bold text-green-400">{marketScore.adx_score}/5</div>
+                      </div>
+                      <div className="bg-gray-700 p-3 rounded-lg text-center">
+                        <div className="text-gray-400 text-xs">VIX Fear</div>
+                        <div className="text-lg font-bold text-red-400">{marketScore.vix_score}/5</div>
+                      </div>
+                      <div className="bg-gray-700 p-3 rounded-lg text-center">
+                        <div className="text-gray-400 text-xs">ATR Vol</div>
+                        <div className="text-lg font-bold text-yellow-400">{marketScore.atr_score}/5</div>
+                      </div>
+                      <div className="bg-gray-700 p-3 rounded-lg text-center">
+                        <div className="text-gray-400 text-xs">GMI Index</div>
+                        <div className="text-lg font-bold text-purple-400">{marketScore.gmi_score}/5</div>
+                      </div>
+                      <div className="bg-gray-700 p-3 rounded-lg text-center">
+                        <div className="text-gray-400 text-xs">NH-NL</div>
+                        <div className="text-lg font-bold text-indigo-400">{marketScore.nhnl_score}/5</div>
+                      </div>
+                      <div className="bg-gray-700 p-3 rounded-lg text-center">
+                        <div className="text-gray-400 text-xs">F&G Index</div>
+                        <div className="text-lg font-bold text-pink-400">{marketScore.fg_index_score}/5</div>
+                      </div>
+                      <div className="bg-gray-700 p-3 rounded-lg text-center">
+                        <div className="text-gray-400 text-xs">QQQ ATH</div>
+                        <div className="text-lg font-bold text-cyan-400">{marketScore.qqq_ath_distance_score}/5</div>
+                      </div>
                     </div>
                   </div>
+                </div>
+                
+                {/* Formula Display Section */}
+                <div className="mt-6 pt-4 border-t border-gray-700">
+                  <button 
+                    onClick={() => setShowFormulas(!showFormulas)}
+                    className="text-sm text-blue-400 hover:text-blue-300 mb-2"
+                  >
+                    {showFormulas ? '🔽 Hide' : '▶️ Show'} Calculation Formulas
+                  </button>
+                  {showFormulas && (
+                    <div className="bg-gray-900 p-4 rounded-lg text-sm">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono">
+                        <div>
+                          <div className="text-blue-400 font-semibold">SATA Score Formula:</div>
+                          <div className="text-gray-300">Performance(30%) + RelStrength(30%) + Volume(20%) + Volatility(20%)</div>
+                        </div>
+                        <div>
+                          <div className="text-green-400 font-semibold">Relative Strength:</div>
+                          <div className="text-gray-300">RS = (ETF_Return - SPY_Return) / |SPY_Return|</div>
+                        </div>
+                        <div>
+                          <div className="text-red-400 font-semibold">ATR Calculation:</div>
+                          <div className="text-gray-300">ATR% = 14-day ATR / Current_Price * 100</div>
+                        </div>
+                        <div>
+                          <div className="text-yellow-400 font-semibold">GMMA Pattern:</div>
+                          <div className="text-gray-300">RWB: 1W>0 & 1M>0 & RS>0, BWR: All negative</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
