@@ -1185,8 +1185,458 @@ async def get_stock_info(ticker: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Include all the remaining routes from the original file...
-# (Due to length limitations, I'll include the router mounting at the end)
+# Custom Watchlists Management
+@api_router.post("/watchlists/lists", response_model=CustomWatchlist)
+async def create_custom_watchlist(watchlist: CustomWatchlist):
+    """Create a new custom watchlist"""
+    try:
+        await db.custom_watchlists.insert_one(watchlist.dict())
+        return watchlist
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/watchlists/lists", response_model=List[CustomWatchlist])
+async def get_custom_watchlists():
+    """Get all custom watchlists"""
+    try:
+        lists = await db.custom_watchlists.find().to_list(length=None)
+        return [CustomWatchlist(**wl) for wl in lists]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Enhanced Watchlist Routes with Manual Management
+@api_router.get("/watchlists/custom")
+async def get_custom_watchlists_with_stocks(current_user: User = Depends(get_current_user)):
+    """Get all custom watchlists with their stocks"""
+    try:
+        watchlists = await db.custom_watchlists.find().to_list(length=None)
+        
+        for watchlist in watchlists:
+            # Get stocks in this watchlist
+            stocks = await db.watchlists.find({"list_name": watchlist["name"]}).to_list(length=None)
+            watchlist["stocks"] = [WatchlistItem(**stock) for stock in stocks]
+        
+        return [CustomWatchlist(**wl) for wl in watchlists]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/watchlists/custom/{list_name}/add-stock")
+async def add_stock_to_watchlist(list_name: str, item: WatchlistItem, current_user: User = Depends(get_current_user)):
+    """Add stock to watchlist manually"""
+    try:
+        # Verify the watchlist exists
+        watchlist = await db.custom_watchlists.find_one({"name": list_name})
+        if not watchlist:
+            raise HTTPException(status_code=404, detail="Watchlist not found")
+        
+        # Check if stock already exists in this list
+        existing = await db.watchlists.find_one({"ticker": item.ticker, "list_name": list_name})
+        if existing:
+            raise HTTPException(status_code=400, detail="Stock already in watchlist")
+        
+        # Get company info to populate name if not provided
+        if not item.name or item.name == item.ticker:
+            company_info = await get_company_info(item.ticker)
+            item.name = company_info.company_name
+        
+        item.list_name = list_name
+        await db.watchlists.insert_one(item.dict())
+        
+        return {"message": f"Added {item.ticker} to {list_name}", "item": item}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/watchlists/custom/{list_name}/remove-stock/{ticker}")
+async def remove_stock_from_watchlist(list_name: str, ticker: str, current_user: User = Depends(get_current_user)):
+    """Remove stock from watchlist"""
+    try:
+        result = await db.watchlists.delete_one({"ticker": ticker.upper(), "list_name": list_name})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Stock not found in watchlist")
+        
+        return {"message": f"Removed {ticker} from {list_name}"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Historical Data Routes
+@api_router.get("/history", response_model=List[HistoricalSnapshot])
+async def get_historical_snapshots(days: int = Query(30, description="Number of days")):
+    """Get historical snapshots"""
+    try:
+        cutoff_date = datetime.utcnow() - timedelta(days=days)
+        snapshots = await db.historical_snapshots.find(
+            {"date": {"$gte": cutoff_date}}
+        ).sort("date", -1).to_list(length=days)
+        
+        return [HistoricalSnapshot(**snapshot) for snapshot in snapshots]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Journal Routes
+@api_router.post("/journal", response_model=JournalEntry)
+async def create_journal_entry(entry: JournalEntry):
+    """Create new journal entry"""
+    try:
+        await db.journal_entries.insert_one(entry.dict())
+        return entry
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/journal", response_model=List[JournalEntry])
+async def get_journal_entries(days: int = Query(30)):
+    """Get recent journal entries"""
+    try:
+        cutoff_date = datetime.utcnow() - timedelta(days=days)
+        entries = await db.journal_entries.find(
+            {"date": {"$gte": cutoff_date}}
+        ).sort("date", -1).to_list(length=100)
+        
+        return [JournalEntry(**entry) for entry in entries]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Watchlist Routes
+@api_router.post("/watchlists", response_model=WatchlistItem)
+async def create_watchlist_item(item: WatchlistItem):
+    """Create new watchlist item"""
+    try:
+        await db.watchlists.insert_one(item.dict())
+        return item
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/watchlists", response_model=List[WatchlistItem])
+async def get_watchlists(list_name: Optional[str] = Query(None)):
+    """Get watchlist items"""
+    try:
+        query = {}
+        if list_name:
+            query["list_name"] = list_name
+        
+        items = await db.watchlists.find(query).to_list(length=1000)
+        return [WatchlistItem(**item) for item in items]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/watchlists/names")
+async def get_watchlist_names():
+    """Get unique watchlist names"""
+    try:
+        lists = await db.watchlists.distinct("list_name")
+        return {"lists": lists}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/watchlists/{item_id}")
+async def delete_watchlist_item(item_id: str):
+    """Delete watchlist item"""
+    try:
+        result = await db.watchlists.delete_one({"id": item_id})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Item not found")
+        return {"message": "Item deleted"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Market Score Routes
+@api_router.get("/market-score", response_model=MarketScore)
+async def get_market_score():
+    """Get current market situational awareness score"""
+    try:
+        scores = await db.market_scores.find().sort("date", -1).limit(1).to_list(1)
+        if not scores:
+            # Create default score
+            default_score = MarketScore(
+                sata_score=2,
+                adx_score=2,
+                vix_score=2,
+                atr_score=2,
+                gmi_score=2,
+                nhnl_score=2,
+                fg_index_score=2,
+                qqq_ath_distance_score=2,
+                total_score=16,
+                classification="Yellow Day",
+                recommendation="Selective entries. Use moderate position sizing."
+            )
+            await db.market_scores.insert_one(default_score.dict())
+            return default_score
+        
+        return MarketScore(**scores[0])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/market-score", response_model=MarketScore)
+async def update_market_score(score_input: MarketScoreInput):
+    """Update market score"""
+    try:
+        # Calculate total and classification
+        total = (score_input.sata_score + score_input.adx_score + score_input.vix_score + 
+                score_input.atr_score + score_input.gmi_score + score_input.nhnl_score + 
+                score_input.fg_index_score + score_input.qqq_ath_distance_score)
+        
+        if total >= 28:
+            classification = "Green Day"
+            recommendation = "Full exposure. Use wider stop losses. Aggressive position sizing."
+        elif total >= 20:
+            classification = "Yellow Day"  
+            recommendation = "Selective entries. Moderate position sizing. Standard stops."
+        else:
+            classification = "Red Day"
+            recommendation = "Risk-off mode. Tight stops or avoid new positions."
+        
+        # Create full MarketScore object
+        score = MarketScore(
+            sata_score=score_input.sata_score,
+            adx_score=score_input.adx_score,
+            vix_score=score_input.vix_score,
+            atr_score=score_input.atr_score,
+            gmi_score=score_input.gmi_score,
+            nhnl_score=score_input.nhnl_score,
+            fg_index_score=score_input.fg_index_score,
+            qqq_ath_distance_score=score_input.qqq_ath_distance_score,
+            total_score=total,
+            classification=classification,
+            recommendation=recommendation
+        )
+        
+        await db.market_scores.insert_one(score.dict())
+        return score
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# AI Chart Analysis Routes
+@api_router.get("/charts/{ticker}/analysis", response_model=ChartAnalysis)
+async def get_chart_analysis(ticker: str, timeframe: str = "1d"):
+    """Get AI-powered chart analysis for a ticker"""
+    try:
+        analysis = await get_ai_chart_analysis(ticker.upper(), timeframe)
+        return analysis
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Export Routes
+@api_router.get("/export/etfs")
+async def export_etfs_data():
+    """Export ETF data for Google Sheets integration"""
+    try:
+        etfs = await db.etfs.find().to_list(length=None)
+        
+        # Format data for export
+        export_data = []
+        for etf in etfs:
+            export_data.append({
+                'Ticker': etf.get('ticker', ''),
+                'Name': etf.get('name', ''),
+                'Sector': etf.get('sector', ''),
+                'Theme': etf.get('theme', ''),
+                'Current_Price': etf.get('current_price', 0),
+                'Change_1D': etf.get('change_1d', 0),
+                'Change_1W': etf.get('change_1w', 0),
+                'Change_1M': etf.get('change_1m', 0),
+                'Change_3M': etf.get('change_3m', 0),
+                'Change_6M': etf.get('change_6m', 0),
+                'RS_1M': etf.get('relative_strength_1m', 0),
+                'RS_3M': etf.get('relative_strength_3m', 0),
+                'RS_6M': etf.get('relative_strength_6m', 0),
+                'ATR_Percent': etf.get('atr_percent', 0),
+                'SATA_Score': etf.get('sata_score', 0),
+                'GMMA_Pattern': etf.get('gmma_pattern', ''),
+                'SMA20_Trend': etf.get('sma20_trend', ''),
+                'Volume': etf.get('volume', 0),
+                'Market_Cap': etf.get('market_cap', 0),
+                'Last_Updated': etf.get('last_updated', '')
+            })
+        
+        return {
+            "data": export_data,
+            "total_records": len(export_data),
+            "export_timestamp": datetime.utcnow().isoformat(),
+            "format": "csv_compatible"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/export/market-score")
+async def export_market_score():
+    """Export current market score data"""
+    try:
+        score = await db.market_scores.find().sort("date", -1).limit(1).to_list(1)
+        if not score:
+            raise HTTPException(status_code=404, detail="No market score data found")
+        
+        # Convert ObjectId to string and clean up the data
+        score_data = score[0]
+        if '_id' in score_data:
+            score_data['_id'] = str(score_data['_id'])
+        
+        # Convert datetime objects to ISO strings
+        for key, value in score_data.items():
+            if isinstance(value, datetime):
+                score_data[key] = value.isoformat()
+        
+        return {
+            "market_score_data": score_data,
+            "export_timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Formula Configuration Routes
+@api_router.get("/formulas/config")
+async def get_formula_config():
+    """Get current formula configuration"""
+    try:
+        config = await db.formula_configs.find().to_list(length=None)
+        
+        # Default configuration if none exists
+        if not config:
+            default_config = {
+                "relative_strength": {
+                    "strong_threshold": 0.10,
+                    "moderate_threshold": 0.02,
+                    "formula": "(ETF_Return - SPY_Return) / |SPY_Return|"
+                },
+                "sata_weights": {
+                    "performance": 0.40,
+                    "relative_strength": 0.30,
+                    "volume": 0.20,
+                    "volatility": 0.10
+                },
+                "atr_calculation": {
+                    "period_days": 14,
+                    "high_volatility_threshold": 3.0
+                },
+                "gmma_patterns": {
+                    "bullish_requirement": "1W_change > 0 AND 1M_change > 0",
+                    "bearish_requirement": "1W_change < 0 AND 1M_change < 0"
+                }
+            }
+            await db.formula_configs.insert_one(default_config)
+            return default_config
+        
+        return config[0]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/formulas/config")
+async def update_formula_config(config_update: Dict[str, Any]):
+    """Update formula configuration and trigger recalculation"""
+    try:
+        # Update the configuration
+        await db.formula_configs.replace_one(
+            {},
+            config_update,
+            upsert=True
+        )
+        
+        # Trigger ETF data recalculation with new formulas
+        updated_etfs = await update_etf_data()
+        
+        return {
+            "message": "Formula configuration updated successfully",
+            "config": config_update,
+            "recalculated_etfs": len(updated_etfs)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Spreadsheet-Style Interface Routes
+@api_router.get("/spreadsheet/etfs")
+async def get_spreadsheet_etf_data(sector: Optional[str] = Query(None)):
+    """Get ETF data in spreadsheet format with formulas"""
+    try:
+        query = {}
+        if sector:
+            query["sector"] = sector
+        
+        etfs = await db.etfs.find(query).to_list(length=None)
+        
+        # Format for spreadsheet view
+        spreadsheet_data = []
+        for etf in etfs:
+            row = {
+                "Ticker": etf.get("ticker", ""),
+                "Name": etf.get("name", ""),
+                "Sector": etf.get("sector", ""),
+                "Theme": etf.get("theme", ""),
+                "Price": etf.get("current_price", 0),
+                "Swing_Days": f"=TODAY() - {etf.get('swing_start_date', datetime.utcnow().strftime('%Y-%m-%d'))}",
+                "SATA": etf.get("sata_score", 0),
+                "20SMA": etf.get("sma20_trend", "F"),
+                "GMMA": etf.get("gmma_pattern", "Mixed"),
+                "ATR_Percent": f"=({etf.get('atr_percent', 0):.2f})",
+                "Change_1D": f"=({etf.get('change_1d', 0):.2f}%)",
+                "Change_1W": f"=({etf.get('change_1w', 0):.2f}%)",
+                "Change_1M": f"=({etf.get('change_1m', 0):.2f}%)",
+                "RS_1M": "=IF({} > SPY_1M, \"Y\", \"N\")".format(etf.get('relative_strength_1m', 0)),
+                "RS_3M": "=IF({} > SPY_3M, \"Y\", \"N\")".format(etf.get('relative_strength_3m', 0)),
+                "RS_6M": "=IF({} > SPY_6M, \"Y\", \"N\")".format(etf.get('relative_strength_6m', 0)),
+                "Color_Rule": f"=IF(AND(RS_1M=\"Y\", SATA>=7, GMMA=\"RWB\"), \"Green\", IF(RS_1M=\"N\", \"Red\", \"Yellow\"))"
+            }
+            spreadsheet_data.append(row)
+        
+        return {
+            "data": spreadsheet_data,
+            "formulas": {
+                "swing_days": "=TODAY() - [Swing_Date_Cell]",
+                "atr_percent": "=(14_Day_ATR / Current_Price) * 100",
+                "relative_strength": "=(ETF_Return - SPY_Return) / ABS(SPY_Return)",
+                "sata_score": "=Performance(40%) + RelStrength(30%) + Volume(20%) + Volatility(10%)",
+                "color_logic": "Green: RS=Y AND SATA>=7 AND GMMA=RWB, Red: RS=N, Yellow: Mixed signals"
+            },
+            "total_records": len(spreadsheet_data)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Historical Data Pruning Route
+@api_router.post("/admin/prune-historical-data")
+async def prune_historical_data(days: int = 60, current_user: User = Depends(get_current_user)):
+    """Prune historical data older than specified days"""
+    try:
+        cutoff_date = datetime.utcnow() - timedelta(days=days)
+        
+        # Prune historical snapshots
+        snapshots_result = await db.historical_snapshots.delete_many(
+            {"date": {"$lt": cutoff_date}}
+        )
+        
+        # Prune old chart analyses
+        charts_result = await db.chart_analyses.delete_many(
+            {"created_at": {"$lt": cutoff_date}}
+        )
+        
+        # Prune old chat messages (keep last 1000 per session)
+        sessions = await db.chat_sessions.find().to_list(length=None)
+        chat_deletions = 0
+        
+        for session in sessions:
+            messages = await db.chat_messages.find(
+                {"session_id": session["id"]}
+            ).sort("timestamp", -1).skip(1000).to_list(length=None)
+            
+            if messages:
+                message_ids = [msg["id"] for msg in messages]
+                result = await db.chat_messages.delete_many(
+                    {"id": {"$in": message_ids}}
+                )
+                chat_deletions += result.deleted_count
+        
+        return {
+            "message": f"Pruned historical data older than {days} days",
+            "deleted": {
+                "historical_snapshots": snapshots_result.deleted_count,
+                "chart_analyses": charts_result.deleted_count,
+                "chat_messages": chat_deletions
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Mount the router
 app.include_router(api_router)
