@@ -1654,8 +1654,10 @@ async def get_live_indices():
         for index in indices:
             data = await fetch_etf_data(index)
             if data:
-                live_data["VIX"] = {
-                    "symbol": "VIX",
+                # Handle VIX special case (use VIX as key but ^VIX as ticker)
+                key = "VIX" if index == "^VIX" else index
+                live_data[key] = {
+                    "symbol": key,
                     "price": data["current_price"],
                     "change_1d": data["change_1d"],
                     "volume": data["volume"],
