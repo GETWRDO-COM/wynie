@@ -1311,20 +1311,48 @@ function App() {
 
         {activeTab === "ai-chat" && <AIChat user={user} />}
 
-        {/* Other tabs would continue here... */}
-        {activeTab !== "dashboard" && activeTab !== "ai-chat" && (
+        {activeTab === "swing-grid" && (
+          <SwingAnalysisGrid
+            etfs={etfs}
+            sectors={sectors}
+            selectedSector={selectedSector}
+            setSelectedSector={setSelectedSector}
+            analyzeChart={analyzeChart}
+            addToWatchlist={addToWatchlist}
+            showFormulas={showFormulas}
+            setShowFormulas={setShowFormulas}
+            exportToGoogleSheets={exportToGoogleSheets}
+            exportLoading={exportLoading}
+            updateETFData={updateETFData}
+            loading={loading}
+          />
+        )}
+
+        {activeTab === "ai-analysis" && (
+          <AIAnalysisTab
+            api={api}
+            addToWatchlist={addToWatchlist}
+          />
+        )}
+
+        {activeTab === "spreadsheet" && (
+          <SpreadsheetTab
+            api={api}
+            etfs={etfs}
+            sectors={sectors}
+            selectedSector={selectedSector}
+            setSelectedSector={setSelectedSector}
+            exportLoading={exportLoading}
+            setExportLoading={setExportLoading}
+          />
+        )}
+
+        {/* Show message only if none of the implemented tabs are selected */}
+        {!["dashboard", "ai-chat", "swing-grid", "ai-analysis", "spreadsheet"].includes(activeTab) && (
           <div className="bg-gray-800 rounded-xl p-8 text-center">
-            <h2 className="text-2xl font-bold mb-4">🚧 Under Development</h2>
+            <h2 className="text-2xl font-bold mb-4">🚧 Feature Coming Soon</h2>
             <p className="text-gray-400">
-              The {activeTab.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())} feature is being enhanced with all the new capabilities you requested.
-            </p>
-            <p className="text-gray-300 mt-2">
-              ✅ Authentication system integrated<br />
-              ✅ AI chat with OpenAI models<br />
-              ✅ Enhanced stock search with company logos<br />
-              ✅ TradingView integration ready<br />
-              ✅ Interactive charts with multiple timeframes<br />
-              🔄 Spreadsheet-style interface coming next...
+              This feature is being developed. Please check back soon!
             </p>
           </div>
         )}
