@@ -1654,8 +1654,8 @@ async def get_live_indices():
         for index in indices:
             data = await fetch_etf_data(index)
             if data:
-                live_data[index] = {
-                    "symbol": index,
+                live_data["VIX"] = {
+                    "symbol": "VIX",
                     "price": data["current_price"],
                     "change_1d": data["change_1d"],
                     "volume": data["volume"],
