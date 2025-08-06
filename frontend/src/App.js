@@ -95,6 +95,59 @@ const ETFIntelligenceSystem = () => {
       console.error("Error fetching dashboard data:", error);
     }
   };
+  const fetchLiveData = async () => {
+    try {
+      const [indicesRes, fearGreedRes, forexRes] = await Promise.all([
+        axios.get(`${API}/live/indices`),
+        axios.get(`${API}/live/fear-greed`),
+        axios.get(`${API}/live/forex`)
+      ]);
+
+      setLiveIndices(indicesRes.data);
+      setFearGreedData(fearGreedRes.data);
+      setForexRates(forexRes.data);
+    } catch (error) {
+      console.error("Error fetching live data:", error);
+    }
+  };
+
+  const exportToGoogleSheets = async () => {
+    setExportLoading(true);
+    try {
+      const response = await axios.get(`${API}/export/etfs`);
+      
+      // Convert data to CSV format
+      const csvData = convertToCSV(response.data.data);
+      
+      // Create and download CSV file
+      const blob = new Blob([csvData], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `ETF_Intelligence_Data_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+    } catch (error) {
+      console.error("Error exporting data:", error);
+    }
+    setExportLoading(false);
+  };
+
+  const convertToCSV = (data) => {
+    if (!data || data.length === 0) return '';
+    
+    const headers = Object.keys(data[0]).join(',');
+    const rows = data.map(row => 
+      Object.values(row).map(value => 
+        typeof value === 'string' ? `"${value}"` : value
+      ).join(',')
+    );
+    
+    return [headers, ...rows].join('\n');
+  };
 
   const updateETFs = async () => {
     setLoading(true);
