@@ -107,6 +107,52 @@ const LoginForm = ({ onLogin }) => {
   );
 };
 
+// Settings Modal Component (premium glass)
+const SettingsModal = ({ isOpen, onClose, user }) => {
+  const [passwordData, setPasswordData] = useState({ current_password: '', new_password: '', confirm_password: '' });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    if (passwordData.new_password !== passwordData.confirm_password) { setError('New passwords do not match.'); return; }
+    setLoading(true); setError(''); setMessage('');
+    try {
+      await api.post('/api/auth/settings', { current_password: passwordData.current_password, new_password: passwordData.new_password });
+      setMessage('Password updated successfully!');
+      setPasswordData({ current_password: '', new_password: '', confirm_password: '' });
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to update password.');
+    } finally { setLoading(false); }
+  };
+
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+      <div className="glass-card p-6 w-full max-w-md mx-4">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-white flex items-center">Settings</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl">×</button>
+        </div>
+        <div className="mb-4 p-3 bg-white/5 rounded-lg">
+          <p className="text-gray-300 text-sm">Account: {user?.email}</p>
+          <p className="text-gray-400 text-xs">Last Login: {user?.last_login ? new Date(user.last_login).toLocaleString() : 'N/A'}</p>
+        </div>
+        <form onSubmit={handleUpdatePassword} className="space-y-4">
+          <h3 className="text-lg font-semibold text-white">Change Password</h3>
+          <input type="password" placeholder="Current Password" value={passwordData.current_password} onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })} className="w-full form-input" required />
+          <input type="password" placeholder="New Password" value={passwordData.new_password} onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })} className="w-full form-input" required />
+          <input type="password" placeholder="Confirm New Password" value={passwordData.confirm_password} onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })} className="w-full form-input" required />
+          {error && <div className="text-red-400 text-sm">{error}</div>}
+          {message && <div className="text-green-400 text-sm">{message}</div>}
+          <button type="submit" disabled={loading} className="w-full btn btn-primary disabled:opacity-50">{loading ? 'Updating...' : 'Update Password'}</button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 // AI Chat Component (simplified styling uses glass classes)
 const AIChat = ({ user }) => {
   const [messages, setMessages] = useState([]);
