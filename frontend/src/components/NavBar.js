@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { FaCog, FaSignOutAlt, FaBars } from 'react-icons/fa';
 
-// Icon-only mapping so we can render small icons next to labels if desired
 const TABS = [
   { id: 'dashboard', label: 'Dashboard', emoji: '🏠' },
   { id: 'swing-grid', label: 'Analysis Grid', emoji: '📊' },
@@ -19,10 +18,10 @@ const NavBar = ({ activeTab, setActiveTab, user, onSettings, onLogout }) => {
         <div className="h-16 flex items-center justify-between gap-4">
           {/* Brand */}
           <div className="flex items-center gap-2">
-            <img src="/assets/theme/logo.svg" alt="logo" className="w-7 h-7" />
+            <div className="w-8 h-8 rounded-xl" style={{ background: 'linear-gradient(135deg, var(--brand-start), var(--brand-end))' }} />
             <div className="hidden sm:block">
-              <div className="text-[15px] leading-none text-gray-300">HUNT BY WRDO</div>
-              <div className="text-xs text-gray-500">Premium Trading Workspace</div>
+              <div className="text-[15px] leading-none text-white">HUNT BY WRDO</div>
+              <div className="text-xs text-gray-400">Premium Trading Workspace</div>
             </div>
           </div>
 
@@ -30,11 +29,7 @@ const NavBar = ({ activeTab, setActiveTab, user, onSettings, onLogout }) => {
           <nav className="hidden md:block">
             <div className="nav-tabs flex items-center gap-1">
               {TABS.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setActiveTab(t.id)}
-                  className={`nav-tab ${activeTab === t.id ? 'active' : 'inactive'}`}
-                >
+                <button key={t.id} onClick={() => setActiveTab(t.id)} className={`nav-tab ${activeTab === t.id ? 'active' : 'inactive'}`}>
                   <span className="mr-1">{t.emoji}</span>
                   {t.label}
                 </button>
@@ -44,25 +39,13 @@ const NavBar = ({ activeTab, setActiveTab, user, onSettings, onLogout }) => {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            <button
-              onClick={onSettings}
-              className="text-gray-300 hover:text-white p-2 rounded-lg hover:bg-white/5"
-              title="Settings"
-            >
+            <button onClick={onSettings} className="text-gray-300 hover:text-white p-2 rounded-lg hover:bg-white/5" title="Settings">
               <FaCog className="text-lg" />
             </button>
-            <button
-              onClick={onLogout}
-              className="text-gray-300 hover:text-white p-2 rounded-lg hover:bg-white/5"
-              title="Logout"
-            >
+            <button onClick={onLogout} className="text-gray-300 hover:text-white p-2 rounded-lg hover:bg-white/5" title="Logout">
               <FaSignOutAlt className="text-lg" />
             </button>
-            <button
-              onClick={() => setOpen(!open)}
-              className="md:hidden text-gray-300 hover:text-white p-2 rounded-lg hover:bg-white/5"
-              aria-label="Toggle menu"
-            >
+            <button onClick={() => setOpen(!open)} className="md:hidden text-gray-300 hover:text-white p-2 rounded-lg hover:bg-white/5" aria-label="Toggle menu">
               <FaBars />
             </button>
           </div>
@@ -73,11 +56,7 @@ const NavBar = ({ activeTab, setActiveTab, user, onSettings, onLogout }) => {
           <div className="md:hidden pb-3">
             <div className="nav-tabs flex flex-wrap items-center gap-1">
               {TABS.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => { setActiveTab(t.id); setOpen(false); }}
-                  className={`nav-tab ${activeTab === t.id ? 'active' : 'inactive'} w-[calc(50%-4px)]`}
-                >
+                <button key={t.id} onClick={() => { setActiveTab(t.id); setOpen(false); }} className={`nav-tab ${activeTab === t.id ? 'active' : 'inactive'} w-[calc(50%-4px)]`}>
                   <span className="mr-1">{t.emoji}</span>
                   {t.label}
                 </button>

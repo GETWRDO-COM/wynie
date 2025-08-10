@@ -2,16 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-        "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
-        "Helvetica Neue", sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+/* Host Grotesk font-face */
+@font-face {
+  font-family: 'Host Grotesk';
+  src: url('/assets/fonts/HostGrotesk-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 
-code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-        monospace;
+:root {
+  --brand-start: #00d4ff; /* WRDO gradient start */
+  --brand-end: #7c3aed;   /* WRDO gradient end (purple-600) */
 }
+
+body {
+  margin: 0;
+  font-family: 'Host Grotesk', -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+    "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code { font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace; }

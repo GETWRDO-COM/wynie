@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { --glow-blue: #3b82f6; --glow-purple: #8b5cf6; }
+:root { --glow-blue: var(--brand-start); --glow-purple: var(--brand-end); }
 html { scroll-behavior: smooth; }
 
 /* Subtle scrollbar */
@@ -19,16 +19,16 @@ html { scroll-behavior: smooth; }
 .animate-spin { animation: spin 1s linear infinite; }
 
 /* Glow + text */
-.glow-ring { box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 8px 22px -14px rgba(59,130,246,0.45), 0 0 24px -14px rgba(139,92,246,0.3); }
-.neon-text { text-shadow: 0 0 10px rgba(59,130,246,0.45), 0 0 18px rgba(139,92,246,0.25); }
+.glow-ring { box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 8px 22px -14px rgba(0,212,255,0.45), 0 0 24px -14px rgba(124,58,237,0.3); }
+.neon-text { text-shadow: 0 0 10px rgba(0,212,255,0.35), 0 0 18px rgba(124,58,237,0.25); }
 
 /* Background wrapper kept minimal in ThemeWrapper */
 .glass-panel { @apply bg-black/40 backdrop-blur-lg border border-white/10 rounded-2xl; }
 .glass-card { @apply bg-black/30 backdrop-blur-md border border-white/10 rounded-xl shadow-xl; }
 
-/* Buttons */
+/* Buttons use WRDO gradient */
 .btn { @apply px-4 py-2 rounded-lg font-medium transition-all duration-200; }
-.btn-primary { @apply text-white; background: linear-gradient(135deg, var(--glow-blue), var(--glow-purple)); box-shadow: 0 8px 20px -12px rgba(59,130,246,0.55); }
+.btn-primary { @apply text-white; background: linear-gradient(135deg, var(--brand-start), var(--brand-end)); box-shadow: 0 8px 20px -12px rgba(0,212,255,0.45); }
 .btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
 .btn-secondary { @apply bg-white/10 hover:bg-white/15 text-white; }
 .btn-success { @apply bg-green-600 hover:bg-green-700 text-white; }
@@ -39,7 +39,7 @@ html { scroll-behavior: smooth; }
 .nav-shell { @apply sticky top-0 z-40; background: linear-gradient(180deg, rgba(9,12,18,0.92), rgba(9,12,18,0.7)); border-bottom: 1px solid rgba(255,255,255,0.06); backdrop-filter: saturate(140%) blur(10px); }
 .nav-tabs { @apply p-1 rounded-2xl bg-white/5 border border-white/10; }
 .nav-tab { @apply px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200; }
-.nav-tab.active { @apply text-white; background: linear-gradient(135deg, rgba(59,130,246,0.22), rgba(139,92,246,0.22)); border: 1px solid rgba(255,255,255,0.12); }
+.nav-tab.active { @apply text-white; background: linear-gradient(135deg, color-mix(in_oklab, var(--brand-start) 25%, transparent), color-mix(in_oklab, var(--brand-end) 25%, transparent)); border: 1px solid rgba(255,255,255,0.12); }
 .nav-tab.inactive { @apply text-gray-300 hover:text-white hover:bg-white/5; }
 
 /* Tables */
@@ -58,4 +58,4 @@ html { scroll-behavior: smooth; }
 .skeleton-circle { @apply bg-white/10 animate-pulse rounded-full; }
 
 /* Divider */
-.hr-glow { border: 0; height: 1px; background: linear-gradient(90deg, rgba(59,130,246,0), rgba(59,130,246,0.5), rgba(139,92,246,0)); }
+.hr-glow { border: 0; height: 1px; background: linear-gradient(90deg, rgba(0,212,255,0), rgba(0,212,255,0.5), rgba(124,58,237,0)); }

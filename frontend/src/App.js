@@ -2,94 +2,44 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { FaEye, FaEyeSlash, FaCog, FaSignOutAlt, FaLock, FaUser, FaRobot, FaChartLine, FaTable, FaTrademark, FaSpinner } from 'react-icons/fa';
 import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-
-// Import the new components
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import SwingAnalysisGrid from './components/SwingAnalysisGrid';
 import AIAnalysisTab from './components/AIAnalysisTab';
 import SpreadsheetTab from './components/SpreadsheetTab';
 import ThemeWrapper from './components/ThemeWrapper';
 import NavBar from './components/NavBar';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
-
-// Get backend URL from environment variable
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
-
 const api = axios.create({ baseURL: BACKEND_URL });
+api.interceptors.request.use((config) => { const token = localStorage.getItem('authToken'); if (token) config.headers.Authorization = `Bearer ${token}`; return config; }, (e) => Promise.reject(e));
+api.interceptors.response.use((r) => r, (e) => { if (e.response?.status === 401) { localStorage.removeItem('authToken'); localStorage.removeItem('user'); window.location.reload(); } return Promise.reject(e); });
 
-api.interceptors.request.use((config) => { const token = localStorage.getItem('authToken'); if (token) { config.headers.Authorization = `Bearer ${token}`; } return config; }, (error) => Promise.reject(error));
-api.interceptors.response.use((response) => response, (error) => { if (error.response?.status === 401) { localStorage.removeItem('authToken'); localStorage.removeItem('user'); window.location.reload(); } return Promise.reject(error); });
-
-// Authentication Component
 const LoginForm = ({ onLogin }) => {
   const [credentials, setCredentials] = useState({ email: 'beetge@mwebbiz.co.za', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    try {
-      const response = await api.post('/api/auth/login', credentials);
-      const { access_token, user } = response.data;
-      localStorage.setItem('authToken', access_token);
-      localStorage.setItem('user', JSON.stringify(user));
-      onLogin(user);
-    } catch (err) {
-      setError(err.response?.data?.detail || 'Login failed. Please check your credentials.');
-    } finally { setLoading(false); }
-  };
-
-  const handleForgotPassword = async () => {
-    if (!credentials.email) { setError('Please enter your email address first.'); return; }
-    try { const response = await api.post('/api/auth/forgot-password', { email: credentials.email }); alert(response.data.message + '\n\n' + (response.data.temp_instructions || '')); } catch { setError('Failed to send password reset instructions.'); }
-  };
-
+  const handleLogin = async (e) => { e.preventDefault(); setLoading(true); setError(''); try { const r = await api.post('/api/auth/login', credentials); const { access_token, user } = r.data; localStorage.setItem('authToken', access_token); localStorage.setItem('user', JSON.stringify(user)); onLogin(user); } catch (err) { setError(err.response?.data?.detail || 'Login failed. Please check your credentials.'); } finally { setLoading(false); } };
+  const handleForgotPassword = async () => { if (!credentials.email) { setError('Please enter your email address first.'); return; } try { const r = await api.post('/api/auth/forgot-password', { email: credentials.email }); alert(r.data.message + '\n\n' + (r.data.temp_instructions || '')); } catch { setError('Failed to send password reset instructions.'); } };
   return (
     <ThemeWrapper>
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="glass-panel glow-ring p-8 w-full max-w-md">
           <div className="text-center mb-8">
-            <div className="bg-gradient-to-tr from-blue-600 to-purple-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 glow-ring">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 glow-ring" style={{ background: 'linear-gradient(135deg, var(--brand-start), var(--brand-end))' }}>
               <FaLock className="text-2xl text-white" />
             </div>
             <h1 className="text-3xl font-bold text-white mb-2 neon-text">HUNT BY WRDO</h1>
             <p className="text-gray-300">Secure Access Portal</p>
           </div>
-
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                <FaUser className="inline mr-2" />
-                Email Address
-              </label>
+              <label className="block text-sm font-medium text-gray-300 mb-2"><FaUser className="inline mr-2" />Email Address</label>
               <input type="email" value={credentials.email} onChange={(e) => setCredentials({ ...credentials, email: e.target.value })} className="w-full form-input text-base" placeholder="Enter your email" required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                <FaLock className="inline mr-2" />
-                Password
-              </label>
+              <label className="block text-sm font-medium text-gray-300 mb-2"><FaLock className="inline mr-2" />Password</label>
               <div className="relative">
                 <input type={showPassword ? 'text' : 'password'} value={credentials.password} onChange={(e) => setCredentials({ ...credentials, password: e.target.value })} className="w-full form-input pr-12 text-base" placeholder="Enter your password" required />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">{showPassword ? <FaEyeSlash /> : <FaEye />}</button>
@@ -97,9 +47,7 @@ const LoginForm = ({ onLogin }) => {
             </div>
             {error && (<div className="bg-red-900/60 border border-red-700 rounded-lg p-3 text-red-300 text-sm">{error}</div>)}
             <button type="submit" disabled={loading} className="w-full btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">{loading ? (<><FaSpinner className="animate-spin mr-2" />Signing In...</>) : ('Sign In')}</button>
-            <div className="text-center">
-              <button type="button" onClick={handleForgotPassword} className="text-blue-400 hover:text-blue-300 text-sm underline">Forgot Password?</button>
-            </div>
+            <div className="text-center"><button type="button" onClick={handleForgotPassword} className="text-blue-400 hover:text-blue-300 text-sm underline">Forgot Password?</button></div>
           </form>
         </div>
       </div>
@@ -107,97 +55,7 @@ const LoginForm = ({ onLogin }) => {
   );
 };
 
-// Settings Modal Component (premium glass)
-const SettingsModal = ({ isOpen, onClose, user }) => {
-  const [passwordData, setPasswordData] = useState({ current_password: '', new_password: '', confirm_password: '' });
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
-
-  const handleUpdatePassword = async (e) => {
-    e.preventDefault();
-    if (passwordData.new_password !== passwordData.confirm_password) { setError('New passwords do not match.'); return; }
-    setLoading(true); setError(''); setMessage('');
-    try {
-      await api.post('/api/auth/settings', { current_password: passwordData.current_password, new_password: passwordData.new_password });
-      setMessage('Password updated successfully!');
-      setPasswordData({ current_password: '', new_password: '', confirm_password: '' });
-    } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to update password.');
-    } finally { setLoading(false); }
-  };
-
-  if (!isOpen) return null;
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="glass-card p-6 w-full max-w-md mx-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-white flex items-center">Settings</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl">×</button>
-        </div>
-        <div className="mb-4 p-3 bg-white/5 rounded-lg">
-          <p className="text-gray-300 text-sm">Account: {user?.email}</p>
-          <p className="text-gray-400 text-xs">Last Login: {user?.last_login ? new Date(user.last_login).toLocaleString() : 'N/A'}</p>
-        </div>
-        <form onSubmit={handleUpdatePassword} className="space-y-4">
-          <h3 className="text-lg font-semibold text-white">Change Password</h3>
-          <input type="password" placeholder="Current Password" value={passwordData.current_password} onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })} className="w-full form-input" required />
-          <input type="password" placeholder="New Password" value={passwordData.new_password} onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })} className="w-full form-input" required />
-          <input type="password" placeholder="Confirm New Password" value={passwordData.confirm_password} onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })} className="w-full form-input" required />
-          {error && <div className="text-red-400 text-sm">{error}</div>}
-          {message && <div className="text-green-400 text-sm">{message}</div>}
-          <button type="submit" disabled={loading} className="w-full btn btn-primary disabled:opacity-50">{loading ? 'Updating...' : 'Update Password'}</button>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-// AI Chat Component (simplified styling uses glass classes)
-const AIChat = ({ user }) => {
-  const [messages, setMessages] = useState([]);
-  const [inputMessage, setInputMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [selectedModel, setSelectedModel] = useState('latest');
-  const [availableModels, setAvailableModels] = useState({});
-  const [currentSession, setCurrentSession] = useState(null);
-  const [ticker, setTicker] = useState('');
-  const [includeChart, setIncludeChart] = useState(false);
-
-  useEffect(() => { fetchAvailableModels(); createNewSession(); }, []);
-  const fetchAvailableModels = async () => { try { const r = await api.get('/api/ai/models'); setAvailableModels(r.data.models); setSelectedModel(r.data.recommended); } catch (e) { console.error(e); } };
-  const createNewSession = async () => { try { const sessionData = { title: 'New Trading Chat', model: selectedModel }; const r = await api.post('/api/ai/sessions', sessionData); setCurrentSession(r.data.id); setMessages([]); } catch (e) { console.error(e); } };
-  const sendMessage = async (e) => { e.preventDefault(); if (!inputMessage.trim() || !currentSession) return; const userMessage = { role: 'user', content: inputMessage, timestamp: new Date().toISOString() }; setMessages(prev => [...prev, userMessage]); setLoading(true); try { const r = await api.post('/api/ai/chat', { session_id: currentSession, message: inputMessage, model: selectedModel, ticker: includeChart ? ticker : null, include_chart_data: includeChart && ticker }); const aiMessage = { role: 'assistant', content: r.data.response, timestamp: new Date().toISOString() }; setMessages(prev => [...prev, aiMessage]); setInputMessage(''); } catch { const errorMessage = { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.', timestamp: new Date().toISOString() }; setMessages(prev => [...prev, errorMessage]); } finally { setLoading(false); } };
-
-  return (
-    <div className="glass-card p-6 h-[600px] flex flex-col">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-white flex items-center"><FaRobot className="mr-2 text-blue-400" />AI Trading Assistant</h2>
-        <div className="flex gap-2">
-          <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)} className="form-select text-sm">
-            {Object.entries(availableModels).map(([key, model]) => (<option key={key} value={key}>{key === 'latest' ? `🚀 Latest (${model})` : `${key}`}</option>))}
-          </select>
-          <button onClick={createNewSession} className="btn btn-secondary">New Chat</button>
-        </div>
-      </div>
-      <div className="mb-4 p-3 bg-white/5 rounded-lg">
-        <div className="flex items-center gap-4">
-          <label className="flex items-center text-sm text-gray-300"><input type="checkbox" checked={includeChart} onChange={(e) => setIncludeChart(e.target.checked)} className="mr-2" />Include Chart Analysis</label>
-          {includeChart && (<input type="text" placeholder="Enter ticker (e.g., AAPL, SPY)" value={ticker} onChange={(e) => setTicker(e.target.value.toUpperCase())} className="px-3 py-1 bg-gray-700 border border-white/10 rounded text-white text-sm" />)}
-        </div>
-      </div>
-      <div className="flex-1 overflow-y-auto mb-4 space-y-3">
-        {messages.length === 0 && (<div className="text-gray-400 text-center py-8"><FaRobot className="text-4xl mx-auto mb-4 opacity-50" /><p>Welcome to your AI Trading Assistant!</p><p className="text-sm mt-2">Ask me about market analysis, trading strategies, or specific stocks.</p></div>)}
-        {messages.map((m, i) => (<div key={i} className={`p-3 rounded-lg ${m.role === 'user' ? 'bg-blue-600/90 ml-12 text-white glow-ring' : 'bg-white/5 mr-12 text-gray-100'}`}><div className="text-sm opacity-75 mb-1">{m.role === 'user' ? 'You' : `AI (${selectedModel})`}</div><div className="whitespace-pre-wrap">{m.content}</div></div>))}
-        {loading && (<div className="bg-white/5 mr-12 p-3 rounded-lg"><div className="flex items-center text-gray-300"><FaSpinner className="animate-spin mr-2" />AI is thinking...</div></div>)}
-      </div>
-      <form onSubmit={sendMessage} className="flex gap-2">
-        <input type="text" value={inputMessage} onChange={(e) => setInputMessage(e.target.value)} placeholder={includeChart && ticker ? `Ask about ${ticker} chart...` : 'Ask me about trading, markets, or analysis...'} className="flex-1 form-input" disabled={loading} />
-        <button type="submit" disabled={loading || !inputMessage.trim()} className="btn btn-primary disabled:opacity-50">Send</button>
-      </form>
-    </div>
-  );
-};
+const SettingsModal = ({ isOpen, onClose, user }) => { const [passwordData, setPasswordData] = useState({ current_password: '', new_password: '', confirm_password: '' }); const [loading, setLoading] = useState(false); const [message, setMessage] = useState(''); const [error, setError] = useState(''); const handleUpdatePassword = async (e) => { e.preventDefault(); if (passwordData.new_password !== passwordData.confirm_password) { setError('New passwords do not match.'); return; } setLoading(true); setError(''); setMessage(''); try { await api.post('/api/auth/settings', { current_password: passwordData.current_password, new_password: passwordData.new_password }); setMessage('Password updated successfully!'); setPasswordData({ current_password: '', new_password: '', confirm_password: '' }); } catch (err) { setError(err.response?.data?.detail || 'Failed to update password.'); } finally { setLoading(false); } }; if (!isOpen) return null; return (<div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"><div className="glass-card p-6 w-full max-w-md mx-4"><div className="flex justify-between items-center mb-4"><h2 className="text-xl font-bold text-white flex items-center">Settings</h2><button onClick={onClose} className="text-gray-400 hover:text-white text-xl">×</button></div><div className="mb-4 p-3 bg-white/5 rounded-lg"><p className="text-gray-300 text-sm">Account: {user?.email}</p><p className="text-gray-400 text-xs">Last Login: {user?.last_login ? new Date(user.last_login).toLocaleString() : 'N/A'}</p></div><form onSubmit={handleUpdatePassword} className="space-y-4"><h3 className="text-lg font-semibold text-white">Change Password</h3><input type="password" placeholder="Current Password" value={passwordData.current_password} onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })} className="w-full form-input" required /><input type="password" placeholder="New Password" value={passwordData.new_password} onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })} className="w-full form-input" required /><input type="password" placeholder="Confirm New Password" value={passwordData.confirm_password} onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })} className="w-full form-input" required />{error && <div className="text-red-400 text-sm">{error}</div>}{message && <div className="text-green-400 text-sm">{message}</div>}<button type="submit" disabled={loading} className="w-full btn btn-primary disabled:opacity-50">{loading ? 'Updating...' : 'Update Password'}</button></form></div></div>); };
 
 const IndexChart = ({ data, title, timeframe }) => { const chartData = { labels: data?.dates || [], datasets: [{ label: title, data: data?.prices || [], borderColor: 'rgb(59, 130, 246)', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderWidth: 2, fill: true, tension: 0.1 }] }; const options = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: false } }, scales: { x: { display: false, grid: { color: 'rgba(75, 85, 99, 0.3)' } }, y: { display: true, grid: { color: 'rgba(75, 85, 99, 0.3)' }, ticks: { color: 'rgb(156, 163, 175)', font: { size: 10 } } } } }; return (<div className="h-32"><Line data={chartData} options={options} /></div>); };
 
@@ -234,26 +92,13 @@ function App() {
   const handleLogin = (u) => setUser(u);
   const handleLogout = () => { localStorage.removeItem('authToken'); localStorage.removeItem('user'); setUser(null); setActiveTab('dashboard'); };
 
-  if (loading) {
-    return (
-      <ThemeWrapper>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <FaSpinner className="animate-spin text-4xl text-blue-400 mx-auto mb-4" />
-            <p className="text-gray-300">Loading ETF Intelligence System...</p>
-          </div>
-        </div>
-      </ThemeWrapper>
-    );
-  }
+  if (loading) return (<ThemeWrapper><div className="min-h-screen flex items-center justify-center"><div className="text-center"><FaSpinner className="animate-spin text-4xl text-blue-400 mx-auto mb-4" /><p className="text-gray-300">Loading HUNT BY WRDO...</p></div></div></ThemeWrapper>);
   if (!user) return <LoginForm onLogin={handleLogin} />;
 
   return (
     <ThemeWrapper>
       <NavBar activeTab={activeTab} setActiveTab={setActiveTab} user={user} onSettings={() => setShowSettings(true)} onLogout={handleLogout} />
-
-      {/* Settings modal retained from earlier build, omitted for brevity to keep focus on nav */}
-
+      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} user={user} />
       <main className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
@@ -262,7 +107,7 @@ function App() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="text-center">
                     <h1 className="text-4xl font-bold mb-2">{dashboardData.greeting}</h1>
-                    <p className="text-gray-300">Your Personal Trading Command Center</p>
+                    <p className="text-gray-300">Welcome to HUNT BY WRDO</p>
                   </div>
                   <div className="text-center">
                     <div className="glass-panel rounded-lg p-4 mb-2">
@@ -281,25 +126,9 @@ function App() {
             )}
           </div>
         )}
-
-        {activeTab === 'swing-grid' && (
-          <div className="glass-card p-6">
-            <SwingAnalysisGrid api={api} etfs={selectedSector ? etfs.filter(e => e.sector === selectedSector) : etfs} sectors={sectors} selectedSector={selectedSector} setSelectedSector={setSelectedSector} analyzeChart={() => {}} addToWatchlist={() => {}} />
-          </div>
-        )}
-
-        {activeTab === 'ai-analysis' && (
-          <div className="space-y-6">
-            <AIAnalysisTab api={api} addToWatchlist={() => {}} />
-          </div>
-        )}
-
-        {activeTab === 'spreadsheet' && (
-          <div className="glass-card p-6">
-            <SpreadsheetTab api={api} etfs={etfs} sectors={sectors} selectedSector={selectedSector} setSelectedSector={setSelectedSector} exportLoading={exportLoading} setExportLoading={setExportLoading} />
-          </div>
-        )}
-
+        {activeTab === 'swing-grid' && (<div className="glass-card p-6"><SwingAnalysisGrid api={api} etfs={selectedSector ? etfs.filter(e => e.sector === selectedSector) : etfs} sectors={sectors} selectedSector={selectedSector} setSelectedSector={setSelectedSector} analyzeChart={() => {}} addToWatchlist={() => {}} /></div>)}
+        {activeTab === 'ai-analysis' && (<div className="space-y-6"><AIAnalysisTab api={api} addToWatchlist={() => {}} /></div>)}
+        {activeTab === 'spreadsheet' && (<div className="glass-card p-6"><SpreadsheetTab api={api} etfs={etfs} sectors={sectors} selectedSector={selectedSector} setSelectedSector={setSelectedSector} exportLoading={exportLoading} setExportLoading={setExportLoading} /></div>)}
         {activeTab === 'ai-chat' && (<AIChat user={user} />)}
       </main>
     </ThemeWrapper>
