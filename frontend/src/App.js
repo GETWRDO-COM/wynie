@@ -109,18 +109,8 @@ function App() {
                     <h1 className="text-4xl font-bold mb-2">{dashboardData.greeting}</h1>
                     <p className="text-gray-300">Welcome to HUNT BY WRDO</p>
                   </div>
-                  <div className="text-center">
-                    <div className="glass-panel rounded-lg p-4 mb-2">
-                      <div className="text-gray-300">South Africa 🇿🇦 / United States 🇺🇸</div>
-                      <div className="text-xs text-gray-400">Dual timezone display</div>
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="glass-panel rounded-lg p-4 mb-2">
-                      <div className="text-gray-300">Market Status</div>
-                      <div className="text-xs text-gray-400">NYSE countdown &amp; overview</div>
-                    </div>
-                  </div>
+                  <div className="text-center"><div className="glass-panel rounded-lg p-4 mb-2"><div className="text-gray-300">South Africa 🇿🇦 / United States 🇺🇸</div><div className="text-xs text-gray-400">Dual timezone display</div></div></div>
+                  <div className="text-center"><div className="glass-panel rounded-lg p-4 mb-2"><div className="text-gray-300">Market Status</div><div className="text-xs text-gray-400">NYSE countdown &amp; overview</div></div></div>
                 </div>
               </div>
             )}
