@@ -1,0 +1,107 @@
+@import @/styles/variables
+
+.images
+    position: relative
+    margin-bottom: 164px
+    cursor: default
+    +t
+        margin-bottom: 196px
+    +m
+        margin-bottom: 96px
+
+.inner
+    position: relative
+    &:before
+        content: ""
+        position: absolute
+        inset: -0.5px 0
+        z-index: 1
+        border-width: 1.5px 0
+        border-style: solid
+        border-color: rgba($n2, .02)
+        pointer-events: none
+        +m
+            display: none
+
+.row
+    display: flex
+    justify-content: space-between
+    max-width: 960px
+    margin: 0 auto
+    +m
+        display: none
+
+.group
+    width: 414px
+    &:nth-child(2)
+        +t
+            position: absolute
+            top: 0
+            right: 0
+
+.dropdown
+    left: 58px
+
+.center
+    position: absolute
+    top: 50%
+    left: 50%
+    z-index: 3
+    width: 446px
+    padding: 16px
+    transform: translate(-50%,-50%)
+    +t
+        width: 390px
+    +m
+        position: relative
+        top: auto
+        left: auto
+        width: 100%
+        transform: translate(0,0)
+    &:before,
+    &:after
+        content: ""
+        position: absolute
+        inset: 0
+        border-radius: 48px
+    &:before
+        z-index: 2
+        background: linear-gradient(142deg, rgba(248, 248, 248, 0.10) 0%, rgba(248, 248, 248, 0.04) 44.62%)
+        box-shadow: inset 2px 4px 16px 0px rgba(248, 248, 248, 0.06), 0px 54px 32px -16px rgba(5, 5, 5, 0.05), 0px 24px 24px -16px rgba(5, 5, 5, 0.09), 0px 6px 12px 0px rgba(5, 5, 5, 0.10), 0px 4px 4px -4px rgba(5, 5, 5, 0.10), 0px 0.5px 1.5px -4px rgba(5, 5, 5, 0.50)
+        backdrop-filter: blur(50px)
+    &:after
+        z-index: 3
+        border: 1.5px solid rgba(255, 255, 255, 0.05)
+        mask-image: linear-gradient(160deg, black, transparent 50%)
+        pointer-events: none
+
+.overlay
+    position: absolute
+    inset: 0
+    z-index: 1
+    border-radius: 48px
+    border: 12px solid rgba(248, 248, 248, 0.50)
+    opacity: 0.4
+    background: linear-gradient(158deg, rgba(255, 255, 255, 0.06) 14.19%, rgba(255, 255, 255, 0.00) 50.59%, rgba(255, 255, 255, 0.00) 68.79%, rgba(255, 255, 255, 0.02) 105.18%)
+    filter: blur(24px)
+
+.circle
+    position: absolute
+    left: 26px
+    bottom: 130px
+    width: 64px
+    height: 64px
+    border-radius: 50%
+    background-image: linear-gradient(125deg, #8854DD 46.24%, #ED5F0F 82.69%)
+
+.tasks
+    z-index: 4
+
+.stars
+    position: absolute
+    top: 50%
+    left: 50%
+    transform: translate(-50%,-50%)
+    width: 1120px
+    height: 640px
+    z-index: -1

@@ -1,0 +1,46 @@
+@import @/styles/variables
+
+.head
+    max-width: 720px
+    margin: 0 auto 80px
+    text-align: center
+    +m
+        margin-bottom: 48px
+
+.illustrations
+    position: relative
+    width: 232px
+    height: 232px
+    margin: 0 auto 80px
+    +m
+        margin-bottom: 70px
+
+.illustration,
+.keyboards
+    position: absolute
+    top: 50%
+    left: 50%
+    transform: translate(-50%,-50%)
+
+.illustration
+    width: 368px
+    &:nth-child(1)
+        z-index: 1
+
+.image
+    opacity: 1
+
+.keyboards
+    position: absolute
+    top: 59.6%
+    transform: translate(-50%,0)
+
+.title
+    +gradient-text
+    +m
+        font-size: 36px
+        line-height: 1.2
+
+.info
+    +info
+    color: rgba($n2, .4)

@@ -1,0 +1,62 @@
+@import @/styles/variables
+
+.work
+    margin-bottom: 32px
+    +d
+        margin-bottom: 0
+
+.head
+    max-width: 493px
+    margin: 0 auto 140px
+    text-align: center
+    +m
+        margin-bottom: 100px
+
+.title
+    +gradient-text
+    +m
+        font-size: 36px
+        line-height: 1.2
+
+.body
+    position: relative
+
+.boxes
+    position: absolute
+    top: -76px
+    left: 50%
+    display: flex
+    width: 760px
+    transform: translateX(-50%)
+    opacity: .1
+    mask-image: linear-gradient(to right, transparent, black 50%, transparent 100%)
+    +m
+        width: 375px
+
+.box
+    flex: 1
+    height: 48px
+    border-style: solid
+    border-color: #929292
+    &:nth-child(1)
+        margin-right: -0.75px
+        border-width: 1.5px 1.5px 0 0
+        border-top-right-radius: 24px
+    &:nth-child(2)
+        margin-left: -0.75px
+        border-width: 1.5px 0 0 1.5px
+        border-top-left-radius: 24px
+
+.list
+    display: flex
+    align-items: flex-start
+    align-items: center
+    gap: 20px
+    +t
+        flex-direction: column
+        align-items: flex-start
+        max-width: 464px
+        margin: 0 auto
+        gap: 46px
+
+

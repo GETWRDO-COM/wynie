@@ -1,0 +1,128 @@
+@import @/styles/variables
+
+.item
+    position: relative
+    display: flex
+    flex-direction: column
+    width: calc(100%/3)
+    padding: 16px
+    border-radius: 48px
+    overflow: hidden
+    +d
+        border-radius: 44px
+    +t
+        flex-shrink: 0
+        width: 400px
+    +m
+        width: 343px
+        padding: 16px 8px
+
+.gradient
+    position: absolute
+    inset: 0
+    img
+        opacity: 1
+    &:before,
+    &:after
+        content: ""
+        position: absolute
+        inset: 0
+    &:before
+        z-index: 1
+        background: rgba(#181818, .2)
+    &::after
+        z-index: 2
+        border-radius: 48px
+        border: 1.5px solid rgba(255, 255, 255, 0.05)
+        mask-image: linear-gradient(-45deg, black, transparent 40%)
+        pointer-events: none
+        +d
+            border-radius: 44px
+
+.inner
+    position: relative
+    z-index: 3
+    display: flex
+    flex-direction: column
+    flex-grow: 1
+    padding: 32px 12px 12px
+    &:before,
+    &:after
+        content: ""
+        position: absolute
+        inset: 0
+        border-radius: 32px
+    &:before
+        background: rgba(40, 40, 40, 0.80)
+        box-shadow: inset 2px 4px 16px 0px rgba(248, 248, 248, 0.06), 0px 24px 24px -16px rgba(5, 5, 5, 0.09), 0px 6px 13px 0px rgba(5, 5, 5, 0.10), 0px 6px 4px -4px rgba(5, 5, 5, 0.10), 0px 5px 1.5px -4px rgba(5, 5, 5, 0.25)
+        backdrop-filter: blur(50px)
+    &:after
+        border: 1.5px solid rgba(255, 255, 255, 0.05)
+        mask-image: linear-gradient(172deg, black, transparent 50%)
+        pointer-events: none
+
+.head,
+.body
+    position: relative
+    z-index: 3
+
+.head
+    padding: 0 20px 32px
+
+.title
+    margin-bottom: 12px
+    font-family: "Host Grotesk", sans-serif
+    font-size: 24px
+    line-height: 1.15
+    font-weight: 700
+    color: $text-primary
+    opacity: .8
+
+.preview
+    margin-bottom: 32px
+    img
+        opacity: 1
+
+.price
+    +base-2m
+    color: $text-secondary
+    opacity: .8
+
+.duration
+    margin-bottom: 32px
+    +base-2r
+    color: $text-tertiary
+    opacity: .8
+
+.button
+    height: 44px
+    padding: 0 24px
+
+.body
+    flex-grow: 1
+    padding: 20px
+    border-radius: 20px
+    background: rgba($n2, .02)
+
+.info
+    margin-bottom: 12px
+    +base-2r
+    opacity: .8
+
+.option
+    position: relative
+    padding-left: 24px
+    +base-2r
+    color: $text-tertiary
+    opacity: .8
+    &:before
+        content: ""
+        position: absolute
+        top: 6px
+        left: 4px
+        width: 8px
+        height: 8px
+        border-radius: 50%
+        background: linear-gradient(180deg, rgba(248, 248, 248, 0.90) 0%, rgba(248, 248, 248, 0.30) 100%)
+    &:not(:last-child)
+        margin-bottom: 12px

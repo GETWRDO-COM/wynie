@@ -1,0 +1,43 @@
+@import @/styles/variables
+
+.foot
+    position: absolute
+    left: 12px
+    right: 12px
+    bottom: 12px
+    display: flex
+    align-items: center
+    margin-top: 24px
+    padding-left: 8px
+    transition: opacity .2s
+    &.hide
+        opacity: .1
+
+.status
+    display: flex
+    align-items: center
+    margin-right: auto
+    transition: opacity .2s
+    &.hide
+        opacity: .1
+
+.progress,
+.check
+    flex-shrink: 0
+    width: 32px
+    height: 32px
+    margin-right: 12px
+
+.check
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M15.833 0c8.744 0 15.833 7.089 15.833 15.833s-7.089 15.833-15.833 15.833S0 24.578 0 15.833 7.089 0 15.833 0zm3.831 11.123l-6.294 7.693-2.239-2.239a1.19 1.19 0 0 0-1.679 0 1.19 1.19 0 0 0 0 1.679l3.167 3.167a1.19 1.19 0 0 0 1.759-.088l7.125-8.708a1.19 1.19 0 0 0-.167-1.671 1.19 1.19 0 0 0-1.671.167z' fill='%23f8f8f8' fill-rule='evenodd' fill-opacity='.7'/%3E%3C/svg%3E") no-repeat 50% 50% / 100% auto
+
+.counter
+    font-size: 12px
+    line-height: 1.65
+    text-transform: uppercase
+    font-weight: 600
+    letter-spacing: 0.03em
+    color: rgba($n2, .25)
+    span
+        margin-left: 8px
+        color: rgba($n2, .4)

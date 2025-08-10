@@ -1,0 +1,30 @@
+@import @/styles/variables
+
+.outer
+    position: relative
+    z-index: 5
+    display: flex
+    flex-grow: 1
+    max-width: 100%
+    mask-image: none
+    &.mask
+        mask-image: linear-gradient(to bottom, black 85%, transparent 100%), linear-gradient(to top, black 85%, transparent 100%)
+        mask-composite: intersect
+    &.maskDown
+        mask-image: linear-gradient(to bottom, black 85%, transparent 100%)
+    &.maskUp
+        mask-image: linear-gradient(to top, black 85%, transparent 100%)
+
+.wrap
+    flex-grow: 1
+    scrollbar-width: none
+    border-radius: 20px
+    &::-webkit-scrollbar
+        display: none
+    &.hidden
+        overflow: hidden
+    &.scroll
+        overflow: auto
+    &.noScroll
+        overflow: hidden
+            

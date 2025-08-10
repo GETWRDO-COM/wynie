@@ -1,0 +1,75 @@
+@import @/styles/variables
+
+.header
+    position: absolute
+    top: 0
+    left: 0
+    right: 0
+    z-index: 10
+    &.fixed
+        +m
+            position: fixed
+
+.image
+    opacity: 1
+
+.container
+    display: flex
+    align-items: center
+    height: 120px
+    +m
+        height: 76px
+
+.inner
+    position: relative
+    display: flex
+    align-items: center
+    justify-content: space-between
+    width: 100%
+
+.logo,
+.button
+    position: relative
+    z-index: 3
+
+.logo
+    img
+        +m
+            width: 153px
+
+.button
+    +m
+        // width: 116px
+        height: 44px
+        padding: 0 20px
+
+.overlay
+    position: absolute
+    inset: -8px
+    visibility: hidden
+    opacity: 0
+    pointer-events: none
+    transition: all .2s
+    +m
+        top: -2px
+        left: -8px
+        right: -8px
+        bottom: -2px
+    &:before,
+    &:after
+        content: ""
+        position: absolute
+        inset: 0
+        border-radius: 32px
+    &:before
+        background: rgba(248, 248, 248, 0.03)
+        box-shadow: inset 2px 4px 16px 0px rgba(248, 248, 248, 0.06), 0px 24px 24px -16px rgba(5, 5, 5, 0.09), 0px 6px 13px 0px rgba(5, 5, 5, 0.10), 0px 6px 4px -4px rgba(5, 5, 5, 0.10), 0px 5px 1.5px -4px rgba(5, 5, 5, 0.25)
+        backdrop-filter: blur(50px)
+    &:after
+        border: 1.5px solid rgba(255, 255, 255, 0.05)
+        mask-image: linear-gradient(178deg, black, transparent 75%)
+        pointer-events: none
+    &.visible
+        +m
+            visibility: visible
+            opacity: 1
