@@ -53,7 +53,12 @@ class PolygonClient:
         try:
             d = self._get(f"/v3/reference/tickers/{symbol}")
             branding = d.get("results", {}).get("branding", {})
-            return branding.get("logo_url")
+            url = branding.get("logo_url")
+            if url:
+                # Polygon requires appending apiKey to logo urls for direct fetch
+                joiner = "&" if "?" in url else "?"
+                return f"{url}{joiner}apiKey={self.api_key}"
+            return None
         except Exception as e:
             logger.warning("logo fetch failed: %s", e)
             return None
