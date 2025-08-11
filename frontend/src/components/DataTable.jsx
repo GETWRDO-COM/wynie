@@ -2,17 +2,19 @@ import React, { useMemo } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
 import { Input } from "./ui/input"
 import { Button } from "./ui/button"
-import { ArrowUpDown, Pin, Settings } from "lucide-react"
+import { ArrowUpDown, Settings } from "lucide-react"
+import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar"
 
 // Column registry with categories. Easy to extend.
 export const COLUMN_REGISTRY = [
+  { id: "logo", label: "", category: "General", width: 36 },
   { id: "symbol", label: "Symbol", category: "General", width: 90 },
   { id: "description", label: "Description", category: "General", width: 180 },
   { id: "sector", label: "Sector", category: "Sector & Industry", width: 140 },
   { id: "industry", label: "Industry", category: "Sector & Industry", width: 160 },
   { id: "marketCap", label: "Mkt Cap", category: "General", formatter: (v) => Intl.NumberFormat().format(v) },
   { id: "last", label: "Last", category: "Price & Volume" },
-  { id: "changePct", label: "% Chg", category: "Price & Volume", formatter: (v)=> `${v.toFixed(2)}%` },
+  { id: "changePct", label: "% Chg", category: "Price & Volume", formatter: (v)=> (v==null?'-':`${v.toFixed(2)}%`) },
   { id: "volume", label: "Vol", category: "Price & Volume", formatter: (v)=> Intl.NumberFormat().format(v) },
   { id: "avgVol20d", label: "AvgVol20d", category: "Price & Volume", formatter: (v)=> Intl.NumberFormat().format(v) },
   { id: "runRate20d", label: "RunRate20d", category: "Price & Volume" },
@@ -34,7 +36,19 @@ export const COLUMN_REGISTRY = [
   { id: "notes", label: "Notes", category: "General", editable: true },
 ]
 
-export default function DataTable({ rows, visibleColumns, onColumnsClick, sort, setSort, onRowClick, onEdit }) {
+function SymbolCell({row, logoUrl}){
+  return (
+    <div className="flex items-center gap-2">
+      <Avatar className="w-5 h-5">
+        <AvatarImage src={logoUrl || ''} alt={row.symbol} />
+        <AvatarFallback className="text-[10px]">{row.symbol?.slice(0,2)}</AvatarFallback>
+      </Avatar>
+      <span className="font-medium">{row.symbol}</span>
+    </div>
+  )
+}
+
+export default function DataTable({ rows, visibleColumns, onColumnsClick, sort, setSort, onRowClick, onEdit, logos }) {
   const cols = useMemo(() => COLUMN_REGISTRY.filter(c => visibleColumns.includes(c.id)), [visibleColumns])
 
   const sortedRows = useMemo(() => {
@@ -62,7 +76,7 @@ export default function DataTable({ rows, visibleColumns, onColumnsClick, sort, 
             {cols.map(col => (
               <TableHead key={col.id} style={{minWidth: col.width || 110}}>
                 <button className="flex items-center gap-1" onClick={()=> setSort(sort && sort.key===col.id ? { key: col.id, dir: sort.dir==='asc'?'desc':'asc'} : { key: col.id, dir: 'asc'})}>
-                  {col.label}
+                  {col.label || ''}
                   <ArrowUpDown className="w-3 h-3"/>
                 </button>
               </TableHead>
@@ -74,7 +88,14 @@ export default function DataTable({ rows, visibleColumns, onColumnsClick, sort, 
             <TableRow key={r.symbol} className="cursor-pointer hover:bg-muted/30" onClick={()=> onRowClick && onRowClick(r)}>
               {cols.map(col => (
                 <TableCell key={col.id}>
-                  {col.editable ? (
+                  {col.id === 'logo' ? (
+                    <Avatar className="w-5 h-5">
+                      <AvatarImage src={logos?.[r.symbol] || ''} alt={r.symbol} />
+                      <AvatarFallback className="text-[10px]">{r.symbol?.slice(0,2)}</AvatarFallback>
+                    </Avatar>
+                  ) : col.id === 'symbol' ? (
+                    <SymbolCell row={r} logoUrl={logos?.[r.symbol]} />
+                  ) : col.editable ? (
                     <Input value={r[col.id] || ''} onClick={(e)=> e.stopPropagation()} onChange={(e)=> onEdit && onEdit(r.symbol, col.id, e.target.value)} />
                   ) : (
                     col.formatter ? col.formatter(r[col.id]) : (r[col.id] ?? '-')
