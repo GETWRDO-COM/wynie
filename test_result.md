@@ -141,15 +141,18 @@
         comment: "✅ Screener endpoint working correctly. Successfully tested with symbols [AAPL,MSFT,TSLA,NVDA] and filters [{field:'last',op:'>=',value:5},{field:'rsi14',op:'>=',value:30}] with sort by last desc. 'rows' field exists and contains proper data structure. Error handling validated for missing parameters."
   - task: "Streaming quotes WS"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "Added /api/ws/quotes polling-based stream (Polygon WS later)."
+      - working: true
+        agent: "testing"
+        comment: "✅ WebSocket /api/ws/quotes working correctly. Successfully connected to /api/ws/quotes?symbols=AAPL,MSFT and verified periodic 'quotes' messages arrive with proper structure containing 'type': 'quotes', 'data' array with symbol and last fields. Fixed missing websockets dependency issue."
   - task: "Watchlists CRUD"
     implemented: true
     working: true
