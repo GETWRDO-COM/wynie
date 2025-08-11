@@ -60,7 +60,7 @@ function genOhlc(symbol, days = 180, seed = 1) {
   let px = 50 + rnd() * 250
   const out = []
   let ts = Date.now() - days * 24 * 60 * 60 * 1000
-  for (let i = 0; i &lt; days; i++) {
+  for (let i = 0; i < days; i++) {
     const drift = (rnd() - 0.5) * 2 // -1..1
     const vol = 0.01 + rnd() * 0.03
     const change = px * (drift * vol)
