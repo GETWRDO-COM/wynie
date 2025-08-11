@@ -426,11 +426,12 @@ metadata:
   production_ready: true
 
 test_plan:
-  current_focus: "SYSTEM_COMPLETE"
+  current_focus:
+    - "Polygon aggregates, CNN Fear & Greed, News proxy"
+    - "MarketCharts frontend + NewsTicker via backend + Polygon Settings UI"
   stuck_tasks: []
-  test_all: true
-  test_priority: "COMPLETED"
-  completion_summary: "All features implemented and tested successfully. Backend API 100% functional (24/24 endpoints), Frontend 100% functional (all 5 tabs), Authentication system working, AI integration complete, Professional UI/UX implemented. System ready for production deployment."
+  test_all: false
+  test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
