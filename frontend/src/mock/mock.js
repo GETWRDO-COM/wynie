@@ -88,7 +88,7 @@ function genOhlc(symbol, days = 180, seed = 1) {
 function sma(arr, n, accessor = (d) => d) {
   const res = []
   let sum = 0
-  for (let i = 0; i &lt; arr.length; i++) {
+  for (let i = 0; i < arr.length; i++) {
     sum += accessor(arr[i])
     if (i &gt;= n) sum -= accessor(arr[i - n])
     res.push(i &gt;= n - 1 ? sum / n : null)
