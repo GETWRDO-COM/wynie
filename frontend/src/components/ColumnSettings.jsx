@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog"
-import { Input } from "../components/ui/input"
-import { Checkbox } from "../components/ui/checkbox"
-import { Button } from "../components/ui/button"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../components/ui/accordion"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"
+import { Input } from "./ui/input"
+import { Checkbox } from "./ui/checkbox"
+import { Button } from "./ui/button"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion"
 import { COLUMN_REGISTRY } from "./DataTable"
 
 export default function ColumnSettings({ open, onOpenChange, visibleColumns, setVisibleColumns, presets, savePreset, loadPreset, resetRecommended }) {
