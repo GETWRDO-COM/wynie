@@ -97,6 +97,28 @@ function App() {
       <NavBar activeTab={activeTab} setActiveTab={setActiveTab} user={user} onSettings={() => setShowSettings(true)} onLogout={handleLogout} />
       <div className="animate-fade-in">
         <main className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
+          {showSettings && (
+            <div className="glass-panel p-4">
+              <h2 className="text-white/90 font-semibold mb-3">Settings</h2>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-white/80 font-semibold mb-2">Integrations</h3>
+                  <div className="space-y-3">
+                    <div className="text-xs text-gray-400">Polygon.io</div>
+                    <div>
+                      {/* Lazy import not necessary here */}
+                      {/* eslint-disable-next-line */}
+                      {require('./components/PolygonKeySettings').default()}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3">
+                <button onClick={() => setShowSettings(false)} className="btn">Close</button>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
               <HeroBanner user={user} />
