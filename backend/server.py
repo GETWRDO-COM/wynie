@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -8,8 +8,8 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
 import uuid
-from datetime import datetime, date
-import requests
+from datetime import datetime
+import asyncio
 
 from polygon_client import PolygonClient
 
@@ -54,7 +54,7 @@ class WatchlistUpdate(BaseModel):
     name: Optional[str] = None
     symbols: Optional[List[str]] = None
 
-# Column schema (minimal starter; frontend has richer list)
+# Column schema (starter)
 COLUMN_SCHEMA: List[Dict] = [
     {"id": "symbol", "label": "Symbol", "category": "General", "type": "string", "source": "provider"},
     {"id": "description", "label": "Description", "category": "General", "type": "string", "source": "provider"},
@@ -78,37 +78,15 @@ COLUMN_SCHEMA: List[Dict] = [
 async def root():
     return {"message": "Hello World"}
 
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.dict()
-    status_obj = StatusCheck(**status_dict)
-    _ = await db.status_checks.insert_one(status_obj.dict())
-    return status_obj
-
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    status_checks = await db.status_checks.find().to_list(1000)
-    return [StatusCheck(**status_check) for status_check in status_checks]
-
 # Watchlists
 @api_router.get("/watchlists")
 async def list_watchlists():
     docs = await db.watchlists.find().to_list(200)
     result = []
     for d in docs:
-        # Convert ObjectId to string and clean up the document
-        clean_doc = {}
-        for k, v in d.items():
-            if k == "_id":
-                continue  # Skip MongoDB _id
-            elif hasattr(v, '__dict__') or str(type(v)) == "<class 'bson.objectid.ObjectId'>":
-                clean_doc[k] = str(v)
-            else:
-                clean_doc[k] = v
-        # Ensure we have an id field
-        if "id" not in clean_doc:
-            clean_doc["id"] = str(d.get("_id"))
-        result.append(clean_doc)
+        clean = {k: v for k, v in d.items() if k != "_id"}
+        clean.setdefault("id", str(d.get("_id")))
+        result.append(clean)
     return result
 
 @api_router.post("/watchlists")
@@ -125,16 +103,7 @@ async def update_watchlist(id: str, body: WatchlistUpdate):
     doc = await db.watchlists.find_one({"id": id})
     if not doc:
         raise HTTPException(status_code=404, detail="Not found")
-    # Clean up the document for JSON serialization
-    clean_doc = {}
-    for k, v in doc.items():
-        if k == "_id":
-            continue  # Skip MongoDB _id
-        elif hasattr(v, '__dict__') or str(type(v)) == "<class 'bson.objectid.ObjectId'>":
-            clean_doc[k] = str(v)
-        else:
-            clean_doc[k] = v
-    return clean_doc
+    return {k: v for k, v in doc.items() if k != "_id"}
 
 @api_router.delete("/watchlists/{id}")
 async def delete_watchlist(id: str):
@@ -144,7 +113,6 @@ async def delete_watchlist(id: str):
 # Columns schema & presets
 @api_router.get("/columns/schema")
 async def get_columns_schema():
-    # Grouped by category
     cats: Dict[str, List[Dict]] = {}
     for c in COLUMN_SCHEMA:
         cats.setdefault(c["category"], []).append(c)
@@ -188,6 +156,7 @@ async def get_bars(symbol: str, interval: str = "1D", fr: Optional[str] = None, 
     if not poly_client:
         return {"symbol": symbol, "bars": []}
     # defaults
+    from datetime import date
     to = to or datetime.utcnow().date().isoformat()
     fr = fr or (datetime.utcnow().date().replace(year=datetime.utcnow().year - 1).isoformat())
     if interval in ["1","5","15","60"]:
@@ -201,8 +170,13 @@ async def get_bars(symbol: str, interval: str = "1D", fr: Optional[str] = None, 
         span = "week"
     else:
         mult = 1; span = "day"
-    bars = poly_client.get_bars(symbol, mult, span, fr, to)
-    return {"symbol": symbol, "bars": bars}
+    try:
+        bars = poly_client.get_bars(symbol, mult, span, fr, to)
+        return {"symbol": symbol, "bars": bars}
+    except Exception as e:
+        # graceful degrade on 429: return empty array instead of 500
+        logging.warning("bars fetch failed: %s", e)
+        return {"symbol": symbol, "bars": []}
 
 @api_router.get("/marketdata/quotes")
 async def get_quotes(symbols: str):
@@ -212,7 +186,7 @@ async def get_quotes(symbols: str):
     data = poly_client.get_quotes_snapshot(syms)
     return {"quotes": data}
 
-# Ratings compute (server-side simple version)
+# Ratings compute (server-side)
 class RatingsBody(BaseModel):
     symbols: List[str]
     rsWindowDays: int = 63
@@ -223,8 +197,6 @@ class RatingsBody(BaseModel):
 async def ratings_compute(body: RatingsBody):
     if not poly_client:
         return {"RS": {}, "AS": {}}
-    # naive implementation: fetch daily bars for windows and rank
-    import math
     RS: Dict[str, float] = {}
     AS: Dict[str, float] = {}
     returns_list = []
@@ -244,15 +216,12 @@ async def ratings_compute(body: RatingsBody):
             rocL = (s_end - l_start) / l_start if l_start else 0.0
             accel_list.append(rocS - rocL)
         except Exception as e:
-            # Handle API rate limits and other errors gracefully
-            print(f"Error fetching data for {s}: {e}")
+            logging.warning("ratings bars failed for %s: %s", s, e)
             returns_list.append(0.0)
             accel_list.append(0.0)
-    # ranks
     def percentile(vals, v):
         if not vals: return 0
         sorted_vals = sorted(vals)
-        # find position
         idx = 0
         for i,x in enumerate(sorted_vals):
             if x > v: idx = i; break
@@ -263,6 +232,108 @@ async def ratings_compute(body: RatingsBody):
         RS[s] = percentile(returns_list, returns_list[i])
         AS[s] = percentile(accel_list, accel_list[i])
     return {"RS": RS, "AS": AS}
+
+# Screener
+class Filter(BaseModel):
+    field: str
+    op: str
+    value: float | int | str
+
+class ScreenerBody(BaseModel):
+    symbols: List[str]
+    filters: List[Filter] = []
+    sort: Optional[Dict[str, str]] = None
+
+@api_router.post("/screeners/run")
+async def run_screener(body: ScreenerBody):
+    # Minimal screener using quotes and optional RSI from daily bars
+    syms = list(dict.fromkeys([s.upper() for s in body.symbols]))
+    quotes = poly_client.get_quotes_snapshot(syms)
+    # map
+    rows: Dict[str, Dict] = {q["symbol"]: {"symbol": q["symbol"], "last": q.get("last"), "changePct": q.get("changePct"), "volume": q.get("volume")} for q in quotes}
+
+    # optional RSI fetch if any filter refers to rsi14
+    needs_rsi = any(f.field.lower() == "rsi14" for f in body.filters)
+    if needs_rsi:
+        for s in syms:
+            try:
+                bars = poly_client.get_bars(s, 1, "day", (datetime.utcnow().date().replace(year=datetime.utcnow().year - 1)).isoformat(), datetime.utcnow().date().isoformat())
+                closes = [b["c"] for b in bars]
+                rsi = compute_rsi(closes, 14)
+                rows[s]["rsi14"] = rsi
+            except Exception:
+                rows[s]["rsi14"] = None
+
+    # apply filters
+    def pass_filter(v, op, val):
+        if v is None: return False
+        if op in (">", "gt"): return v > val
+        if op in (">=", "gte"): return v >= val
+        if op in ("<", "lt"): return v < val
+        if op in ("<=", "lte"): return v <= val
+        if op == "between" and isinstance(val, list) and len(val)==2: return val[0] <= v <= val[1]
+        return False
+
+    out = []
+    for s, r in rows.items():
+        ok = True
+        for f in body.filters:
+            fv = r.get(f.field)
+            if f.field == "rsi14" and fv is None:
+                ok = False; break
+            if not pass_filter(fv, f.op, f.value):
+                ok = False; break
+        if ok:
+            out.append(r)
+
+    if body.sort and body.sort.get("key"):
+        k = body.sort["key"]; d = body.sort.get("dir", "desc")
+        out.sort(key=lambda x: (x.get(k) is None, x.get(k)), reverse=(d=="desc"))
+
+    return {"rows": out}
+
+# util RSI
+def compute_rsi(closes: List[float], n: int) -> float | None:
+    if len(closes) < n + 2: return None
+    gains = 0.0; losses = 0.0
+    for i in range(1, n+1):
+        ch = closes[i] - closes[i-1]
+        gains += max(0, ch); losses += max(0, -ch)
+    avgG = gains / n; avgL = losses / n
+    rsis = None
+    for i in range(n+1, len(closes)):
+        ch = closes[i] - closes[i-1]
+        gain = max(0, ch); loss = max(0, -ch)
+        avgG = (avgG*(n-1) + gain)/n
+        avgL = (avgL*(n-1) + loss)/n
+        rs = 100 if avgL == 0 else avgG/avgL
+        rsis = 100 - 100/(1+rs)
+    return rsis
+
+# Streaming quotes (fallback polling). Client connects to /api/ws/quotes?symbols=AAPL,MSFT
+connections: List[WebSocket] = []
+
+@api_router.websocket("/ws/quotes")
+async def ws_quotes(ws: WebSocket):
+    await ws.accept()
+    connections.append(ws)
+    try:
+        params = ws.query_params
+        symbols = params.get("symbols", "").split(",") if params else []
+        symbols = [s.strip().upper() for s in symbols if s.strip()]
+        # Polling fallback every 2s; in a later pass we can wire Polygon WS
+        while True:
+            if poly_client and symbols:
+                data = poly_client.get_quotes_snapshot(symbols)
+                await ws.send_json({"type": "quotes", "data": data})
+            await asyncio.sleep(2)
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        await ws.close(code=1011)
+    finally:
+        if ws in connections:
+            connections.remove(ws)
 
 # Include the router in the main app
 app.include_router(api_router)
@@ -275,11 +346,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 @app.on_event("shutdown")
