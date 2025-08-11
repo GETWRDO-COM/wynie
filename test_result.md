@@ -127,15 +127,18 @@
         comment: "✅ All marketdata endpoints working correctly. /api/marketdata/bars gracefully returns empty bars array on API failures (no 500 errors). Symbol search, quotes, and logo endpoints all functioning properly. Error handling validated for missing parameters."
   - task: "Screener endpoint"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "Implemented POST /api/screeners/run with quote fields and optional RSI filter."
+      - working: true
+        agent: "testing"
+        comment: "✅ Screener endpoint working correctly. Successfully tested with symbols [AAPL,MSFT,TSLA,NVDA] and filters [{field:'last',op:'>=',value:5},{field:'rsi14',op:'>=',value:30}] with sort by last desc. 'rows' field exists and contains proper data structure. Error handling validated for missing parameters."
   - task: "Streaming quotes WS"
     implemented: true
     working: false
