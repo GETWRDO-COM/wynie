@@ -2037,8 +2037,8 @@ class ETFBackendTester:
         self.cleanup()
         
         # Calculate totals
-        total_passed = new_passed + core_passed
-        total_failed = new_failed + core_failed
+        total_passed = new_passed + core_passed + auth_new_passed
+        total_failed = new_failed + core_failed + auth_new_failed
         total_tests = total_passed + total_failed
         
         print("\n" + "=" * 80)
@@ -2046,6 +2046,7 @@ class ETFBackendTester:
         print("=" * 80)
         print(f"🎯 NEW ENDPOINTS: {new_passed}/{len(new_endpoint_tests)} passed ({new_passed/len(new_endpoint_tests)*100:.1f}%)")
         print(f"🏗️ CORE SYSTEM: {core_passed}/{len(core_tests)} passed ({core_passed/len(core_tests)*100:.1f}%)")
+        print(f"🔐 AUTH-PROTECTED NEW: {auth_new_passed}/{len(auth_new_endpoint_tests)} passed ({auth_new_passed/len(auth_new_endpoint_tests)*100:.1f}%)")
         print(f"📈 OVERALL: {total_passed}/{total_tests} passed ({total_passed/total_tests*100:.1f}%)")
         print(f"🏆 Professional Trading Platform Status: {'READY' if total_failed == 0 else 'NEEDS ATTENTION'}")
         
