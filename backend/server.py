@@ -94,7 +94,22 @@ async def get_status_checks():
 @api_router.get("/watchlists")
 async def list_watchlists():
     docs = await db.watchlists.find().to_list(200)
-    return [{**d, "id": str(d.get("id") or d.get("_id"))} for d in docs]
+    result = []
+    for d in docs:
+        # Convert ObjectId to string and clean up the document
+        clean_doc = {}
+        for k, v in d.items():
+            if k == "_id":
+                continue  # Skip MongoDB _id
+            elif hasattr(v, '__dict__') or str(type(v)) == "<class 'bson.objectid.ObjectId'>":
+                clean_doc[k] = str(v)
+            else:
+                clean_doc[k] = v
+        # Ensure we have an id field
+        if "id" not in clean_doc:
+            clean_doc["id"] = str(d.get("_id"))
+        result.append(clean_doc)
+    return result
 
 @api_router.post("/watchlists")
 async def create_watchlist(body: WatchlistCreate):
