@@ -101,3 +101,82 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+## user_problem_statement: Build Deepvue-like internal workstation with Dashboard, Screener, Watchlists, TradingView chart, column settings; integrate Polygon.io for US stocks; user-configurable RS(3M) and AS(1M) ratings.
+
+## backend:
+  - task: "Polygon adapter + marketdata endpoints"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Implemented /api/marketdata/symbols/search, /api/marketdata/bars, /api/marketdata/quotes, /api/marketdata/logo using polygon_client with API key set in .env."
+  - task: "Watchlists CRUD"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Added /api/watchlists CRUD with Mongo."
+  - task: "Columns schema + presets"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Added /api/columns/schema and /api/columns/presets endpoints."
+  - task: "Ratings compute RS/AS"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Server-side percentile-based RS/AS with Polygon bars."
+
+## frontend:
+  - task: "Dashboard + Table + Column Settings (mock)"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/Dashboard.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Frontend mock loads, Column Settings opens, table sorts; temporary SVG chart."
+
+## metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+## test_plan:
+  current_focus:
+    - "Polygon marketdata endpoints"
+    - "Ratings compute"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+## agent_communication:
+  - agent: "main"
+    message: "Please run backend tests for the above endpoints. Base URL is REACT_APP_BACKEND_URL with /api prefix. Validate happy paths and error handling." 
