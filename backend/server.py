@@ -949,6 +949,160 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
         "created_at": current_user.created_at
     }
 
+# ==================== NEW ENDPOINTS ====================
+
+@api_router.post("/integrations/polygon/key")
+async def set_polygon_key(data: PolygonKeyInput, user: dict = Depends(get_current_user)):
+    try:
+        enc = fernet.encrypt(data.api_key.encode())
+        await db.app_settings.update_one(
+            {"key": "polygon_api_key"},
+            {"$set": {"key": "polygon_api_key", "encrypted_value": enc, "updated_at": datetime.utcnow()}},
+            upsert=True
+        )
+        # Do not return the key back
+        return {"message": "Polygon API key saved."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/integrations/polygon/status")
+async def polygon_status(user: dict = Depends(get_current_user)):
+    key = await get_polygon_api_key()
+    return {"configured": bool(key)}
+
+@api_router.get("/news")
+async def news_proxy(category: str = Query("All")):
+    cache_key = f"news:{category}"
+    cached = cache_get(cache_key)
+    if cached:
+        return {"category": category, "items": cached, "cached": True}
+    url = NEWS_FEEDS.get(category, NEWS_FEEDS["All"])
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, timeout=20) as resp:
+                text = await resp.text()
+        root = ET.fromstring(text)
+        items = []
+        for it in root.findall('.//item'):
+            title_el = it.find('title')
+            link_el = it.find('link')
+            title = title_el.text if title_el is not None else ''
+            link = link_el.text if link_el is not None else '#'
+            if title:
+                items.append({"title": title, "link": link})
+        items = items[:50]
+        cache_set(cache_key, items, ttl_seconds=300)  # 5 min
+        return {"category": category, "items": items, "cached": False}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"News fetch failed: {e}")
+
+@api_router.get("/greed-fear")
+async def greed_fear():
+    cache_key = "greed_fear"
+    cached = cache_get(cache_key)
+    if cached:
+        return {"source": cached.get("source", "cache"), **cached}
+    # Try known JSON endpoints first
+    try:
+        async with aiohttp.ClientSession() as session:
+            for u in CNN_JSON_URLS:
+                try:
+                    async with session.get(u, timeout=20) as resp:
+                        if resp.status == 200:
+                            data = await resp.json()
+                            # Normalize
+                            result = {
+                                "now": data.get("fear_and_greed", {}).get("score") or data.get("now"),
+                                "previous_close": data.get("previous_close"),
+                                "one_week_ago": data.get("one_week_ago"),
+                                "one_month_ago": data.get("one_month_ago"),
+                                "one_year_ago": data.get("one_year_ago"),
+                                "timeseries": data.get("timeseries") or data.get("data"),
+                                "last_updated": datetime.utcnow().isoformat(),
+                                "source": "cnn-json"
+                            }
+                            cache_set(cache_key, result, ttl_seconds=21600)  # 6h
+                            return result
+                except Exception:
+                    continue
+    except Exception:
+        pass
+    # Fallback: scrape page for the current value only
+    try:
+        async with aiohttp.ClientSession() as session:
+            for u in CNN_PAGE_URLS:
+                try:
+                    async with session.get(u, timeout=20) as resp:
+                        html = await resp.text()
+                        # naive scrape: look for "Fear & Greed Now" value like data-score or \"value\":
+                        import re
+                        m = re.search(r"(Fear\s*&\s*Greed|Greed\s*&\s*Fear).*?(\d{1,3})", html, re.IGNORECASE | re.DOTALL)
+                        score = int(m.group(2)) if m else None
+                        if score is not None:
+                            result = {"now": score, "last_updated": datetime.utcnow().isoformat(), "source": "cnn-scrape"}
+                            cache_set(cache_key, result, ttl_seconds=21600)
+                            return result
+                except Exception:
+                    continue
+        raise HTTPException(status_code=502, detail="Unable to fetch CNN Fear & Greed Index")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/market/aggregates")
+async def market_aggregates(
+    tickers: str = Query("SPY,QQQ,I:DJI,TQQQ,SQQQ"),
+    range: str = Query("1M", regex="^(1D|1W|1M|YTD|1Y|5Y)$")
+):
+    api_key = await get_polygon_api_key()
+    if not api_key:
+        raise HTTPException(status_code=400, detail="Polygon API key not configured")
+    cfg = TIME_RANGE_CONFIG[range]
+    end_dt = datetime.now(timezone.utc)
+    if cfg.get("from_start_of_year"):
+        start_dt = datetime(end_dt.year, 1, 1, tzinfo=timezone.utc)
+    else:
+        start_dt = end_dt - timedelta(days=cfg.get("days_back", 30))
+    base = "https://api.polygon.io"
+    out: Dict[str, Any] = {}
+    tlist = [t.strip() for t in tickers.split(',') if t.strip()]
+    async with aiohttp.ClientSession() as session:
+        # Fetch aggregates concurrently
+        async def fetch_one(t: str):
+            agg_url = f"{base}/v2/aggs/ticker/{quote(t, safe=':')}/range/{cfg['multiplier']}/{cfg['timespan']}/{start_dt.date()}/{end_dt.date()}?adjusted=true&sort=asc&apiKey={api_key}"
+            async with session.get(agg_url, timeout=40) as resp:
+                data = await resp.json()
+            results = data.get("results") or []
+            series = [{"t": r.get("t"), "o": r.get("o"), "h": r.get("h"), "l": r.get("l"), "c": r.get("c"), "v": r.get("v")} for r in results]
+            last_close = series[-1]["c"] if series else None
+            # prev close and pre/post
+            prev_close = await fetch_polygon_prev_close(session, base, t, api_key)
+            pre_val = None
+            post_val = None
+            if not t.startswith("I:"):
+                # Try open/close for today (US ET date)
+                et_now = datetime.now(NY_TZ)
+                date_str = et_now.strftime("%Y-%m-%d")
+                oc = await fetch_polygon_open_close(session, base, t, date_str, api_key)
+                if oc:
+                    pre_val = oc.get("preMarket")
+                    post_val = oc.get("afterHours")
+            change_pct = None
+            if last_close and prev_close:
+                try:
+                    change_pct = (last_close - prev_close) / prev_close * 100
+                except Exception:
+                    change_pct = None
+            out[t] = {
+                "series": series,
+                "close": last_close,
+                "prev_close": prev_close,
+                "pre_market": pre_val,
+                "post_market": post_val,
+                "change_pct": change_pct,
+            }
+        await asyncio.gather(*[fetch_one(t) for t in tlist])
+    return {"range": range, "last_updated": datetime.utcnow().isoformat(), "data": out}
+
 # Enhanced AI Chat Routes
 @api_router.get("/ai/models")
 async def get_available_models():
