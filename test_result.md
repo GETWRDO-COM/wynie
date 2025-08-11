@@ -445,15 +445,18 @@ backend:
   - task: "Enhanced ETF Data API with SA greetings and real-time tracking"
   - task: "Polygon aggregates, CNN Fear & Greed, News proxy"
     implemented: true
-    working: false
-    file: "/app/backend/server_enhanced.py"
+    working: true
+    file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "Added /api/market/aggregates (Polygon), /api/greed-fear (CNN via JSON with scrape fallback), /api/news proxy with cache. Stored user's Polygon key in backend env and added secure key storage endpoints."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: All new endpoints working perfectly. GET /api/market/aggregates (default and range=1D) - verified 200 status, all tickers present (SPY, QQQ, I:DJI, TQQQ, SQQQ) with numeric fields populated, I:DJI specifically working. GET /api/greed-fear - verified shape correct, now=73 in 0-100 range, last_updated exists. GET /api/news?category=Stock%20Market - verified items array non-empty (38 items). Auth flow tested: POST /api/auth/login with beetge@mwebbiz.co.za successful, POST /api/integrations/polygon/key working, GET /api/integrations/polygon/status shows configured=true. All endpoints pass/fail as requested."
 
     implemented: true
     working: true
