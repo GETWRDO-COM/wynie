@@ -426,9 +426,7 @@ metadata:
   production_ready: true
 
 test_plan:
-  current_focus:
-    - "Polygon aggregates, CNN Fear & Greed, News proxy"
-    - "MarketCharts frontend + NewsTicker via backend + Polygon Settings UI"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
