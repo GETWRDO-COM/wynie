@@ -1794,6 +1794,543 @@ async def get_live_fear_greed():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# ==================== MSAE + ETF REGIME ENGINE (Phase 1) ====================
+
+class MarketStateSnapshot(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    ts: datetime = Field(default_factory=datetime.utcnow)
+    regime: str  # UPTREND | DOWNTREND | CHOP
+    msae_score: float
+    components: Dict[str, Any]
+    stale: bool = False
+
+class EtfRegimeConfig(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str = "default"
+    kind: str = "etf_regime"
+    params: Dict[str, Any]
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    comment: Optional[str] = None
+
+class EtfRegimeSignal(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    ts: datetime = Field(default_factory=datetime.utcnow)
+    module: str = "etf_regime"
+    regime: str
+    decision: str  # TQQQ | SQQQ | QQQI | OUT
+    weights: Dict[str, float]
+    confidence: float
+    reason: Dict[str, Any]
+    params_version: str
+
+# Default NDX tickers fallback (trimmed core; prefer Mongo ndx_constituents when present)
+NDX_TICKERS_FALLBACK = [
+    "AAPL","MSFT","NVDA","AMZN","META","GOOGL","GOOG","AVGO","TSLA","COST",
+    "ADBE","NFLX","PEP","AMD","CSCO","LIN","TMUS","CMCSA","TXN","INTC",
+    "AMAT","QCOM","INTU","AMGN","HON","VRTX","SBUX","PYPL","PDD","REGN",
+    "GILD","BKNG","ADP","ISRG","MU","ADI","LRCX","MDLZ","ABNB","PANW",
+    "SNPS","KLAC","ASML","MRVL","CEG","CRWD","ADSK","CDNS","CSX","KDP",
+    "ORLY","FTNT","MELI","MAR","ROP","NXPI","CTAS","AEP","IDXX","KHC",
+    "ODFL","CHTR","WDAY","PAYX","PCAR","ROST","CPRT","MNST","EXC","TEAM",
+    "FAST","XEL","EA","FTV","DDOG","ZS","AZN","BIIB","MRNA","LCID","BIDU",
+    "DOCU","VRSK","WDAY","LULU","GOOG","GOOGL","SPLK","OKTA","ANSS","CDW"
+]
+
+async def _load_ndx_constituents_symbols() -> List[str]:
+    try:
+        doc = await db.ndx_constituents.find_one({"_id": {"$regex": "^ndx:"}})
+        if doc and "universe" in doc:
+            symbols = [m.get("yf_symbol", m.get("symbol")).upper() for m in doc["universe"] if m.get("active", True)]
+            symbols = [s for s in symbols if s]
+            if symbols:
+                return symbols
+        return NDX_TICKERS_FALLBACK
+    except Exception:
+        return NDX_TICKERS_FALLBACK
+
+def _is_market_hours_ny(dt_now=None) -> bool:
+    now_ny = datetime.now(NY_TZ) if dt_now is None else dt_now.astimezone(NY_TZ)
+    if now_ny.weekday() >= 5:
+        return False
+    open_t = now_ny.replace(hour=9, minute=30, second=0, microsecond=0)
+    close_t = now_ny.replace(hour=16, minute=0, second=0, microsecond=0)
+    return open_t.time() <= now_ny.time() <= close_t.time()
+
+async def _ensure_etf_regime_config() -> Dict[str, Any]:
+    # If a config with kind=etf_regime doesn't exist, insert defaults
+    existing = await db.formula_configs.find_one({"kind": "etf_regime"})
+    if existing:
+        return existing
+    default = {
+        "name": "default",
+        "kind": "etf_regime",
+        "params": {
+            "ema_fast": 20,
+            "ema_slow": 50,
+            "adx_period": 14,
+            "adx_threshold": 20,
+            "atr_period": 14,
+            "flip_confirmation_days": 2,
+            "qqqi_weight_in_chop": 1.0,
+            "allow_short_both_decay": False,
+            "max_leverage_alloc": 1.0,
+            "stale_minutes_rth": 20,
+            "stale_minutes_oth": 180,
+            "whipsaw_cross_count_lookback": 20,
+            "whipsaw_cross_threshold": 3,
+            "decay_guard_lookback_days": 10,
+            "atrp_vol_cap_pct": 3.5,
+            "freeze_on_vol_spike_days": 1,
+            "income_etf": "QQQI",
+            "out_instead_of_income": False
+        },
+        "created_at": datetime.utcnow().isoformat(),
+        "comment": "Initial ETF regime defaults"
+    }
+    await db.formula_configs.insert_one(default)
+    return default
+
+def _ema(series: pd.Series, span: int) -> pd.Series:
+    return series.ewm(span=span, adjust=False).mean()
+
+def _sma(series: pd.Series, window: int) -> pd.Series:
+    return series.rolling(window=window, min_periods=window).mean()
+
+def _compute_adx(df: pd.DataFrame, period: int = 14) -> pd.Series:
+    # Wilder's DMI/ADX
+    high = df['High']
+    low = df['Low']
+    close = df['Close']
+    plus_dm = high.diff()
+    minus_dm = -low.diff()
+    plus_dm[plus_dm < 0] = 0
+    minus_dm[minus_dm < 0] = 0
+    tr1 = high - low
+    tr2 = (high - close.shift()).abs()
+    tr3 = (low - close.shift()).abs()
+    tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
+    atr = tr.rolling(window=period, min_periods=period).mean()
+    plus_di = 100 * (plus_dm.rolling(window=period, min_periods=period).mean() / atr)
+    minus_di = 100 * (minus_dm.rolling(window=period, min_periods=period).mean() / atr)
+    dx = (100 * (plus_di - minus_di).abs() / (plus_di + minus_di)).fillna(0)
+    adx = dx.rolling(window=period, min_periods=period).mean()
+    return adx
+
+async def _fetch_hist(symbol: str, period: str = "6mo", interval: str = "1d") -> pd.DataFrame:
+    try:
+        df = yf.download(symbol, period=period, interval=interval, progress=False, auto_adjust=False)
+        if isinstance(df, pd.DataFrame) and not df.empty:
+            # yfinance returns multi-index columns sometimes for multiple tickers; ensure single
+            if isinstance(df.columns, pd.MultiIndex):
+                # take the first level
+                df = df.xs(symbol, axis=1, level=0)
+            return df
+        return pd.DataFrame()
+    except Exception as e:
+        logging.error(f"History fetch failed for {symbol}: {e}")
+        return pd.DataFrame()
+
+async def _compute_components(params: Dict[str, Any]) -> Dict[str, Any]:
+    # QQQ core
+    qqq_df = await _fetch_hist("QQQ", period="12mo", interval="1d")
+    if qqq_df.empty:
+        raise HTTPException(status_code=503, detail="Data unavailable for QQQ")
+    close = qqq_df['Close']
+    ema20 = _ema(close, params.get("ema_fast", 20))
+    ema50 = _ema(close, params.get("ema_slow", 50))
+    adx_series = _compute_adx(qqq_df, params.get("adx_period", 14))
+    # ATR% daily using existing logic pattern
+    hl = qqq_df['High'] - qqq_df['Low']
+    hc = (qqq_df['High'] - qqq_df['Close'].shift()).abs()
+    lc = (qqq_df['Low'] - qqq_df['Close'].shift()).abs()
+    tr = pd.concat([hl, hc, lc], axis=1).max(axis=1)
+    atr = tr.rolling(params.get("atr_period", 14)).mean()
+    atr_pct = (atr / close) * 100
+    dist_from_ath_pct = (close / close.cummax() - 1.0) * 100
+
+    # VIX/VXN latest
+    vix_df = await _fetch_hist("^VIX", period="6mo", interval="1d")
+    vxn_df = await _fetch_hist("^VXN", period="6mo", interval="1d")
+    vix = float(vix_df['Close'].iloc[-1]) if not vix_df.empty else None
+    vxn = float(vxn_df['Close'].iloc[-1]) if not vxn_df.empty else None
+
+    # Breadth: % NDX above 50-DMA (SMA)
+    symbols = await _load_ndx_constituents_symbols()
+    eligible = 0
+    above = 0
+    excluded = 0
+    # batch download in chunks to reduce calls
+    chunk_size = 20
+    for i in range(0, len(symbols), chunk_size):
+        chunk = symbols[i:i+chunk_size]
+        try:
+            multi = yf.download(" ".join(chunk), period="120d", interval="1d", progress=False, auto_adjust=False, group_by='ticker')
+            for sym in chunk:
+                try:
+                    df = multi[sym] if isinstance(multi.columns, pd.MultiIndex) else multi
+                    if df.empty or 'Close' not in df:
+                        excluded += 1
+                        continue
+                    if len(df['Close']) < 50:
+                        excluded += 1
+                        continue
+                    sma50 = _sma(df['Close'], 50)
+                    c = df['Close'].iloc[-1]
+                    s = sma50.iloc[-1]
+                    if pd.isna(s):
+                        excluded += 1
+                        continue
+                    eligible += 1
+                    if c > s:
+                        above += 1
+                except Exception:
+                    excluded += 1
+                    continue
+        except Exception:
+            excluded += len(chunk)
+            continue
+    breadth_pct = (above / eligible * 100) if eligible > 0 else None
+
+    components = {
+        "qqq_close": float(close.iloc[-1]),
+        "ema20": float(ema20.iloc[-1]),
+        "ema50": float(ema50.iloc[-1]),
+        "adx": float(adx_series.iloc[-1]) if not adx_series.empty else None,
+        "atr_pct": float(atr_pct.iloc[-1]),
+        "vix": vix,
+        "vxn": vxn,
+        "breadth_pct_above_50dma": float(breadth_pct) if breadth_pct is not None else None,
+        "qqq_dist_from_ath_pct": float(dist_from_ath_pct.iloc[-1]),
+        "qqq_ts": close.index[-1].strftime("%Y-%m-%d")
+    }
+
+    # additional series for rules
+    components["series"] = {
+        "close": close.tail(60).tolist(),
+        "ema20": ema20.tail(60).tolist(),
+        "ema50": ema50.tail(60).tolist(),
+        "adx": adx_series.tail(60).fillna(0).tolist(),
+        "atr_pct": atr_pct.tail(60).tolist(),
+        "dates": [d.strftime("%Y-%m-%d") for d in close.tail(60).index]
+    }
+    return components
+
+def _compute_msae_and_regime(components: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
+    # Simple scoring heuristic to 0-100
+    score = 0.0
+    weights = {
+        "trend": 30,
+        "adx": 20,
+        "vol": 15,
+        "fear": 10,
+        "breadth": 15,
+        "ath": 10
+    }
+    # Trend
+    if components["qqq_close"] > components["ema20"] > components["ema50"]:
+        trend_score = weights["trend"]
+    elif components["ema20"] > components["ema50"]:
+        trend_score = weights["trend"] * 0.6
+    else:
+        trend_score = weights["trend"] * 0.2
+    score += trend_score
+    # ADX
+    adx_th = params.get("adx_threshold", 20)
+    adx_val = components.get("adx", 0)
+    adx_score = weights["adx"] * min(max((adx_val - adx_th) / 20 + 0.5, 0), 1)  # center around threshold
+    score += adx_score
+    # Volatility (lower ATR% better)
+    atrp = components.get("atr_pct", 0)
+    vol_cap = params.get("atrp_vol_cap_pct", 3.5)
+    vol_score = weights["vol"] * (1 - min(atrp / (vol_cap * 2), 1))
+    score += vol_score
+    # Fear (lower VIX better)
+    vix = components.get("vix") or 0
+    fear_score = weights["fear"] * (1 - min(vix / 40, 1))
+    score += fear_score
+    # Breadth
+    breadth = components.get("breadth_pct_above_50dma") or 0
+    breadth_score = weights["breadth"] * min(breadth / 80, 1)  # 80% breadth saturates
+    score += breadth_score
+    # ATH distance (closer to 0 better; negative means below ATH)
+    ath_dist = abs(components.get("qqq_dist_from_ath_pct", 0))
+    ath_score = weights["ath"] * (1 - min(ath_dist / 20, 1))
+    score += ath_score
+
+    # Regime label
+    ema20 = components["ema20"]
+    ema50 = components["ema50"]
+    price = components["qqq_close"]
+    adx_ok = adx_val > adx_th
+    uptrend = (price > ema20 and ema20 > ema50 and adx_ok)
+    downtrend = (price < ema20 and ema20 < ema50 and adx_ok)
+    # Whipsaw check
+    series = components["series"]
+    crosses = 0
+    e20 = pd.Series(series["ema20"]).dropna()
+    e50 = pd.Series(series["ema50"]).dropna()
+    if len(e20) == len(e50) and len(e20) > 1:
+        above = e20 > e50
+        switches = above.astype(int).diff().abs()
+        crosses = int(switches.sum())
+    chop = (not adx_ok) or (crosses >= params.get("whipsaw_cross_threshold", 3))
+    regime = "CHOP"
+    if uptrend:
+        regime = "UPTREND"
+    elif downtrend:
+        regime = "DOWNTREND"
+    elif chop:
+        regime = "CHOP"
+
+    return {
+        "msae_score": round(float(score), 2),
+        "regime": regime,
+        "breakdown": {
+            "trend": round(trend_score, 2),
+            "adx": round(adx_score, 2),
+            "vol": round(vol_score, 2),
+            "fear": round(fear_score, 2),
+            "breadth": round(breadth_score, 2),
+            "ath": round(ath_score, 2)
+        },
+        "crosses": crosses,
+        "adx_ok": adx_ok
+    }
+
+async def _decay_guard(params: Dict[str, Any]) -> bool:
+    look = params.get("decay_guard_lookback_days", 10)
+    tqqq = await _fetch_hist("TQQQ", period=f"{max(look+5, 20)}d", interval="1d")
+    sqqq = await _fetch_hist("SQQQ", period=f"{max(look+5, 20)}d", interval="1d")
+    def ret_n(df):
+        if df.empty or len(df['Close']) <= look:
+            return 0
+        return float(df['Close'].iloc[-1] / df['Close'].iloc[-look] - 1)
+    return (ret_n(tqqq) < 0) and (ret_n(sqqq) < 0)
+
+async def _vol_guard(params: Dict[str, Any], components: Dict[str, Any]) -> bool:
+    cap = params.get("atrp_vol_cap_pct", 3.5)
+    # Daily check
+    if components.get("atr_pct", 0) > cap:
+        return True
+    # 15m intraday realized proxy: use last day 15m bars HL/Close
+    qqq_15 = await _fetch_hist("QQQ", period="5d", interval="15m")
+    if not qqq_15.empty:
+        last_day = qqq_15.index[-1].date()
+        day_df = qqq_15[qqq_15.index.date == last_day]
+        if not day_df.empty:
+            tr = (day_df['High'] - day_df['Low']).abs()
+            atr15 = tr.rolling(16).mean().iloc[-1] if len(tr) >= 16 else tr.mean()
+            atrp15 = float(atr15 / day_df['Close'].iloc[-1] * 100)
+            if atrp15 > cap:
+                return True
+    return False
+
+async def _latest_signal() -> Optional[Dict[str, Any]]:
+    sig = await db.signals.find({"module": "etf_regime"}).sort("ts", -1).limit(1).to_list(1)
+    return sig[0] if sig else None
+
+async def _compute_signal(snapshot: MarketStateSnapshot, params_doc: Dict[str, Any]) -> Dict[str, Any]:
+    params = params_doc.get("params", {})
+    stale = snapshot.stale
+    decision = "QQQI" if not params.get("out_instead_of_income", False) else "OUT"
+    weights = {"TQQQ": 0.0, "SQQQ": 0.0, "QQQI": 0.0}
+    reason = {}
+    confidence = 0.5
+
+    last_sig = await _latest_signal()
+
+    if stale:
+        # Do not change decision; use last if exists
+        if last_sig:
+            return last_sig
+        else:
+            weights[params.get("income_etf", "QQQI")] = params.get("qqqi_weight_in_chop", 1.0)
+            return {
+                "ts": datetime.utcnow().isoformat(),
+                "module": "etf_regime",
+                "regime": snapshot.regime,
+                "decision": decision,
+                "weights": weights,
+                "confidence": 0.5,
+                "reason": {"stale": True},
+                "params_version": f"{params_doc.get('name','default')}@{params_doc.get('created_at','')}"
+            }
+
+    # Confirmation logic using last N days of conditions
+    series = snapshot.components.get("series", {})
+    close = pd.Series(series.get("close", []))
+    ema20 = pd.Series(series.get("ema20", []))
+    ema50 = pd.Series(series.get("ema50", []))
+    adx = pd.Series(series.get("adx", []))
+    n = params.get("flip_confirmation_days", 2)
+    cond_up = (close > ema20) & (ema20 > ema50) & (adx > params.get("adx_threshold", 20))
+    cond_dn = (close < ema20) & (ema20 < ema50) & (adx > params.get("adx_threshold", 20))
+    up_conf = bool(cond_up.tail(n).all()) if len(cond_up) >= n else False
+    dn_conf = bool(cond_dn.tail(n).all()) if len(cond_dn) >= n else False
+
+    # Guards
+    decay = await _decay_guard(params)
+    volfreeze = await _vol_guard(params, snapshot.components)
+    reason["guards"] = {"decay": decay, "volatility_freeze": volfreeze}
+
+    if volfreeze and last_sig:
+        # Freeze flips: keep last decision
+        return last_sig
+
+    if decay:
+        decision = "QQQI" if not params.get("out_instead_of_income", False) else "OUT"
+        weights[params.get("income_etf", "QQQI")] = params.get("qqqi_weight_in_chop", 1.0)
+        reason["decay_guard"] = True
+        confidence = 0.6
+    else:
+        if snapshot.regime == "UPTREND" and up_conf:
+            decision = "TQQQ"
+            weights = {"TQQQ": params.get("max_leverage_alloc", 1.0), "SQQQ": 0.0, "QQQI": 0.0}
+            reason["confirmation"] = f"{n}/{n}"
+            confidence = 0.8
+        elif snapshot.regime == "DOWNTREND" and dn_conf:
+            decision = "SQQQ"
+            weights = {"TQQQ": 0.0, "SQQQ": params.get("max_leverage_alloc", 1.0), "QQQI": 0.0}
+            reason["confirmation"] = f"{n}/{n}"
+            confidence = 0.8
+        else:
+            decision = "QQQI" if not params.get("out_instead_of_income", False) else "OUT"
+            weights[params.get("income_etf", "QQQI")] = params.get("qqqi_weight_in_chop", 1.0)
+            reason["confirmation"] = f"0/{n}"
+            confidence = 0.6
+
+    # Build reason
+    reason.update({
+        "ema": "QQQ>20>50" if (snapshot.components["qqq_close"] > snapshot.components["ema20"] > snapshot.components["ema50"]) else "other",
+        "adx": f"{round(snapshot.components.get('adx',0),1)}>{params.get('adx_threshold',20)}"
+    })
+
+    payload = {
+        "ts": datetime.utcnow().isoformat(),
+        "module": "etf_regime",
+        "regime": snapshot.regime,
+        "decision": decision,
+        "weights": weights,
+        "confidence": round(confidence, 2),
+        "reason": reason,
+        "params_version": f"{params_doc.get('name','default')}@{params_doc.get('created_at','')}"
+    }
+    return payload
+
+@api_router.get("/formulas/config/etf-regime")
+async def get_etf_regime_config():
+    cfg = await _ensure_etf_regime_config()
+    # strip ObjectId if any
+    if cfg and "_id" in cfg:
+        cfg["_id"] = str(cfg["_id"]) if not isinstance(cfg["_id"], str) else cfg["_id"]
+    return cfg
+
+@api_router.get("/market/state")
+async def get_market_state():
+    # Ensure config
+    cfg = await _ensure_etf_regime_config()
+    params = cfg.get("params", {})
+
+    # Staleness thresholds
+    rth = _is_market_hours_ny()
+    stale_minutes = params.get("stale_minutes_rth", 20) if rth else params.get("stale_minutes_oth", 180)
+
+    components = await _compute_components(params)
+    # Determine staleness by comparing now to last QQQ date; for intraday we could refine
+    now_utc = datetime.utcnow()
+    last_bar_date = datetime.strptime(components["qqq_ts"], "%Y-%m-%d")
+    # If RTH and last daily bar is previous day and minutes exceed threshold, mark stale
+    stale = False
+    if rth:
+        # use 15m data to better gauge freshness
+        q15 = await _fetch_hist("QQQ", period="1d", interval="15m")
+        if not q15.empty:
+            last_ts = q15.index[-1]
+            age_min = (now_utc - last_ts.tz_convert(pytz.UTC).to_pydatetime()).total_seconds() / 60
+            stale = age_min > stale_minutes
+        else:
+            stale = True
+    else:
+        # off hours, acceptable data age is days
+        age_min = (now_utc - datetime.combine(last_bar_date, datetime.min.time())).total_seconds() / 60
+        stale = age_min > stale_minutes
+
+    msae = _compute_msae_and_regime(components, params)
+    snapshot = MarketStateSnapshot(
+        regime=msae["regime"],
+        msae_score=msae["msae_score"],
+        components={k: v for k, v in components.items() if k != "series"},
+        stale=stale
+    )
+    doc = snapshot.dict()
+    doc.update({"breakdown": msae["breakdown"], "crosses": msae["crosses"], "adx_ok": msae["adx_ok"]})
+    await db.market_state.insert_one(doc)
+
+    # Build minimal response per contract
+    return {
+        "ts": snapshot.ts.isoformat(),
+        "regime": snapshot.regime,
+        "msae_score": snapshot.msae_score,
+        "components": snapshot.components,
+        "stale": snapshot.stale
+    }
+
+@api_router.get("/market/history")
+async def get_market_history(start: Optional[str] = None, end: Optional[str] = None, interval: str = Query("1d", pattern="^(1d|15m)$")):
+    # Return persisted snapshots within window
+    query = {}
+    try:
+        if start:
+            query.setdefault("ts", {})["$gte"] = datetime.fromisoformat(start.replace("Z",""))
+        if end:
+            query.setdefault("ts", {})["$lte"] = datetime.fromisoformat(end.replace("Z",""))
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid start/end format. Use ISO 8601.")
+
+    cur = db.market_state.find(query).sort("ts", 1)
+    items = await cur.to_list(length=1000)
+    out = []
+    for it in items:
+        # sanitize
+        it.pop("_id", None)
+        out.append(it)
+    return out
+
+@api_router.get("/signals/etf-regime")
+async def get_etf_regime_signal():
+    cfg = await _ensure_etf_regime_config()
+    params = cfg.get("params", {})
+
+    # Use latest snapshot or compute fresh
+    latest = await db.market_state.find({}).sort("ts", -1).limit(1).to_list(1)
+    if latest:
+        snap_doc = latest[0]
+    else:
+        # compute via calling market state
+        _ = await get_market_state()
+        latest = await db.market_state.find({}).sort("ts", -1).limit(1).to_list(1)
+        if not latest:
+            raise HTTPException(status_code=503, detail="No market state available")
+        snap_doc = latest[0]
+
+    snapshot = MarketStateSnapshot(
+        ts=snap_doc.get("ts", datetime.utcnow()),
+        regime=snap_doc.get("regime", "CHOP"),
+        msae_score=float(snap_doc.get("msae_score", 0)),
+        components=snap_doc.get("components", {}),
+        stale=bool(snap_doc.get("stale", False))
+    )
+
+    signal_payload = await _compute_signal(snapshot, cfg)
+    # Persist signal
+    to_save = signal_payload.copy()
+    to_save["module"] = "etf_regime"
+    await db.signals.insert_one(to_save)
+    return signal_payload
+
+# ==================== END MSAE + ETF ENGINE ====================
+
 # Mount the router
 app.include_router(api_router)
 
