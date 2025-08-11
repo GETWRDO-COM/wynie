@@ -1557,22 +1557,45 @@ async def export_market_score():
 # Formula Configuration Routes
 @api_router.get("/formulas/config")
 async def get_formula_config():
-    """Get current formula configuration (all kinds), seed defaults for etf_regime if missing"""
+    """Get current formula configuration (legacy spreadsheet config). Also ensures etf_regime defaults exist in collection."""
     try:
-        # Ensure etf_regime config exists
+        # Keep legacy behavior for frontend while seeding etf_regime in the background
         await _ensure_etf_regime_config()
-        config = await db.formula_configs.find().to_list(length=None)
-        # Sanitize ObjectIds and datetimes
-        cleaned = []
-        for cfg in config:
-            cfg = dict(cfg)
-            if '_id' in cfg:
-                cfg['_id'] = str(cfg['_id'])
-            for k, v in list(cfg.items()):
-                if isinstance(v, datetime):
-                    cfg[k] = v.isoformat()
-            cleaned.append(cfg)
-        return cleaned
+        config = await db.formula_configs.find({"kind": {"$exists": False}}).to_list(length=None)
+        # If none exists, create the legacy default config used by spreadsheet
+        if not config:
+            default_config = {
+                "relative_strength": {
+                    "strong_threshold": 0.10,
+                    "moderate_threshold": 0.02,
+                    "formula": "(ETF_Return - SPY_Return) / |SPY_Return|"
+                },
+                "sata_weights": {
+                    "performance": 0.40,
+                    "relative_strength": 0.30,
+                    "volume": 0.20,
+                    "volatility": 0.10,
+                    "formula": "Weighted_Score = (Performance × 0.40) + (RS × 0.30) + (Volume × 0.20) + (Volatility × 0.10)"
+                },
+                "atr_calculation": {
+                    "period_days": 14,
+                    "high_volatility_threshold": 3.0
+                },
+                "gmma_patterns": {
+                    "bullish_requirement": "1W_change > 0 AND 1M_change > 0",
+                    "bearish_requirement": "1W_change < 0 AND 1M_change < 0"
+                }
+            }
+            await db.formula_configs.insert_one(default_config)
+            return default_config
+        # Return first legacy config for compatibility
+        cfg = dict(config[0])
+        cfg.pop('_id', None)
+        # Convert datetimes
+        for k, v in list(cfg.items()):
+            if isinstance(v, datetime):
+                cfg[k] = v.isoformat()
+        return cfg
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
