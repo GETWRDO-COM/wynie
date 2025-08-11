@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Build comprehensive ETF Intelligence System with South African greetings, live ETF tracking, market situational awareness engine, watchlist management, AI-powered chart analysis, historical data, trading journal, PLUS ALL ENHANCED FEATURES: authentication system, AI chat with OpenAI models, advanced stock search with company logos, TradingView integration, interactive charts, spreadsheet interface, manual stock management, formula transparency, and professional trading platform features"
+user_problem_statement: "Reskinned dashboard with live clocks/weather/FX, premium charts for SPY/QQQ/DOW/TQQQ/SQQQ with close/pre/post and time ranges, CNN Fear & Greed, reliable news ticker; add settings to store Polygon API key via frontend; run backend tests"
 
 🏆 **SYSTEM STATUS: COMPLETE AND FULLY FUNCTIONAL** 🏆
 
