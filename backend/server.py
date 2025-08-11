@@ -231,17 +231,23 @@ async def ratings_compute(body: RatingsBody):
     accel_list = []
     series = {}
     for s in body.symbols:
-        bars = poly_client.get_bars(s, 1, "day", (datetime.utcnow().date().replace(year=datetime.utcnow().year - 1)).isoformat(), datetime.utcnow().date().isoformat())
-        series[s] = bars
-        if len(bars) < body.rsWindowDays + 2:
-            returns_list.append(0.0); accel_list.append(0.0); continue
-        end = bars[-1]["c"]; start = bars[-(body.rsWindowDays+1)]["c"]
-        ret = (end - start) / start if start else 0.0
-        returns_list.append(ret)
-        s_end = bars[-1]["c"]; s_start = bars[-(body.asShortDays+1)]["c"]; l_start = bars[-(body.asLongDays+1)]["c"]
-        rocS = (s_end - s_start) / s_start if s_start else 0.0
-        rocL = (s_end - l_start) / l_start if l_start else 0.0
-        accel_list.append(rocS - rocL)
+        try:
+            bars = poly_client.get_bars(s, 1, "day", (datetime.utcnow().date().replace(year=datetime.utcnow().year - 1)).isoformat(), datetime.utcnow().date().isoformat())
+            series[s] = bars
+            if len(bars) < body.rsWindowDays + 2:
+                returns_list.append(0.0); accel_list.append(0.0); continue
+            end = bars[-1]["c"]; start = bars[-(body.rsWindowDays+1)]["c"]
+            ret = (end - start) / start if start else 0.0
+            returns_list.append(ret)
+            s_end = bars[-1]["c"]; s_start = bars[-(body.asShortDays+1)]["c"]; l_start = bars[-(body.asLongDays+1)]["c"]
+            rocS = (s_end - s_start) / s_start if s_start else 0.0
+            rocL = (s_end - l_start) / l_start if l_start else 0.0
+            accel_list.append(rocS - rocL)
+        except Exception as e:
+            # Handle API rate limits and other errors gracefully
+            print(f"Error fetching data for {s}: {e}")
+            returns_list.append(0.0)
+            accel_list.append(0.0)
     # ranks
     def percentile(vals, v):
         if not vals: return 0
