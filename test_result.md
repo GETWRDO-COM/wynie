@@ -111,7 +111,7 @@
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
@@ -122,6 +122,9 @@
       - working: true
         agent: "main"
         comment: "Added TTL cache, 429 backoff and graceful degrade on /marketdata/bars."
+      - working: true
+        agent: "testing"
+        comment: "✅ All marketdata endpoints working correctly. /api/marketdata/bars gracefully returns empty bars array on API failures (no 500 errors). Symbol search, quotes, and logo endpoints all functioning properly. Error handling validated for missing parameters."
   - task: "Screener endpoint"
     implemented: true
     working: false
