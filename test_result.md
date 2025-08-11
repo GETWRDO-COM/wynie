@@ -107,48 +107,60 @@
 ## backend:
   - task: "Polygon adapter + marketdata endpoints"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "Implemented /api/marketdata/symbols/search, /api/marketdata/bars, /api/marketdata/quotes, /api/marketdata/logo using polygon_client with API key set in .env."
+      - working: true
+        agent: "testing"
+        comment: "All marketdata endpoints tested successfully. Symbol search returns proper items array, bars data includes symbol and bars array, quotes return quotes array, logo returns symbol and logoUrl. Error handling works correctly for missing parameters."
   - task: "Watchlists CRUD"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "Added /api/watchlists CRUD with Mongo."
+      - working: true
+        agent: "testing"
+        comment: "Minor: Fixed MongoDB ObjectId serialization issue in list and update endpoints. All CRUD operations now working: CREATE returns proper watchlist object, GET returns array of watchlists, PUT updates and returns updated object, DELETE returns success confirmation. Error handling works for non-existent watchlists."
   - task: "Columns schema + presets"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "Added /api/columns/schema and /api/columns/presets endpoints."
+      - working: true
+        agent: "testing"
+        comment: "All columns endpoints working correctly. Schema returns categories with columns array, presets GET/POST/DELETE all function properly with MongoDB storage."
   - task: "Ratings compute RS/AS"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "Server-side percentile-based RS/AS with Polygon bars."
+      - working: true
+        agent: "testing"
+        comment: "Minor: Added error handling for Polygon API rate limits. Ratings compute endpoint working correctly, returns RS and AS dictionaries with percentile rankings for requested symbols. Handles custom window parameters and validates required fields."
 
 ## frontend:
   - task: "Dashboard + Table + Column Settings (mock)"
