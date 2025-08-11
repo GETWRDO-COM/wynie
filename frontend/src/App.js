@@ -12,6 +12,7 @@ import HeroBanner from './components/HeroBanner';
 import NewsTicker from './components/NewsTicker';
 import DashboardQuickSections from './components/DashboardQuickSections';
 import MarketCharts from './components/MarketCharts';
+import PolygonKeySettings from './components/PolygonKeySettings';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
