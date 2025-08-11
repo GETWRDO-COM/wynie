@@ -259,7 +259,152 @@ class BackendTester:
         except Exception as e:
             self.log_result('columns', 'Delete Column Preset', False, str(e))
     
-    def test_ratings_compute(self):
+    def test_screener_endpoint(self):
+        print("\n=== Testing Screener Endpoint ===")
+        
+        # Test 1: Screener with specific filters and sorting as requested
+        try:
+            payload = {
+                "symbols": ["AAPL", "MSFT", "TSLA", "NVDA"],
+                "filters": [
+                    {"field": "last", "op": ">=", "value": 5},
+                    {"field": "rsi14", "op": ">=", "value": 30}
+                ],
+                "sort": {"key": "last", "dir": "desc"}
+            }
+            response = self.session.post(f"{self.base_url}/api/screeners/run", json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                if 'rows' in data and isinstance(data['rows'], list):
+                    # Validate that rows field exists and has expected structure
+                    if len(data['rows']) > 0:
+                        # Check if first row has expected fields
+                        first_row = data['rows'][0]
+                        if 'symbol' in first_row and 'last' in first_row:
+                            self.log_result('screener', 'Screener with filters and sort', True)
+                        else:
+                            self.log_result('screener', 'Screener with filters and sort', False, f"Missing expected fields in row: {first_row}")
+                    else:
+                        # Empty results are valid if no symbols pass filters
+                        self.log_result('screener', 'Screener with filters and sort', True)
+                else:
+                    self.log_result('screener', 'Screener with filters and sort', False, f"Missing 'rows' field or invalid structure: {data}")
+            else:
+                self.log_result('screener', 'Screener with filters and sort', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('screener', 'Screener with filters and sort', False, str(e))
+        
+        # Test 2: Basic screener without filters
+        try:
+            payload = {
+                "symbols": ["AAPL", "MSFT"],
+                "filters": []
+            }
+            response = self.session.post(f"{self.base_url}/api/screeners/run", json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                if 'rows' in data and isinstance(data['rows'], list):
+                    self.log_result('screener', 'Basic screener without filters', True)
+                else:
+                    self.log_result('screener', 'Basic screener without filters', False, f"Invalid response structure: {data}")
+            else:
+                self.log_result('screener', 'Basic screener without filters', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('screener', 'Basic screener without filters', False, str(e))
+        
+        # Test 3: Error handling - missing symbols
+        try:
+            payload = {"filters": []}  # Missing symbols
+            response = self.session.post(f"{self.base_url}/api/screeners/run", json=payload)
+            if response.status_code == 422:  # FastAPI validation error
+                self.log_result('screener', 'Error Handling - Missing symbols', True)
+            else:
+                self.log_result('screener', 'Error Handling - Missing symbols', False, f"Expected 422, got {response.status_code}")
+        except Exception as e:
+            self.log_result('screener', 'Error Handling - Missing symbols', False, str(e))
+    
+    def test_websocket_quotes(self):
+        print("\n=== Testing WebSocket Quotes ===")
+        
+        # Test WebSocket connection and message reception
+        try:
+            ws_url = self.base_url.replace('https://', 'wss://').replace('http://', 'ws://') + '/api/ws/quotes?symbols=AAPL,MSFT'
+            
+            messages_received = []
+            connection_successful = False
+            
+            def on_message(ws, message):
+                try:
+                    data = json.loads(message)
+                    messages_received.append(data)
+                    if len(messages_received) >= 2:  # Stop after receiving 2 messages
+                        ws.close()
+                except Exception as e:
+                    print(f"Error parsing WebSocket message: {e}")
+            
+            def on_open(ws):
+                nonlocal connection_successful
+                connection_successful = True
+                print("WebSocket connection opened")
+            
+            def on_error(ws, error):
+                print(f"WebSocket error: {error}")
+            
+            def on_close(ws, close_status_code, close_msg):
+                print("WebSocket connection closed")
+            
+            # Create WebSocket connection
+            ws = websocket.WebSocketApp(ws_url,
+                                      on_open=on_open,
+                                      on_message=on_message,
+                                      on_error=on_error,
+                                      on_close=on_close)
+            
+            # Run WebSocket in a separate thread with timeout
+            def run_ws():
+                ws.run_forever()
+            
+            ws_thread = threading.Thread(target=run_ws)
+            ws_thread.daemon = True
+            ws_thread.start()
+            
+            # Wait for messages (max 10 seconds)
+            timeout = 10
+            start_time = time.time()
+            while len(messages_received) < 2 and (time.time() - start_time) < timeout:
+                time.sleep(0.5)
+            
+            # Close WebSocket if still open
+            try:
+                ws.close()
+            except:
+                pass
+            
+            # Validate results
+            if connection_successful and len(messages_received) > 0:
+                # Check message structure
+                first_message = messages_received[0]
+                if 'type' in first_message and first_message['type'] == 'quotes':
+                    if 'data' in first_message and isinstance(first_message['data'], list):
+                        # Check if data contains symbol and last fields
+                        if len(first_message['data']) > 0:
+                            quote = first_message['data'][0]
+                            if 'symbol' in quote and 'last' in quote:
+                                self.log_result('websocket', 'WebSocket quotes with symbol and last fields', True)
+                            else:
+                                self.log_result('websocket', 'WebSocket quotes with symbol and last fields', False, f"Missing symbol or last field: {quote}")
+                        else:
+                            self.log_result('websocket', 'WebSocket quotes with symbol and last fields', False, "Empty data array in WebSocket message")
+                    else:
+                        self.log_result('websocket', 'WebSocket quotes with symbol and last fields', False, f"Invalid data structure: {first_message}")
+                else:
+                    self.log_result('websocket', 'WebSocket quotes with symbol and last fields', False, f"Invalid message type: {first_message}")
+            else:
+                self.log_result('websocket', 'WebSocket quotes with symbol and last fields', False, f"Connection failed or no messages received. Connection: {connection_successful}, Messages: {len(messages_received)}")
+                
+        except Exception as e:
+            self.log_result('websocket', 'WebSocket quotes with symbol and last fields', False, str(e))
+    
         print("\n=== Testing Ratings Compute ===")
         
         # Test 1: Compute RS/AS ratings
