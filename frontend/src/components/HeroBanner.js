@@ -83,8 +83,8 @@ const HeroBanner = ({ user }) => {
 
           {/* Weather under date (right), FX under weather */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
-            <WeatherWidget />
             <CurrencyTicker />
+            <WeatherWidget />
           </div>
         </div>
       </div>
