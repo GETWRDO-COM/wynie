@@ -1871,6 +1871,7 @@ class ETFBackendTester:
             ("ETF Data Update", self.test_etf_data_update),
             ("ETF Data Retrieval", self.test_get_etfs),
             ("Enhanced Calculations", self.test_enhanced_calculations),
+            ("MSAE and ETF Regime Engine", self.test_msae_etf_regime_engine),
             ("Swing Leaders", self.test_swing_leaders),
             ("Universal Stock Lookup", self.test_universal_stock_lookup),
             ("Watchlist Management", self.test_watchlist_management),
