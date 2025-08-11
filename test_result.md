@@ -111,14 +111,39 @@
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "main"
         comment: "Implemented /api/marketdata/symbols/search, /api/marketdata/bars, /api/marketdata/quotes, /api/marketdata/logo using polygon_client with API key set in .env."
       - working: true
         agent: "testing"
-        comment: "All marketdata endpoints tested successfully. Symbol search returns proper items array, bars data includes symbol and bars array, quotes return quotes array, logo returns symbol and logoUrl. Error handling works correctly for missing parameters."
+        comment: "Marketdata endpoints validated earlier."
+      - working: true
+        agent: "main"
+        comment: "Added TTL cache, 429 backoff and graceful degrade on /marketdata/bars."
+  - task: "Screener endpoint"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Implemented POST /api/screeners/run with quote fields and optional RSI filter."
+  - task: "Streaming quotes WS"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Added /api/ws/quotes polling-based stream (Polygon WS later)."
   - task: "Watchlists CRUD"
     implemented: true
     working: true
