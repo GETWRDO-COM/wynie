@@ -1936,13 +1936,22 @@ class ETFBackendTester:
                 pass  # Ignore cleanup errors
     
     def run_all_tests(self):
-        """Run all backend tests including enhanced professional features"""
+        """Run all backend tests including enhanced professional features and new endpoints"""
         print(f"🚀 Starting COMPREHENSIVE ETF Intelligence System Backend Tests")
         print(f"📡 Backend URL: {BACKEND_URL}")
         print(f"🔗 API Base: {API_BASE}")
         print("=" * 80)
         
-        tests = [
+        # New endpoints tests (from review request) - Priority testing
+        new_endpoint_tests = [
+            ("Polygon Aggregates", self.test_polygon_aggregates),
+            ("CNN Fear & Greed Index", self.test_greed_fear_index),
+            ("News Proxy", self.test_news_proxy),
+            ("Polygon Integration Auth", self.test_polygon_integration_auth),
+        ]
+        
+        # Core system tests
+        core_tests = [
             ("API Connectivity", self.test_api_root),
             ("Authentication System", self.test_authentication_system),
             ("AI Chat Integration", self.test_ai_chat_integration),
@@ -1969,31 +1978,66 @@ class ETFBackendTester:
             ("Historical Data", self.test_historical_data),
         ]
         
-        passed = 0
-        failed = 0
+        # Run new endpoint tests first (priority)
+        print("\n🎯 PRIORITY: Testing New Endpoints (Polygon, CNN, News)")
+        print("-" * 60)
+        new_passed = 0
+        new_failed = 0
         
-        for test_name, test_func in tests:
+        for test_name, test_func in new_endpoint_tests:
             print(f"\n🧪 Running {test_name}...")
             try:
                 if test_func():
-                    passed += 1
+                    new_passed += 1
                 else:
-                    failed += 1
+                    new_failed += 1
             except Exception as e:
                 print(f"❌ FAIL {test_name}: Unexpected error: {str(e)}")
-                failed += 1
+                new_failed += 1
+        
+        # Run core system tests
+        print("\n🏗️ CORE SYSTEM: Testing All Backend Features")
+        print("-" * 60)
+        core_passed = 0
+        core_failed = 0
+        
+        for test_name, test_func in core_tests:
+            print(f"\n🧪 Running {test_name}...")
+            try:
+                if test_func():
+                    core_passed += 1
+                else:
+                    core_failed += 1
+            except Exception as e:
+                print(f"❌ FAIL {test_name}: Unexpected error: {str(e)}")
+                core_failed += 1
         
         # Cleanup
         self.cleanup()
         
-        print("\n" + "=" * 80)
-        print(f"📊 ENHANCED ETF INTELLIGENCE SYSTEM TEST SUMMARY")
-        print(f"✅ Passed: {passed}")
-        print(f"❌ Failed: {failed}")
-        print(f"📈 Success Rate: {(passed/(passed+failed)*100):.1f}%")
-        print(f"🏆 Professional Trading Platform Status: {'READY' if failed == 0 else 'NEEDS ATTENTION'}")
+        # Calculate totals
+        total_passed = new_passed + core_passed
+        total_failed = new_failed + core_failed
+        total_tests = total_passed + total_failed
         
-        return passed, failed, self.test_results
+        print("\n" + "=" * 80)
+        print(f"📊 COMPREHENSIVE ETF INTELLIGENCE SYSTEM TEST SUMMARY")
+        print("=" * 80)
+        print(f"🎯 NEW ENDPOINTS: {new_passed}/{len(new_endpoint_tests)} passed ({new_passed/len(new_endpoint_tests)*100:.1f}%)")
+        print(f"🏗️ CORE SYSTEM: {core_passed}/{len(core_tests)} passed ({core_passed/len(core_tests)*100:.1f}%)")
+        print(f"📈 OVERALL: {total_passed}/{total_tests} passed ({total_passed/total_tests*100:.1f}%)")
+        print(f"🏆 Professional Trading Platform Status: {'READY' if total_failed == 0 else 'NEEDS ATTENTION'}")
+        
+        # Show failed tests by category
+        failed_tests = [result for result in self.test_results if not result['success']]
+        if failed_tests:
+            print(f"\n❌ FAILED TESTS ({len(failed_tests)}):")
+            for failed in failed_tests:
+                print(f"  • {failed['test']}: {failed['details']}")
+        else:
+            print("\n✅ ALL TESTS PASSED - SYSTEM FULLY OPERATIONAL!")
+        
+        return total_passed, total_failed, self.test_results
 
 if __name__ == "__main__":
     tester = ETFBackendTester()
