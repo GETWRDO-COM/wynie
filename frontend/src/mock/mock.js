@@ -85,7 +85,7 @@ function genOhlc(symbol, days = 180, seed = 1) {
 }
 
 // Compute SMA
-function sma(arr, n, accessor = (d) =&gt; d) {
+function sma(arr, n, accessor = (d) => d) {
   const res = []
   let sum = 0
   for (let i = 0; i &lt; arr.length; i++) {
