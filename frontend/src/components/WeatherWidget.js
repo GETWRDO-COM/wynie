@@ -30,20 +30,21 @@ async function reverseGeocode(lat, lon) {
   try {
     const r = await fetch(`https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&language=en`);
     const j = await r.json();
-    return j?.results?.[0]?.name || 'Current Location';
+    return j?.results?.[0]?.name || 'Unknown';
   } catch {
-    return 'Current Location';
+    return 'Unknown';
   }
 }
 
 const WeatherWidget = () => {
   const [data, setData] = useState(null);
-  const [place, setPlace] = useState('');
+  const [place, setPlace] = useState(FALLBACK.name);
 
+  // Load fallback first, then try geolocation
   useEffect(() => {
     (async () => {
-      try { const w = await fetchWeather(FALLBACK.latitude, FALLBACK.longitude); setData(w); setPlace(FALLBACK.name); }
-      catch { setData({ tempC: 0, code: 1, high: 0, low: 0, rain: 0 }); setPlace(FALLBACK.name); }
+      try { const w = await fetchWeather(FALLBACK.latitude, FALLBACK.longitude); setData(w); }
+      catch { setData({ tempC: 0, code: 1, high: 0, low: 0, rain: 0 }); }
     })();
   }, []);
 
@@ -63,9 +64,10 @@ const WeatherWidget = () => {
     <div className="glass-panel px-4 py-3 flex items-center gap-4">
       <div className="text-3xl leading-none">{codeToEmoji(data.code)}</div>
       <div className="flex-1">
-        <div className="text-xs text-gray-400">Current Location — {place}</div>
-        <div className="text-white text-xl font-semibold">{data.tempC}°C</div>
-        <div className="mt-1 flex flex-wrap gap-2">
+        <div className="text-xs text-gray-400">Current Location</div>
+        <div className="text-white text-sm font-semibold mb-1">{place}</div>
+        <div className="text-white text-2xl font-bold">{data.tempC}°C</div>
+        <div className="mt-2 flex flex-wrap gap-2">
           <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-xs text-white/90">H {data.high}°</span>
           <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-xs text-white/90">L {data.low}°</span>
           <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-xs text-white/90">{data.rain}% rain</span>

@@ -37,7 +37,7 @@ const HeroBanner = ({ user }) => {
   useEffect(() => { setStatus(nextNYSEOpenClose(now)); }, [now]);
 
   const localTZ = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Africa/Johannesburg';
-  const saTime = new Intl.DateTimeFormat('en-ZA', { timeZone: 'Africa/Johannesburg', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }).format(now);
+  const saTime = new Intl.DateTimeFormat('en-US', { timeZone: 'Africa/Johannesburg', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }).format(now);
   const usTime = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }).format(now);
   const todayLocal = new Intl.DateTimeFormat('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: '2-digit', timeZone: localTZ }).format(now);
 
@@ -48,50 +48,52 @@ const HeroBanner = ({ user }) => {
 
   return (
     <div className="relative">
-      {/* Elevated frosted card */}
       <div className="relative rounded-2xl border border-white/10 bg-black/40 backdrop-blur-2xl p-6 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
-        {/* Soft gradient glow */}
         <div className="pointer-events-none absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full opacity-[0.12] blur-3xl" style={{ background: 'radial-gradient(circle, var(--brand-start), transparent 60%)' }} />
         <div className="pointer-events-none absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full opacity-[0.10] blur-3xl" style={{ background: 'radial-gradient(circle, var(--brand-end), transparent 60%)' }} />
 
         {/* Top-right date pill */}
-        <div className="absolute right-4 top-4 px-3 py-1 rounded-lg border border-white/10 text-sm font-semibold text-white/90" style={{ background: 'linear-gradient(135deg, color-mix(in_oklab, var(--brand-start) 14%, transparent), color-mix(in_oklab, var(--brand-end) 14%, transparent))' }}>
-          Today is {todayLocal}
+        <div className="absolute right-4 top-4 px-4 py-2 rounded-lg border border-white/10 text-base sm:text-lg font-semibold text-white/90" style={{ background: 'linear-gradient(135deg, color-mix(in_oklab, var(--brand-start) 14%, transparent), color-mix(in_oklab, var(--brand-end) 14%, transparent))' }}>
+          {todayLocal}
         </div>
 
         <div className="relative">
-          <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             {/* Left: Title and greeting */}
             <div>
               <h1 className="mt-1 text-3xl md:text-4xl font-bold">HUNT by WRDO</h1>
               <p className="text-gray-300 mt-1">{greet} {name} {greetIcon}</p>
+              <div className="mt-24 xl:mt-28" />
             </div>
 
-            {/* Right: Tiles */}
-            <div className="grid grid-cols-2 gap-4 w-full xl:w-auto">
-              <div className="glass-panel p-4">
-                <div className="flex items-center gap-2 text-xs text-gray-400"><img src="https://flagcdn.com/za.svg" alt="ZA" className="w-4 h-3 rounded-sm" /><span>Africa/Cape Town</span></div>
-                <div className="text-xl font-bold">{saTime}</div>
+            {/* Right: Clocks and info */}
+            <div>
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                <div className="glass-panel p-4">
+                  <div className="flex items-center gap-2 text-xs text-gray-400"><img src="https://flagcdn.com/za.svg" alt="ZA" className="w-4 h-3 rounded-sm" /><span>Africa/Cape Town</span></div>
+                  <div className="text-xl font-bold">{saTime}</div>
+                </div>
+                <div className="glass-panel p-4">
+                  <div className="flex items-center gap-2 text-xs text-gray-400"><img src="https://flagcdn.com/us.svg" alt="US" className="w-4 h-3 rounded-sm" /><span>USA (ET)</span></div>
+                  <div className="text-xl font-bold">{usTime}</div>
+                </div>
               </div>
-              <div className="glass-panel p-4">
-                <div className="flex items-center gap-2 text-xs text-gray-400"><img src="https://flagcdn.com/us.svg" alt="US" className="w-4 h-3 rounded-sm" /><span>USA (ET)</span></div>
-                <div className="text-xl font-bold">{usTime}</div>
-              </div>
-              <div className="glass-panel p-4 col-span-2">
+
+              <div className="glass-panel p-4 mb-3">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <div className="text-xs text-gray-400">Market Status</div>
-                      <div className="text-white font-semibold">{status.status}{status.holidayName ? ` — ${status.holidayName}` : ''}</div>
-                      {status.nextOpenText && (<div className="text-xs text-gray-400">Next open: {status.nextOpenText} ET</div>)}
-                    </div>
-                    <div className="px-3 py-1 rounded-lg bg-white/10 border border-white/10 text-white font-semibold text-sm">Opens in {formatHMS(status.seconds)}</div>
+                  <div>
+                    <div className="text-xs text-gray-400">Market Status</div>
+                    <div className="text-white font-semibold">{status.status}{status.holidayName ? ` — ${status.holidayName}` : ''}</div>
+                    {status.nextOpenText && (<div className="text-xs text-gray-400">Next open: {status.nextOpenText} ET</div>)}
                   </div>
+                  <div className="px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white font-bold text-base sm:text-lg">Opens in {formatHMS(status.seconds)}</div>
                 </div>
-                <div className="mt-3 grid grid-cols-1 lg:grid-cols-2 gap-3">
-                  <WeatherWidget />
-                  <CurrencyTicker />
-                </div>
+              </div>
+
+              {/* Under date: Weather then FX */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <WeatherWidget />
+                <CurrencyTicker />
               </div>
             </div>
           </div>

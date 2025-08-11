@@ -3,23 +3,34 @@ import React, { useEffect, useMemo, useState } from 'react';
 const CurrencyTicker = () => {
   const [rates, setRates] = useState(null);
   const [err, setErr] = useState('');
+  const [updatedAt, setUpdatedAt] = useState(null);
 
   const fetchPrimary = async () => {
     const resp = await fetch('https://api.exchangerate.host/latest?base=ZAR&symbols=USD,EUR,GBP,JPY,CNY');
     const data = await resp.json();
     if (!data || !data.rates) throw new Error('no primary');
-    return data.rates;
+    return { rates: data.rates, ts: data.date };
   };
   const fetchFallback = async () => {
     const resp = await fetch('https://open.er-api.com/v6/latest/ZAR');
     const data = await resp.json();
-    if (data && data.result === 'success' && data.rates) return { USD: data.rates.USD, EUR: data.rates.EUR, GBP: data.rates.GBP, JPY: data.rates.JPY, CNY: data.rates.CNY };
+    if (data && data.result === 'success' && data.rates) return { rates: { USD: data.rates.USD, EUR: data.rates.EUR, GBP: data.rates.GBP, JPY: data.rates.JPY, CNY: data.rates.CNY }, ts: data.time_last_update_utc };
     throw new Error('no fallback');
   };
 
   const fetchRates = async () => {
-    try { setErr(''); try { setRates(await fetchPrimary()); } catch { setRates(await fetchFallback()); } }
-    catch { setErr('FX unavailable'); }
+    try {
+      setErr('');
+      try {
+        const r = await fetchPrimary();
+        setRates(r.rates); setUpdatedAt(new Date());
+      } catch {
+        const r = await fetchFallback();
+        setRates(r.rates); setUpdatedAt(new Date());
+      }
+    } catch {
+      setErr('FX unavailable');
+    }
   };
 
   useEffect(() => { fetchRates(); const id = setInterval(fetchRates, 60_000); return () => clearInterval(id); }, []);
@@ -28,23 +39,29 @@ const CurrencyTicker = () => {
     if (!rates) return [];
     const inv = (x) => (x ? 1 / x : null);
     return [
-      { flag: 'https://flagcdn.com/us.svg', pair: '$1', zar: inv(rates.USD) },
-      { flag: 'https://flagcdn.com/eu.svg', pair: '€1', zar: inv(rates.EUR) },
-      { flag: 'https://flagcdn.com/gb.svg', pair: '£1', zar: inv(rates.GBP) },
-      { flag: 'https://flagcdn.com/jp.svg', pair: '¥100', zar: rates.JPY ? (1 / rates.JPY) * 100 : null },
-      { flag: 'https://flagcdn.com/cn.svg', pair: '¥1', zar: inv(rates.CNY) },
+      { flag: 'https://flagcdn.com/us.svg', code: 'USD', pair: '$1', zar: inv(rates.USD) },
+      { flag: 'https://flagcdn.com/eu.svg', code: 'EUR', pair: '€1', zar: inv(rates.EUR) },
+      { flag: 'https://flagcdn.com/gb.svg', code: 'GBP', pair: '£1', zar: inv(rates.GBP) },
+      { flag: 'https://flagcdn.com/jp.svg', code: 'JPY', pair: '¥100', zar: rates.JPY ? (1 / rates.JPY) * 100 : null },
+      { flag: 'https://flagcdn.com/cn.svg', code: 'CNY', pair: '¥1', zar: inv(rates.CNY) },
     ];
   }, [rates]);
 
+  const updated = updatedAt ? new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(updatedAt) : '--:--:--';
+
   return (
     <div className="glass-panel p-4">
-      <div className="text-xs text-gray-400 mb-3">FX (ZAR conversions)</div>
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-white/90 font-semibold">FX (ZAR conversions)</div>
+        <div className="text-xs text-gray-400">Updated {updated}</div>
+      </div>
       {err && <div className="text-xs text-red-300 mb-2">{err}</div>}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="divide-y divide-white/10">
         {rows.map((r, i) => (
-          <div key={i} className="flex items-center gap-3 bg-white/5 rounded-lg px-3 py-2 border border-white/10">
+          <div key={i} className="flex items-center gap-3 py-2">
             <img src={r.flag} alt="flag" className="w-5 h-4 rounded-sm" />
-            <div className="text-sm text-white/90 font-medium">{r.pair}</div>
+            <div className="text-sm text-white/90 w-20">{r.pair}</div>
+            <div className="text-xs text-gray-400">{r.code}</div>
             <div className="ml-auto text-sm text-white font-semibold">R{r.zar != null ? r.zar.toFixed(2) : '--'}</div>
           </div>
         ))}
