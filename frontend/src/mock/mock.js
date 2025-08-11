@@ -122,7 +122,7 @@ function rsi(values, n = 14) {
 function getMockUniverse() {
   const rnd = mulberry32(42)
   const out = []
-  for (let i = 0; i &lt; SYMBOLS.length; i++) {
+  for (let i = 0; i < SYMBOLS.length; i++) {
     const s = SYMBOLS[i]
     const candles = genOhlc(s, 240, 100 + i)
     const closes = candles.map((c) =&gt; c.close)
