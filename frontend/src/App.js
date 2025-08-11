@@ -101,6 +101,7 @@ function App() {
             <div className="space-y-6">
               <HeroBanner user={user} />
               <DashboardQuickSections chartData={chartData} swingLeaders={swingLeaders} watchlists={watchlists} marketScore={marketScore} />
+              <MarketCharts />
             </div>
           )}
           {activeTab === 'swing-grid' && (<div className="glass-panel p-6 animate-fade-in"><SwingAnalysisGrid api={api} etfs={selectedSector ? etfs.filter(e => e.sector === selectedSector) : etfs} sectors={sectors} selectedSector={selectedSector} setSelectedSector={setSelectedSector} analyzeChart={() => {}} addToWatchlist={() => {}} /></div>)}
