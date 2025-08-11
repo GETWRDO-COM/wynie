@@ -5,13 +5,29 @@ const CurrencyTicker = () => {
   const [rates, setRates] = useState(null);
   const [err, setErr] = useState('');
 
+  const fetchPrimary = async () => {
+    const resp = await fetch('https://api.exchangerate.host/latest?base=ZAR&symbols=USD,EUR,GBP,JPY,CNY');
+    const data = await resp.json();
+    if (!data || !data.rates) throw new Error('no primary');
+    return data.rates;
+  };
+  const fetchFallback = async () => {
+    const resp = await fetch('https://open.er-api.com/v6/latest/ZAR');
+    const data = await resp.json();
+    if (data && data.result === 'success' && data.rates) return { USD: data.rates.USD, EUR: data.rates.EUR, GBP: data.rates.GBP, JPY: data.rates.JPY, CNY: data.rates.CNY };
+    throw new Error('no fallback');
+  };
+
   const fetchRates = async () => {
     try {
       setErr('');
-      const resp = await fetch('https://api.exchangerate.host/latest?base=ZAR&symbols=USD,EUR,GBP,JPY,CNY');
-      const data = await resp.json();
-      if (!data || !data.rates) throw new Error('No rates');
-      setRates(data.rates);
+      try {
+        const r = await fetchPrimary();
+        setRates(r);
+      } catch {
+        const r = await fetchFallback();
+        setRates(r);
+      }
     } catch (e) {
       setErr('FX unavailable');
     }
@@ -32,19 +48,19 @@ const CurrencyTicker = () => {
     const jpy = inv(rates.JPY);
     const cny = inv(rates.CNY);
     return [
-      { code: 'USD', flag: '🇺🇸', label: '$1', value: usd },
-      { code: 'EUR', flag: '🇪🇺', label: '€1', value: eur },
-      { code: 'GBP', flag: '🇬🇧', label: '£1', value: gbp },
-      { code: 'JPY', flag: '🇯🇵', label: '¥100', value: jpy != null ? jpy * 100 : null },
-      { code: 'CNY', flag: '🇨🇳', label: '¥1', value: cny },
+      { code: 'USD', flagSrc: 'https://flagcdn.com/us.svg', label: '$1', value: usd },
+      { code: 'EUR', flagSrc: 'https://flagcdn.com/eu.svg', label: '€1', value: eur },
+      { code: 'GBP', flagSrc: 'https://flagcdn.com/gb.svg', label: '£1', value: gbp },
+      { code: 'JPY', flagSrc: 'https://flagcdn.com/jp.svg', label: '¥100', value: jpy != null ? jpy * 100 : null },
+      { code: 'CNY', flagSrc: 'https://flagcdn.com/cn.svg', label: '¥1', value: cny },
     ];
   }, [rates]);
 
   return (
     <div className="mt-3 flex flex-wrap gap-2">
-      {items.map((it, idx) => (
-        <div key={it.code} className="px-2 py-1 rounded-lg text-xs text-white/90 border border-white/10" style={{ background: 'linear-gradient(135deg, color-mix(in_oklab, var(--brand-start) 12%, transparent), color-mix(in_oklab, var(--brand-end) 12%, transparent))' }}>
-          <span className="mr-1">{it.flag}</span>
+      {items.map((it) => (
+        <div key={it.code} className="px-2 py-1 rounded-lg text-xs text-white/90 border border-white/10 flex items-center gap-1" style={{ background: 'linear-gradient(135deg, color-mix(in_oklab, var(--brand-start) 12%, transparent), color-mix(in_oklab, var(--brand-end) 12%, transparent))' }}>
+          <img src={it.flagSrc} alt={it.code} className="w-3.5 h-3.5 rounded-sm" />
           <span className="mr-1">{it.label}</span>
           <span>= R{it.value != null ? it.value.toFixed(2) : '--'}</span>
         </div>

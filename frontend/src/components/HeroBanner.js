@@ -21,11 +21,24 @@ function lastWeekdayOfMonthUTC(year, monthIndex, weekday){const d=new Date(Date.
 function isSameYMD(a,b){return a.getUTCFullYear()===b.getUTCFullYear()&&a.getUTCMonth()===b.getUTCMonth()&&a.getUTCDate()===b.getUTCDate();}
 function nyseHolidays(year){ const list=[]; list.push({ name:"New Year's Day", date: observedDate(new Date(Date.UTC(year,0,1))) }); list.push({ name:'Martin Luther King Jr. Day', date: nthWeekdayOfMonthUTC(year,0,1,3)}); list.push({ name:"Presidents' Day", date: nthWeekdayOfMonthUTC(year,1,1,3)}); const easter=easterSunday(year); const gf=new Date(easter.getTime()); gf.setUTCDate(gf.getUTCDate()-2); list.push({ name:'Good Friday', date: gf }); list.push({ name:'Memorial Day', date: lastWeekdayOfMonthUTC(year,4,1)}); list.push({ name:'Juneteenth', date: observedDate(new Date(Date.UTC(year,5,19))) }); list.push({ name:'Independence Day', date: observedDate(new Date(Date.UTC(year,6,4))) }); list.push({ name:'Labor Day', date: nthWeekdayOfMonthUTC(year,8,1,1)}); list.push({ name:'Thanksgiving Day', date: nthWeekdayOfMonthUTC(year,10,4,4)}); list.push({ name:'Christmas Day', date: observedDate(new Date(Date.UTC(year,11,25))) }); return list; }
 function nyseHolidayToday(nowET){ const parsed=parseInTZ(nowET,'America/New_York'); const todayUTC=new Date(Date.UTC(parsed.y,parsed.m-1,parsed.d)); const list=[...nyseHolidays(parsed.y), ...nyseHolidays(parsed.y-1), ...nyseHolidays(parsed.y+1)]; for(const h of list){ if(isSameYMD(h.date,todayUTC)) return h.name; } return null; }
-function nextNYSEOpenClose(now){ const tz='America/New_York'; const wd=getWeekday(now,tz); const isWeekend = wd==='Sat'||wd==='Sun'; const toOpen=secondsUntil(now,tz,9,30); const toClose=secondsUntil(now,tz,16,0); const holidayName=nyseHolidayToday(now);
-  if(!isWeekend && !holidayName && toOpen<=0 && toClose>0){ return { status:'Market Open', countdownLabel:'Closes in', seconds:toClose, holidayName:null, nextOpenText:null }; }
-  if(!isWeekend && !holidayName && toOpen>0){ const nextOpenText=new Intl.DateTimeFormat('en-US',{ timeZone: tz, weekday:'short', month:'short', day:'2-digit', hour:'numeric', minute:'2-digit'}).format(new Date(now.getTime()+toOpen*1000)); return { status:'Market Closed', countdownLabel:'Opens in', seconds:toOpen, holidayName:null, nextOpenText }; }
+function dayAfterThanksgivingUTC(year){ // 4th Thursday in November + 1 day
+  const thanksgiving = nthWeekdayOfMonthUTC(year, 10, 4, 4); // Nov
+  const d = new Date(thanksgiving.getTime());
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d;
+}
+function isHalfDay(nowET){
+  const p = parseInTZ(nowET, 'America/New_York');
+  const todayUTC = new Date(Date.UTC(p.y, p.m-1, p.d));
+  const list = [ dayAfterThanksgivingUTC(p.y), new Date(Date.UTC(p.y, 11, 24)) ]; // Black Friday, Christmas Eve
+  return list.some(d => isSameYMD(d, todayUTC));
+}
+
+function nextNYSEOpenClose(now){ const tz='America/New_York'; const wd=getWeekday(now,tz); const isWeekend = wd==='Sat'||wd==='Sun'; const toOpen=secondsUntil(now,tz,9,30); const halfDay = isHalfDay(now); const closeHour = halfDay ? 13 : 16; const toClose=secondsUntil(now,tz,closeHour,0); const holidayName=nyseHolidayToday(now) || (halfDay ? 'Early Close' : null);
+  if(!isWeekend && !nyseHolidayToday(now) && toOpen<=0 && toClose>0){ return { status:'Market Open', countdownLabel:`Closes in${halfDay ? ' (1pm ET)' : ''}`, seconds:toClose, holidayName, nextOpenText:null }; }
+  if(!isWeekend && !nyseHolidayToday(now) && toOpen>0){ const nextOpenText=new Intl.DateTimeFormat('en-US',{ timeZone: tz, weekday:'short', month:'short', day:'2-digit', hour:'numeric', minute:'2-digit'}).format(new Date(now.getTime()+toOpen*1000)); return { status:'Market Closed', countdownLabel:'Opens in', seconds:toOpen, holidayName:null, nextOpenText }; }
   let days=1; while(true){ const candidate=new Date(now.getTime()); candidate.setUTCDate(candidate.getUTCDate()+days); const w=getWeekday(candidate,tz); const weekend = w==='Sat'||w==='Sun'; if(!weekend && !nyseHolidayToday(candidate)) break; days+=1; }
-  const t=parseInTZ(now,tz); const secondsToMidnight=(24*3600)-(t.hh*3600+t.mm*60+t.ss); const secondsWholeDays=(days-1)*24*3600; const secondsNextDayToOpen=9*3600+30*60; const total=secondsToMidnight+secondsWholeDays+secondsNextDayToOpen; const nextOpenDate=new Date(now.getTime()+total*1000); const nextOpenText=new Intl.DateTimeFormat('en-US',{ timeZone: tz, weekday:'short', month:'short', day:'2-digit', hour:'numeric', minute:'2-digit'}).format(nextOpenDate); return { status:'Market Closed', countdownLabel:'Opens in', seconds: total, holidayName: holidayName || null, nextOpenText };
+  const t=parseInTZ(now,tz); const secondsToMidnight=(24*3600)-(t.hh*3600+t.mm*60+t.ss); const secondsWholeDays=(days-1)*24*3600; const secondsNextDayToOpen=9*3600+30*60; const total=secondsToMidnight+secondsWholeDays+secondsNextDayToOpen; const nextOpenDate=new Date(now.getTime()+total*1000); const nextOpenText=new Intl.DateTimeFormat('en-US',{ timeZone: tz, weekday:'short', month:'short', day:'2-digit', hour:'numeric', minute:'2-digit'}).format(nextOpenDate); return { status:'Market Closed', countdownLabel:'Opens in', seconds: total, holidayName: nyseHolidayToday(now) || null, nextOpenText };
 }
 
 const HeroBanner = ({ user }) => {
@@ -35,26 +48,26 @@ const HeroBanner = ({ user }) => {
   useEffect(() => { const timer=setInterval(()=>setNow(new Date()),1000); return () => clearInterval(timer); }, []);
   useEffect(() => { setStatus(nextNYSEOpenClose(now)); }, [now]);
 
+  const localTZ = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Africa/Johannesburg';
   const saTime = new Intl.DateTimeFormat('en-ZA', { timeZone: 'Africa/Johannesburg', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }).format(now);
   const usTime = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }).format(now);
-  const todayLocal = new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'long', day: '2-digit' }).format(now);
+  const todayLocal = new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'long', day: '2-digit', timeZone: localTZ }).format(now);
 
-  const hour = parseInTZ(now, 'Africa/Johannesburg').hh;
+  const hourLocal = parseInTZ(now, localTZ).hh;
   let greetIcon = '🌙';
-  if (hour < 12) greetIcon = '☀️'; else if (hour < 18) greetIcon = '🌤️';
-  const greet = hour < 12 ? 'Goeie môre' : hour < 18 ? 'Goeie middag' : 'Goeie naand';
+  if (hourLocal < 12) greetIcon = '☀️'; else if (hourLocal < 18) greetIcon = '🌤️';
+  const greet = hourLocal < 12 ? 'Goeie môre' : hourLocal < 18 ? 'Goeie middag' : 'Goeie naand';
   const name = user?.name || 'Alwyn';
 
-  const openProgress = status.status === 'Market Open' ? Math.min(100, Math.max(0, (1 - status.seconds / (6.5 * 3600)) * 100)) : 0;
+  const openProgress = status.status === 'Market Open' ? Math.min(100, Math.max(0, (1 - status.seconds / ((isHalfDay(now) ? 3.5 : 6.5) * 3600)) * 100)) : 0;
 
   return (
-    <div className="relative overflow-hidden">
-      {/* Frosted luxury panel */}
-      <div className="relative glass-card p-6 glow-ring" style={{ backdropFilter: 'blur(16px) saturate(140%)' }}>
-        {/* Lined gloss overlay */}
-        <div className="pointer-events-none absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'repeating-linear-gradient(135deg, rgba(255,255,255,0.5) 0, rgba(255,255,255,0.5) 1px, transparent 1px, transparent 8px)' }} />
-        {/* Gradient border sheen */}
-        <div className="pointer-events-none absolute inset-0 rounded-xl" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.12)' }} />
+    <div className="relative">
+      {/* Elevated frosted card */}
+      <div className="relative rounded-2xl border border-white/10 bg-black/40 backdrop-blur-2xl p-6 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
+        {/* Soft gradient glow */}
+        <div className="pointer-events-none absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full opacity-[0.12] blur-3xl" style={{ background: 'radial-gradient(circle, var(--brand-start), transparent 60%)' }} />
+        <div className="pointer-events-none absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full opacity-[0.10] blur-3xl" style={{ background: 'radial-gradient(circle, var(--brand-end), transparent 60%)' }} />
 
         <div className="relative">
           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
@@ -68,11 +81,17 @@ const HeroBanner = ({ user }) => {
             {/* Right: Tiles */}
             <div className="grid grid-cols-2 gap-4 w-full xl:w-auto">
               <div className="glass-panel p-4">
-                <div className="text-xs text-gray-400">🇿🇦 Africa/Cape Town</div>
+                <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <img src="https://flagcdn.com/za.svg" alt="ZA" className="w-4 h-3 rounded-sm" />
+                  <span>Africa/Cape Town</span>
+                </div>
                 <div className="text-xl font-bold">{saTime}</div>
               </div>
               <div className="glass-panel p-4">
-                <div className="text-xs text-gray-400">🇺🇸 USA (ET)</div>
+                <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <img src="https://flagcdn.com/us.svg" alt="US" className="w-4 h-3 rounded-sm" />
+                  <span>USA (ET)</span>
+                </div>
                 <div className="text-xl font-bold">{usTime}</div>
               </div>
               <div className="glass-panel p-4 col-span-2">
