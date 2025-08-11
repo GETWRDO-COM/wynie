@@ -14,14 +14,11 @@ const NavBar = ({ activeTab, setActiveTab, user, onSettings, onLogout }) => {
 
   return (
     <header className="sticky top-0 z-50">
-      <div className="backdrop-blur-2xl bg-white/8 border-b border-white/10">
+      <div className="bg-[#070a11]/95 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="h-14 flex items-center justify-between gap-4">
-            {/* Brand */}
-            <div className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded-lg" style={{ background: 'linear-gradient(135deg, var(--brand-start), var(--brand-end))' }} />
-              <div className="hidden sm:block text-white font-medium tracking-wide">HUNT BY WRDO</div>
-            </div>
+            {/* Brand text only, no logo */}
+            <div className="text-white font-semibold tracking-wide">HUNT by WRDO</div>
             {/* Desktop nav */}
             <nav className="hidden md:block">
               <div className="flex items-center gap-1 p-1 rounded-xl border border-white/10 bg-white/5">

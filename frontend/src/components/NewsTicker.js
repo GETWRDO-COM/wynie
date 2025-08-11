@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 const FEEDS = {
   All: 'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en',
@@ -37,7 +37,7 @@ const NewsTicker = () => {
     try {
       const resp = await fetch(proxied);
       const text = await resp.text();
-      const parsed = parseRSS(text).slice(0, 30);
+      const parsed = parseRSS(text).slice(0, 40);
       setItems(parsed);
     } catch (e) {
       setItems([]);
@@ -48,38 +48,41 @@ const NewsTicker = () => {
 
   useEffect(() => {
     fetchFeed(category);
-    const id = setInterval(() => fetchFeed(category), 180000); // refresh 3 min
+    const id = setInterval(() => fetchFeed(category), 180000);
     return () => clearInterval(id);
   }, [category]);
 
-  const content = useMemo(() => {
-    if (loading) return 'Loading news…';
-    if (!items.length) return 'No headlines available right now';
-    return items.map((it) => `• ${it.title}`).join('    ');
+  const parts = useMemo(() => {
+    const arr = loading ? ['Loading news…'] : items.length ? items.map((it) => it.title) : ['No headlines available'];
+    return arr;
   }, [items, loading]);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40">
       <div className="mx-auto max-w-7xl">
-        <div className="glass-panel flex items-center gap-3 px-3 py-2 mb-3" style={{ backdropFilter: 'saturate(160%) blur(10px)' }}>
-          <div className="flex items-center gap-2 min-w-[180px]">
-            <span className="text-xs text-white/80">Breaking News</span>
-            <select value={category} onChange={(e) => setCategory(e.target.value)} className="form-select text-xs py-1 px-2">
+        <div className="backdrop-blur bg-black/50 border border-white/10 rounded-xl flex items-center gap-3 px-3 py-1.5 mb-3">
+          <div className="flex items-center gap-2 min-w-[190px] text-xs text-white/85">
+            Breaking News
+            <select value={category} onChange={(e) => setCategory(e.target.value)} className="form-select text-xs py-0.5 px-2">
               {Object.keys(FEEDS).map((k) => (
                 <option key={k} value={k}>{k}</option>
               ))}
             </select>
           </div>
           <div className="relative flex-1 overflow-hidden h-6">
-            <div className="absolute whitespace-nowrap will-change-transform animate-[ticker_30s_linear_infinite] text-xs text-white/90">
-              {content}
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-black/50 via-transparent to-black/50" />
+            <div className="absolute whitespace-nowrap will-change-transform animate-[ticker_60s_linear_infinite] text-xs text-white/90">
+              {parts.map((t, i) => (
+                <span key={i} className="inline-flex items-center">
+                  {i > 0 && <span className="mx-3 text-white/40">|</span>}
+                  {t}
+                </span>
+              ))}
             </div>
           </div>
         </div>
       </div>
-      <style>{`
-        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-      `}</style>
+      <style>{`@keyframes ticker { 0% { transform: translateX(100%);} 100% { transform: translateX(-100%);} }`}</style>
     </div>
   );
 };

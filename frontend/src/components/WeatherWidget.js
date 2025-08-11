@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
 
-// Open-Meteo free API (no key). We'll geolocate user; fallback to Paarl.
-const FALLBACK_COORDS = { lat: -33.734, lon: 18.962 }; // Paarl
+const FALLBACK_COORDS = { latitude: -33.734, longitude: 18.962 }; // Paarl
 
 function codeToEmoji(code) {
-  // Simplified mapping of weather codes
   if ([0].includes(code)) return '☀️';
   if ([1, 2, 3].includes(code)) return '🌤️';
   if ([45, 48].includes(code)) return '🌫️';
@@ -17,32 +15,44 @@ function codeToEmoji(code) {
 
 const WeatherWidget = () => {
   const [data, setData] = useState(null);
-  const [loc, setLoc] = useState(null);
+  const [place, setPlace] = useState('');
+
+  const fetchAll = async (coords) => {
+    const { latitude, longitude } = coords || FALLBACK_COORDS;
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=1&timezone=auto`;
+      const resp = await fetch(url);
+      const json = await resp.json();
+      const current = json?.current;
+      const daily = json?.daily;
+      const meta = { tz: json?.timezone };
+      // Reverse geocode for name
+      const geoResp = await fetch(`https://geocoding-api.open-meteo.com/v1/reverse?latitude=${latitude}&longitude=${longitude}&language=en`);
+      const geo = await geoResp.json();
+      const name = geo?.results?.[0]?.name || 'Current Location';
+
+      setPlace(name);
+      setData({
+        tempC: Math.round(current?.temperature_2m ?? 0),
+        code: current?.weather_code,
+        high: Math.round(daily?.temperature_2m_max?.[0] ?? 0),
+        low: Math.round(daily?.temperature_2m_min?.[0] ?? 0),
+        rain: Math.round(daily?.precipitation_probability_max?.[0] ?? 0),
+      });
+    } catch (e) {
+      setData(null);
+    }
+  };
 
   useEffect(() => {
-    const getWeather = async (coords) => {
-      const { latitude, longitude } = coords || {};
-      const lat = latitude ?? FALLBACK_COORDS.lat;
-      const lon = longitude ?? FALLBACK_COORDS.lon;
-      try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`;
-        const resp = await fetch(url);
-        const json = await resp.json();
-        setData(json?.current);
-        setLoc({ lat, lon, tz: json?.timezone });
-      } catch (e) {
-        setData(null);
-      }
-    };
-
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => getWeather(pos.coords),
-        () => getWeather(null),
+        (pos) => fetchAll(pos.coords),
+        () => fetchAll(null),
         { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
       );
     } else {
-      getWeather(null);
+      fetchAll(null);
     }
   }, []);
 
@@ -50,10 +60,10 @@ const WeatherWidget = () => {
 
   return (
     <div className="glass-panel px-4 py-3 flex items-center gap-3">
-      <div className="text-2xl">{codeToEmoji(data.weather_code)}</div>
+      <div className="text-2xl">{codeToEmoji(data.code)}</div>
       <div>
-        <div className="text-xs text-gray-400">Current Weather</div>
-        <div className="text-white font-semibold">{Math.round(data.temperature_2m)}°C</div>
+        <div className="text-xs text-gray-400">{place}</div>
+        <div className="text-white font-semibold">{data.tempC}°C • H {data.high}° • L {data.low}° • {data.rain}% rain</div>
       </div>
     </div>
   );
