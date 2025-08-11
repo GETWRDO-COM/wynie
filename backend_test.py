@@ -1675,6 +1675,169 @@ class ETFBackendTester:
         except Exception as e:
             self.log_test("Enhanced Calculations", False, f"Error: {str(e)}")
             return False
+
+    def test_msae_etf_regime_engine(self):
+        """Test MSAE and ETF Regime Engine - Phase 1 Contract"""
+        try:
+            # Test 1: GET /api/formulas/config - should return array including etf_regime config
+            config_response = self.session.get(f"{API_BASE}/formulas/config")
+            if config_response.status_code != 200:
+                self.log_test("MSAE and ETF Regime Engine", False, f"GET /api/formulas/config failed: HTTP {config_response.status_code}")
+                return False
+            
+            config_data = config_response.json()
+            if not isinstance(config_data, list):
+                self.log_test("MSAE and ETF Regime Engine", False, "formulas/config should return an array")
+                return False
+            
+            # Find etf_regime config
+            etf_regime_config = None
+            for config in config_data:
+                if config.get('kind') == 'etf_regime':
+                    etf_regime_config = config
+                    break
+            
+            if not etf_regime_config:
+                self.log_test("MSAE and ETF Regime Engine", False, "No etf_regime config found in formulas/config")
+                return False
+            
+            # Validate etf_regime config has expected defaults
+            params = etf_regime_config.get('params', {})
+            expected_defaults = {
+                'ema_fast': 20,
+                'ema_slow': 50,
+                'adx_threshold': 20
+            }
+            
+            for key, expected_value in expected_defaults.items():
+                if params.get(key) != expected_value:
+                    self.log_test("MSAE and ETF Regime Engine", False, f"etf_regime config missing or incorrect {key}: expected {expected_value}, got {params.get(key)}")
+                    return False
+            
+            # Test 2: GET /api/market/state
+            market_state_response = self.session.get(f"{API_BASE}/market/state")
+            if market_state_response.status_code != 200:
+                self.log_test("MSAE and ETF Regime Engine", False, f"GET /api/market/state failed: HTTP {market_state_response.status_code}")
+                return False
+            
+            market_state = market_state_response.json()
+            
+            # Validate market/state response structure
+            required_state_fields = ['ts', 'regime', 'msae_score', 'components', 'stale']
+            missing_state_fields = [field for field in required_state_fields if field not in market_state]
+            if missing_state_fields:
+                self.log_test("MSAE and ETF Regime Engine", False, f"market/state missing fields: {missing_state_fields}")
+                return False
+            
+            # Validate regime is one of expected values
+            regime = market_state.get('regime')
+            valid_regimes = ['UPTREND', 'DOWNTREND', 'CHOP']
+            if regime not in valid_regimes:
+                self.log_test("MSAE and ETF Regime Engine", False, f"Invalid regime: {regime}, expected one of {valid_regimes}")
+                return False
+            
+            # Validate msae_score is in range 0-100
+            msae_score = market_state.get('msae_score')
+            if not isinstance(msae_score, (int, float)) or not (0 <= msae_score <= 100):
+                self.log_test("MSAE and ETF Regime Engine", False, f"Invalid msae_score: {msae_score}, expected 0-100")
+                return False
+            
+            # Validate components structure
+            components = market_state.get('components', {})
+            expected_component_keys = ['ema20', 'ema50', 'adx', 'atr_pct', 'vix', 'vxn', 'breadth_pct_above_50dma', 'qqq_dist_from_ath_pct']
+            missing_component_keys = [key for key in expected_component_keys if key not in components]
+            if missing_component_keys:
+                self.log_test("MSAE and ETF Regime Engine", False, f"components missing keys: {missing_component_keys}")
+                return False
+            
+            # Validate stale is boolean
+            stale = market_state.get('stale')
+            if not isinstance(stale, bool):
+                self.log_test("MSAE and ETF Regime Engine", False, f"stale should be boolean, got {type(stale)}")
+                return False
+            
+            # Test 3: GET /api/market/history (should work after calling market/state)
+            market_history_response = self.session.get(f"{API_BASE}/market/history")
+            if market_history_response.status_code != 200:
+                self.log_test("MSAE and ETF Regime Engine", False, f"GET /api/market/history failed: HTTP {market_history_response.status_code}")
+                return False
+            
+            market_history = market_history_response.json()
+            if not isinstance(market_history, list):
+                self.log_test("MSAE and ETF Regime Engine", False, "market/history should return an array")
+                return False
+            
+            # After calling market/state, history should have at least one record
+            if len(market_history) == 0:
+                self.log_test("MSAE and ETF Regime Engine", False, "market/history should have at least one record after calling market/state")
+                return False
+            
+            # Test 4: GET /api/signals/etf-regime
+            etf_regime_signal_response = self.session.get(f"{API_BASE}/signals/etf-regime")
+            if etf_regime_signal_response.status_code != 200:
+                self.log_test("MSAE and ETF Regime Engine", False, f"GET /api/signals/etf-regime failed: HTTP {etf_regime_signal_response.status_code}")
+                return False
+            
+            etf_signal = etf_regime_signal_response.json()
+            
+            # Validate etf-regime signal structure
+            required_signal_fields = ['ts', 'regime', 'decision', 'weights', 'confidence', 'reason', 'params_version']
+            missing_signal_fields = [field for field in required_signal_fields if field not in etf_signal]
+            if missing_signal_fields:
+                self.log_test("MSAE and ETF Regime Engine", False, f"signals/etf-regime missing fields: {missing_signal_fields}")
+                return False
+            
+            # Validate decision is one of expected values
+            decision = etf_signal.get('decision')
+            valid_decisions = ['TQQQ', 'SQQQ', 'QQQI', 'OUT']
+            if decision not in valid_decisions:
+                self.log_test("MSAE and ETF Regime Engine", False, f"Invalid decision: {decision}, expected one of {valid_decisions}")
+                return False
+            
+            # Validate weights object and sum <= 1
+            weights = etf_signal.get('weights', {})
+            if not isinstance(weights, dict):
+                self.log_test("MSAE and ETF Regime Engine", False, f"weights should be object, got {type(weights)}")
+                return False
+            
+            weights_sum = sum(weights.values()) if weights else 0
+            if weights_sum > 1.0:
+                self.log_test("MSAE and ETF Regime Engine", False, f"weights sum {weights_sum} exceeds 1.0")
+                return False
+            
+            # Validate confidence is in range 0-1
+            confidence = etf_signal.get('confidence')
+            if not isinstance(confidence, (int, float)) or not (0 <= confidence <= 1):
+                self.log_test("MSAE and ETF Regime Engine", False, f"Invalid confidence: {confidence}, expected 0-1")
+                return False
+            
+            # Validate reason structure
+            reason = etf_signal.get('reason', {})
+            if not isinstance(reason, dict):
+                self.log_test("MSAE and ETF Regime Engine", False, f"reason should be object, got {type(reason)}")
+                return False
+            
+            # Test 5: Ensure existing endpoints still work (e.g., GET /api/dashboard)
+            dashboard_response = self.session.get(f"{API_BASE}/dashboard")
+            if dashboard_response.status_code != 200:
+                self.log_test("MSAE and ETF Regime Engine", False, f"Existing endpoint /api/dashboard broken: HTTP {dashboard_response.status_code}")
+                return False
+            
+            # Allow a second attempt for rate limits or data fetch failures
+            time.sleep(2)
+            
+            # Test market/state again to ensure consistency
+            market_state_response2 = self.session.get(f"{API_BASE}/market/state")
+            if market_state_response2.status_code != 200:
+                self.log_test("MSAE and ETF Regime Engine", False, f"Second attempt at market/state failed: HTTP {market_state_response2.status_code}")
+                return False
+            
+            self.log_test("MSAE and ETF Regime Engine", True, "All Phase 1 contract endpoints working: formulas/config with etf_regime defaults, market/state with proper structure, market/history with records, signals/etf-regime with valid payload, existing endpoints preserved")
+            return True
+            
+        except Exception as e:
+            self.log_test("MSAE and ETF Regime Engine", False, f"Error: {str(e)}")
+            return False
     
     def cleanup(self):
         """Clean up any test data created"""
