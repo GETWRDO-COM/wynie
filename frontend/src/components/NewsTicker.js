@@ -54,8 +54,7 @@ const NewsTicker = () => {
 
   const parts = useMemo(() => {
     const arr = loading ? ['Loading news…'] : items.length ? items.map((it) => it.title) : ['No headlines available'];
-    // Duplicate for continuous loop
-    return [...arr, ...arr, ...arr];
+    return [...arr, ...arr, ...arr, ...arr];
   }, [items, loading]);
 
   return (
@@ -72,7 +71,7 @@ const NewsTicker = () => {
           </div>
           <div className="relative flex-1 overflow-hidden h-6">
             <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-black/60 via-transparent to-black/60" />
-            <div className="absolute whitespace-nowrap will-change-transform animate-[ticker_180s_linear_infinite] text-xs text-white/90">
+            <div className="absolute whitespace-nowrap will-change-transform animate-[ticker_480s_linear_infinite] text-xs text-white/90">
               {parts.map((t, i) => (
                 <span key={i} className="inline-flex items-center">
                   {i > 0 && <span className="mx-3 text-white/40">|</span>}

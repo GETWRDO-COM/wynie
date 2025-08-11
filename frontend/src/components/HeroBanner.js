@@ -13,7 +13,6 @@ function getWeekday(now, timeZone) { return new Intl.DateTimeFormat('en-US', { t
 function secondsUntil(now, timeZone, targetH, targetM) { const t = parseInTZ(now, timeZone); const nowSec = t.hh * 3600 + t.mm * 60 + t.ss; const targetSec = targetH * 3600 + targetM * 60; return targetSec - nowSec; }
 function formatHMS(totalSec) { const s = Math.max(0, Math.floor(totalSec)); const h = Math.floor(s / 3600); const m = Math.floor((s % 3600) / 60); const sec = Math.floor(s % 60); return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`; }
 
-// Holiday helpers
 function easterSunday(year) { const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1; return new Date(Date.UTC(year,month-1,day)); }
 function observedDate(date) { const d=new Date(date.getTime()); const day=d.getUTCDay(); if(day===6) d.setUTCDate(d.getUTCDate()-1); if(day===0) d.setUTCDate(d.getUTCDate()+1); return d; }
 function nthWeekdayOfMonthUTC(year, monthIndex, weekday, n){const d=new Date(Date.UTC(year,monthIndex,1));let c=0;while(d.getUTCMonth()===monthIndex){if(d.getUTCDay()===weekday){c+=1;if(c===n) return new Date(d.getTime());} d.setUTCDate(d.getUTCDate()+1);}return new Date(Date.UTC(year,monthIndex,1));}
@@ -43,8 +42,7 @@ const HeroBanner = ({ user }) => {
   const todayLocal = new Intl.DateTimeFormat('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: '2-digit', timeZone: localTZ }).format(now);
 
   const hourLocal = parseInTZ(now, localTZ).hh;
-  let greetIcon = '🌙';
-  if (hourLocal < 12) greetIcon = '☀️'; else if (hourLocal < 18) greetIcon = '🌤️';
+  let greetIcon = '🌙'; if (hourLocal < 12) greetIcon = '☀️'; else if (hourLocal < 18) greetIcon = '🌤️';
   const greet = hourLocal < 12 ? 'Goeie môre' : hourLocal < 18 ? 'Goeie middag' : 'Goeie naand';
   const name = user?.name || 'Alwyn';
 
@@ -56,43 +54,38 @@ const HeroBanner = ({ user }) => {
         <div className="pointer-events-none absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full opacity-[0.12] blur-3xl" style={{ background: 'radial-gradient(circle, var(--brand-start), transparent 60%)' }} />
         <div className="pointer-events-none absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full opacity-[0.10] blur-3xl" style={{ background: 'radial-gradient(circle, var(--brand-end), transparent 60%)' }} />
 
+        {/* Top-right date pill */}
+        <div className="absolute right-4 top-4 px-3 py-1 rounded-lg border border-white/10 text-sm font-semibold text-white/90" style={{ background: 'linear-gradient(135deg, color-mix(in_oklab, var(--brand-start) 14%, transparent), color-mix(in_oklab, var(--brand-end) 14%, transparent))' }}>
+          Today is {todayLocal}
+        </div>
+
         <div className="relative">
           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
             {/* Left: Title and greeting */}
             <div>
               <h1 className="mt-1 text-3xl md:text-4xl font-bold">HUNT by WRDO</h1>
               <p className="text-gray-300 mt-1">{greet} {name} {greetIcon}</p>
-              <div className="mt-2 inline-flex items-center px-3 py-1 rounded-lg border border-white/10 text-sm" style={{ background: 'linear-gradient(135deg, color-mix(in_oklab, var(--brand-start) 10%, transparent), color-mix(in_oklab, var(--brand-end) 10%, transparent))' }}>
-                <span className="text-white/90">Today is {todayLocal}</span>
-              </div>
             </div>
 
             {/* Right: Tiles */}
             <div className="grid grid-cols-2 gap-4 w-full xl:w-auto">
               <div className="glass-panel p-4">
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <img src="https://flagcdn.com/za.svg" alt="ZA" className="w-4 h-3 rounded-sm" />
-                  <span>Africa/Cape Town</span>
-                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-400"><img src="https://flagcdn.com/za.svg" alt="ZA" className="w-4 h-3 rounded-sm" /><span>Africa/Cape Town</span></div>
                 <div className="text-xl font-bold">{saTime}</div>
               </div>
               <div className="glass-panel p-4">
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <img src="https://flagcdn.com/us.svg" alt="US" className="w-4 h-3 rounded-sm" />
-                  <span>USA (ET)</span>
-                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-400"><img src="https://flagcdn.com/us.svg" alt="US" className="w-4 h-3 rounded-sm" /><span>USA (ET)</span></div>
                 <div className="text-xl font-bold">{usTime}</div>
               </div>
               <div className="glass-panel p-4 col-span-2">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <div>
-                    <div className="text-xs text-gray-400">Market Status</div>
-                    <div className="text-white font-semibold">{status.status}{status.holidayName ? ` — ${status.holidayName}` : ''}</div>
-                    {status.nextOpenText && (<div className="text-xs text-gray-400">Next open: {status.nextOpenText} ET</div>)}
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs text-gray-400">{status.countdownLabel}</div>
-                    <div className="text-white font-mono text-lg">{formatHMS(status.seconds)}</div>
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <div className="text-xs text-gray-400">Market Status</div>
+                      <div className="text-white font-semibold">{status.status}{status.holidayName ? ` — ${status.holidayName}` : ''}</div>
+                      {status.nextOpenText && (<div className="text-xs text-gray-400">Next open: {status.nextOpenText} ET</div>)}
+                    </div>
+                    <div className="px-3 py-1 rounded-lg bg-white/10 border border-white/10 text-white font-semibold text-sm">Opens in {formatHMS(status.seconds)}</div>
                   </div>
                 </div>
                 <div className="mt-3 grid grid-cols-1 lg:grid-cols-2 gap-3">

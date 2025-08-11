@@ -18,13 +18,8 @@ const CurrencyTicker = () => {
   };
 
   const fetchRates = async () => {
-    try {
-      setErr('');
-      try { setRates(await fetchPrimary()); }
-      catch { setRates(await fetchFallback()); }
-    } catch {
-      setErr('FX unavailable');
-    }
+    try { setErr(''); try { setRates(await fetchPrimary()); } catch { setRates(await fetchFallback()); } }
+    catch { setErr('FX unavailable'); }
   };
 
   useEffect(() => { fetchRates(); const id = setInterval(fetchRates, 60_000); return () => clearInterval(id); }, []);
@@ -42,15 +37,15 @@ const CurrencyTicker = () => {
   }, [rates]);
 
   return (
-    <div className="glass-panel p-3">
-      <div className="text-xs text-gray-400 mb-2">FX (ZAR conversions)</div>
+    <div className="glass-panel p-4">
+      <div className="text-xs text-gray-400 mb-3">FX (ZAR conversions)</div>
       {err && <div className="text-xs text-red-300 mb-2">{err}</div>}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         {rows.map((r, i) => (
-          <div key={i} className="flex items-center gap-2 bg-white/5 rounded px-2 py-1">
-            <img src={r.flag} alt="flag" className="w-4 h-3 rounded-sm" />
-            <div className="text-xs text-white/90">{r.pair}</div>
-            <div className="ml-auto text-xs text-white font-semibold">R{r.zar != null ? r.zar.toFixed(2) : '--'}</div>
+          <div key={i} className="flex items-center gap-3 bg-white/5 rounded-lg px-3 py-2 border border-white/10">
+            <img src={r.flag} alt="flag" className="w-5 h-4 rounded-sm" />
+            <div className="text-sm text-white/90 font-medium">{r.pair}</div>
+            <div className="ml-auto text-sm text-white font-semibold">R{r.zar != null ? r.zar.toFixed(2) : '--'}</div>
           </div>
         ))}
       </div>

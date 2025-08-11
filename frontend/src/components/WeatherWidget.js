@@ -40,34 +40,18 @@ const WeatherWidget = () => {
   const [data, setData] = useState(null);
   const [place, setPlace] = useState('');
 
-  // Always load fallback first so it never shows --°C
   useEffect(() => {
     (async () => {
-      try {
-        const w = await fetchWeather(FALLBACK.latitude, FALLBACK.longitude);
-        setData(w);
-        setPlace(FALLBACK.name);
-      } catch {
-        setData({ tempC: 0, code: 1, high: 0, low: 0, rain: 0 });
-        setPlace(FALLBACK.name);
-      }
+      try { const w = await fetchWeather(FALLBACK.latitude, FALLBACK.longitude); setData(w); setPlace(FALLBACK.name); }
+      catch { setData({ tempC: 0, code: 1, high: 0, low: 0, rain: 0 }); setPlace(FALLBACK.name); }
     })();
   }, []);
 
-  // Then attempt geolocation and update if allowed
   useEffect(() => {
     const tryGeo = async () => {
       if (!navigator.geolocation) return;
       navigator.geolocation.getCurrentPosition(async (pos) => {
-        try {
-          const { latitude, longitude } = pos.coords;
-          const w = await fetchWeather(latitude, longitude);
-          setData(w);
-          const n = await reverseGeocode(latitude, longitude);
-          setPlace(n);
-        } catch {
-          // keep fallback
-        }
+        try { const { latitude, longitude } = pos.coords; const w = await fetchWeather(latitude, longitude); setData(w); const n = await reverseGeocode(latitude, longitude); setPlace(n); } catch {}
       });
     };
     tryGeo();
@@ -76,11 +60,16 @@ const WeatherWidget = () => {
   if (!data) return <div className="glass-panel p-3 text-xs text-gray-300">Weather: -- °C</div>;
 
   return (
-    <div className="glass-panel px-4 py-3 flex items-center gap-3">
-      <div className="text-2xl">{codeToEmoji(data.code)}</div>
-      <div>
-        <div className="text-xs text-gray-400">{place}</div>
-        <div className="text-white font-semibold">{data.tempC}°C • H {data.high}° • L {data.low}° • {data.rain}% rain</div>
+    <div className="glass-panel px-4 py-3 flex items-center gap-4">
+      <div className="text-3xl leading-none">{codeToEmoji(data.code)}</div>
+      <div className="flex-1">
+        <div className="text-xs text-gray-400">Current Location — {place}</div>
+        <div className="text-white text-xl font-semibold">{data.tempC}°C</div>
+        <div className="mt-1 flex flex-wrap gap-2">
+          <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-xs text-white/90">H {data.high}°</span>
+          <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-xs text-white/90">L {data.low}°</span>
+          <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-xs text-white/90">{data.rain}% rain</span>
+        </div>
       </div>
     </div>
   );
