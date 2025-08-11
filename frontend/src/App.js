@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
-import { FaEye, FaEyeSlash, FaCog, FaSignOutAlt, FaLock, FaUser, FaRobot, FaChartLine, FaTable, FaTrademark, FaSpinner } from 'react-icons/fa';
-import { Line } from 'react-chartjs-2';
+import { FaEye, FaEyeSlash, FaCog, FaSignOutAlt, FaLock, FaUser, FaSpinner } from 'react-icons/fa';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import SwingAnalysisGrid from './components/SwingAnalysisGrid';
 import AIAnalysisTab from './components/AIAnalysisTab';
@@ -11,6 +10,7 @@ import NavBar from './components/NavBar';
 import AIChat from './components/AIChat';
 import HeroBanner from './components/HeroBanner';
 import NewsTicker from './components/NewsTicker';
+import DashboardQuickSections from './components/DashboardQuickSections';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
@@ -33,7 +33,7 @@ const LoginForm = ({ onLogin }) => {
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 glow-ring" style={{ background: 'linear-gradient(135deg, var(--brand-start), var(--brand-end))' }}>
               <FaLock className="text-2xl text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2 neon-text">HUNT BY WRDO</h1>
+            <h1 className="text-3xl font-bold text-white mb-2 neon-text">HUNT by WRDO</h1>
             <p className="text-gray-300">Secure Access Portal</p>
           </div>
           <form onSubmit={handleLogin} className="space-y-6">
@@ -42,10 +42,10 @@ const LoginForm = ({ onLogin }) => {
               <input type="email" value={credentials.email} onChange={(e) => setCredentials({ ...credentials, email: e.target.value })} className="w-full form-input text-base" placeholder="Enter your email" required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2"><FaLock className="inline mr-2" />Password</label>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
               <div className="relative">
                 <input type={showPassword ? 'text' : 'password'} value={credentials.password} onChange={(e) => setCredentials({ ...credentials, password: e.target.value })} className="w-full form-input pr-12 text-base" placeholder="Enter your password" required />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">{showPassword ? <FaEyeSlash /> : <FaEye />}</button>
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">{showPassword ? 'Hide' : 'Show'}</button>
               </div>
             </div>
             {error && (<div className="bg-red-900/60 border border-red-700 rounded-lg p-3 text-red-300 text-sm">{error}</div>)}
@@ -72,9 +72,6 @@ function App() {
   const [chartData, setChartData] = useState({});
   const [selectedTimeframe, setSelectedTimeframe] = useState('1m');
   const [watchlists, setWatchlists] = useState([]);
-  const [selectedStock, setSelectedStock] = useState(null);
-  const [showFormulas, setShowFormulas] = useState(false);
-  const [exportLoading, setExportLoading] = useState(false);
 
   useEffect(() => { const token = localStorage.getItem('authToken'); const userData = localStorage.getItem('user'); if (token && userData) { try { setUser(JSON.parse(userData)); } catch { localStorage.removeItem('authToken'); localStorage.removeItem('user'); } } setLoading(false); }, []);
   useEffect(() => { if (user) { fetchInitialData(); const i = setInterval(fetchInitialData, 30000); return () => clearInterval(i); } }, [user]);
@@ -91,7 +88,7 @@ function App() {
   const handleLogin = (u) => setUser(u);
   const handleLogout = () => { localStorage.removeItem('authToken'); localStorage.removeItem('user'); setUser(null); setActiveTab('dashboard'); };
 
-  if (loading) return (<ThemeWrapper><div className="min-h-screen flex items-center justify-center"><div className="text-center"><FaSpinner className="animate-spin text-4xl text-blue-400 mx-auto mb-4" /><p className="text-gray-300">Loading HUNT BY WRDO...</p></div></div></ThemeWrapper>);
+  if (loading) return (<ThemeWrapper><div className="min-h-screen flex items-center justify-center"><div className="text-center"><FaSpinner className="animate-spin text-4xl text-blue-400 mx-auto mb-4" /><p className="text-gray-300">Loading HUNT by WRDO...</p></div></div></ThemeWrapper>);
   if (!user) return <LoginForm onLogin={handleLogin} />;
 
   return (
@@ -102,11 +99,12 @@ function App() {
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
               <HeroBanner user={user} />
+              <DashboardQuickSections chartData={chartData} swingLeaders={swingLeaders} watchlists={watchlists} marketScore={marketScore} />
             </div>
           )}
-          {activeTab === 'swing-grid' && (<div className="glass-card p-6 animate-fade-in"><SwingAnalysisGrid api={api} etfs={selectedSector ? etfs.filter(e => e.sector === selectedSector) : etfs} sectors={sectors} selectedSector={selectedSector} setSelectedSector={setSelectedSector} analyzeChart={() => {}} addToWatchlist={() => {}} /></div>)}
+          {activeTab === 'swing-grid' && (<div className="glass-panel p-6 animate-fade-in"><SwingAnalysisGrid api={api} etfs={selectedSector ? etfs.filter(e => e.sector === selectedSector) : etfs} sectors={sectors} selectedSector={selectedSector} setSelectedSector={setSelectedSector} analyzeChart={() => {}} addToWatchlist={() => {}} /></div>)}
           {activeTab === 'ai-analysis' && (<div className="space-y-6 animate-fade-in"><AIAnalysisTab api={api} addToWatchlist={() => {}} /></div>)}
-          {activeTab === 'spreadsheet' && (<div className="glass-card p-6 animate-fade-in"><SpreadsheetTab api={api} etfs={etfs} sectors={sectors} selectedSector={selectedSector} setSelectedSector={setSelectedSector} exportLoading={exportLoading} setExportLoading={setExportLoading} /></div>)}
+          {activeTab === 'spreadsheet' && (<div className="glass-panel p-6 animate-fade-in"><SpreadsheetTab api={api} etfs={etfs} sectors={sectors} selectedSector={selectedSector} setSelectedSector={setSelectedSector} exportLoading={false} setExportLoading={() => {}} /></div>)}
           {activeTab === 'ai-chat' && (<div className="animate-fade-in"><AIChat api={api} user={user} /></div>)}
         </main>
       </div>

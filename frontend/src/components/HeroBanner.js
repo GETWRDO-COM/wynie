@@ -58,44 +58,33 @@ const HeroBanner = ({ user }) => {
         </div>
 
         <div className="relative">
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            {/* Left: Title and greeting */}
-            <div>
-              <h1 className="mt-1 text-3xl md:text-4xl font-bold">HUNT by WRDO</h1>
-              <p className="text-gray-300 mt-1">{greet} {name} {greetIcon}</p>
-              <div className="mt-24 xl:mt-28" />
+          {/* Greeting */}
+          <h1 className="mt-1 text-3xl md:text-4xl font-bold">HUNT by WRDO</h1>
+          <p className="text-gray-300 mt-1 mb-4">{greet} {name} {greetIcon}</p>
+
+          {/* Clocks + Market below greeting */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-4">
+            <div className="glass-panel p-4">
+              <div className="flex items-center gap-2 text-xs text-gray-400"><img src="https://flagcdn.com/za.svg" alt="ZA" className="w-4 h-3 rounded-sm" /><span>Africa/Cape Town</span></div>
+              <div className="text-xl font-bold">{saTime}</div>
             </div>
-
-            {/* Right: Clocks and info */}
-            <div>
-              <div className="grid grid-cols-2 gap-3 mb-3">
-                <div className="glass-panel p-4">
-                  <div className="flex items-center gap-2 text-xs text-gray-400"><img src="https://flagcdn.com/za.svg" alt="ZA" className="w-4 h-3 rounded-sm" /><span>Africa/Cape Town</span></div>
-                  <div className="text-xl font-bold">{saTime}</div>
-                </div>
-                <div className="glass-panel p-4">
-                  <div className="flex items-center gap-2 text-xs text-gray-400"><img src="https://flagcdn.com/us.svg" alt="US" className="w-4 h-3 rounded-sm" /><span>USA (ET)</span></div>
-                  <div className="text-xl font-bold">{usTime}</div>
-                </div>
-              </div>
-
-              <div className="glass-panel p-4 mb-3">
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-                  <div>
-                    <div className="text-xs text-gray-400">Market Status</div>
-                    <div className="text-white font-semibold">{status.status}{status.holidayName ? ` — ${status.holidayName}` : ''}</div>
-                    {status.nextOpenText && (<div className="text-xs text-gray-400">Next open: {status.nextOpenText} ET</div>)}
-                  </div>
-                  <div className="px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white font-bold text-base sm:text-lg">Opens in {formatHMS(status.seconds)}</div>
-                </div>
-              </div>
-
-              {/* Under date: Weather then FX */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                <WeatherWidget />
-                <CurrencyTicker />
-              </div>
+            <div className="glass-panel p-4">
+              <div className="flex items-center gap-2 text-xs text-gray-400"><img src="https://flagcdn.com/us.svg" alt="US" className="w-4 h-3 rounded-sm" /><span>USA (ET)</span></div>
+              <div className="text-xl font-bold">{usTime}</div>
             </div>
+            <div className="glass-panel p-4 flex items-center justify-between">
+              <div>
+                <div className="text-xs text-gray-400">Market Status</div>
+                <div className="text-white font-semibold">{status.status}{status.holidayName ? ` — ${status.holidayName}` : ''}</div>
+              </div>
+              <div className="px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white font-bold text-base sm:text-lg">Opens in {formatHMS(status.seconds)}</div>
+            </div>
+          </div>
+
+          {/* Weather under date (right), FX under weather */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <WeatherWidget />
+            <CurrencyTicker />
           </div>
         </div>
       </div>

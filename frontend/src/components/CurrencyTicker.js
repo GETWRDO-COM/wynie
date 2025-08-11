@@ -9,31 +9,26 @@ const CurrencyTicker = () => {
     const resp = await fetch('https://api.exchangerate.host/latest?base=ZAR&symbols=USD,EUR,GBP,JPY,CNY');
     const data = await resp.json();
     if (!data || !data.rates) throw new Error('no primary');
-    return { rates: data.rates, ts: data.date };
+    return { rates: data.rates };
   };
   const fetchFallback = async () => {
     const resp = await fetch('https://open.er-api.com/v6/latest/ZAR');
     const data = await resp.json();
-    if (data && data.result === 'success' && data.rates) return { rates: { USD: data.rates.USD, EUR: data.rates.EUR, GBP: data.rates.GBP, JPY: data.rates.JPY, CNY: data.rates.CNY }, ts: data.time_last_update_utc };
+    if (data && data.result === 'success' && data.rates) return { rates: { USD: data.rates.USD, EUR: data.rates.EUR, GBP: data.rates.GBP, JPY: data.rates.JPY, CNY: data.rates.CNY } };
     throw new Error('no fallback');
   };
 
   const fetchRates = async () => {
     try {
       setErr('');
-      try {
-        const r = await fetchPrimary();
-        setRates(r.rates); setUpdatedAt(new Date());
-      } catch {
-        const r = await fetchFallback();
-        setRates(r.rates); setUpdatedAt(new Date());
-      }
+      try { const r = await fetchPrimary(); setRates(r.rates); setUpdatedAt(new Date()); }
+      catch { const r = await fetchFallback(); setRates(r.rates); setUpdatedAt(new Date()); }
     } catch {
       setErr('FX unavailable');
     }
   };
 
-  useEffect(() => { fetchRates(); const id = setInterval(fetchRates, 60_000); return () => clearInterval(id); }, []);
+  useEffect(() => { fetchRates(); const id = setInterval(fetchRates, 900000); return () => clearInterval(id); }, []); // 15 minutes
 
   const rows = useMemo(() => {
     if (!rates) return [];
@@ -47,7 +42,7 @@ const CurrencyTicker = () => {
     ];
   }, [rates]);
 
-  const updated = updatedAt ? new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(updatedAt) : '--:--:--';
+  const updated = updatedAt ? new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(updatedAt) : '--:--:--';
 
   return (
     <div className="glass-panel p-4">
