@@ -100,7 +100,7 @@ function sma(arr, n, accessor = (d) => d) {
 function rsi(values, n = 14) {
   let gains = 0, losses = 0
   const res = Array(values.length).fill(null)
-  for (let i = 1; i &lt;= n; i++) {
+  for (let i = 1; i <= n; i++) {
     const ch = values[i] - values[i - 1]
     if (ch &gt; 0) gains += ch; else losses -= ch
   }
