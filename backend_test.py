@@ -467,6 +467,8 @@ class BackendTester:
         print(f"Base URL: {self.base_url}")
         
         self.test_marketdata_endpoints()
+        self.test_screener_endpoint()
+        self.test_websocket_quotes()
         self.test_watchlists_crud()
         self.test_columns_endpoints()
         self.test_ratings_compute()
