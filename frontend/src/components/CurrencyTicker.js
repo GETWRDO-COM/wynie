@@ -53,11 +53,12 @@ const CurrencyTicker = () => {
       {err && <div className="text-xs text-red-300 mb-2">{err}</div>}
       <div className="divide-y divide-white/10">
         {rows.map((r, i) => (
-          <div key={i} className="flex items-center gap-3 py-2">
+          <div key={i} className="grid grid-cols-[20px,auto,auto,1fr,auto] items-center gap-3 py-2">
             <img src={r.flag} alt="flag" className="w-5 h-4 rounded-sm" />
-            <div className="text-sm text-white/90 w-20">{r.pair}</div>
+            <div className="text-sm text-white/90">{r.pair}</div>
             <div className="text-xs text-gray-400">{r.code}</div>
-            <div className="ml-auto text-sm text-white font-semibold">R{r.zar != null ? r.zar.toFixed(2) : '--'}</div>
+            <div />
+            <div className="text-sm text-white font-semibold">R{r.zar != null ? r.zar.toFixed(2) : '--'}</div>
           </div>
         ))}
       </div>

@@ -1,43 +1,27 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
 const FEEDS = {
-  All: 'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en',
-  USA: 'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en',
-  World: 'https://news.google.com/rss/search?q=world%20news&hl=en-US&gl=US&ceid=US:en',
-  'South Africa': 'https://news.google.com/rss?hl=en-ZA&gl=ZA&ceid=ZA:en',
-  'Stock Market': 'https://news.google.com/rss/search?q=stock%20market&hl=en-US&gl=US&ceid=US:en',
-  'Finance News': 'https://news.google.com/rss/search?q=finance&hl=en-US&gl=US&ceid=US:en',
+  All: 'All',
+  USA: 'USA',
+  World: 'World',
+  'South Africa': 'South Africa',
+  'Stock Market': 'Stock Market',
+  'Finance News': 'Finance News',
 };
-
-function parseRSS(xmlText) {
-  try {
-    const items = [];
-    const doc = new window.DOMParser().parseFromString(xmlText, 'text/xml');
-    const nodes = doc.querySelectorAll('item');
-    nodes.forEach((n) => {
-      const title = n.querySelector('title')?.textContent || '';
-      const link = n.querySelector('link')?.textContent || '#';
-      if (title) items.push({ title, link });
-    });
-    return items;
-  } catch {
-    return [];
-  }
-}
 
 const NewsTicker = () => {
   const [category, setCategory] = useState('All');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+
   const fetchFeed = async (cat) => {
-    const url = FEEDS[cat] || FEEDS.All;
-    const proxied = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
     setLoading(true);
     try {
-      const resp = await fetch(proxied);
-      const text = await resp.text();
-      const parsed = parseRSS(text).slice(0, 40);
+      const resp = await fetch(`${BACKEND_URL}/api/news?category=${encodeURIComponent(cat)}`);
+      const data = await resp.json();
+      const parsed = (data && data.items) ? data.items.slice(0, 50) : [];
       setItems(parsed);
     } catch (e) {
       setItems([]);
