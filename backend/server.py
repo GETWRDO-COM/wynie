@@ -22,6 +22,11 @@ import requests
 import bcrypt
 import jwt
 from emergentintegrations.llm.chat import LlmChat, UserMessage
+from xml.etree import ElementTree as ET
+from hashlib import sha256
+import base64
+from cryptography.fernet import Fernet
+from urllib.parse import quote
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
