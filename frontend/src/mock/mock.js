@@ -102,7 +102,7 @@ function rsi(values, n = 14) {
   const res = Array(values.length).fill(null)
   for (let i = 1; i <= n; i++) {
     const ch = values[i] - values[i - 1]
-    if (ch &gt; 0) gains += ch; else losses -= ch
+    if (ch > 0) gains += ch; else losses -= ch
   }
   let avgGain = gains / n
   let avgLoss = losses / n
