@@ -181,7 +181,7 @@ function percentile(values, v) {
 }
 
 function computeRS(universe, windowDays = 63) { // ~3M trading days
-  const returns = universe.map((row) =&gt; {
+  const returns = universe.map((row) => {
     const candles = genOhlc(row.symbol, 240, 100 + SYMBOLS.indexOf(row.symbol))
     const closes = candles.map((c) =&gt; c.close)
     const end = closes.at(-1)
