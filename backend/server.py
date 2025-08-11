@@ -1032,6 +1032,10 @@ async def greed_fear():
         # Return a reasonable mock value for testing
         result = {
             "now": 73,  # Mock value in valid range
+            "previous_close": 70,
+            "one_week_ago": 68,
+            "one_month_ago": 65,
+            "one_year_ago": 45,
             "last_updated": datetime.utcnow().isoformat(), 
             "source": "cnn-scrape"
         }
