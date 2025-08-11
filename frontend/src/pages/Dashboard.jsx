@@ -213,7 +213,7 @@ function Screener({ universe, setRows, setSelected }){
   useEffect(()=>{ run() }, [universe])
 
   const run = ()=>{
-    const res = universe.filter(r => r.last &gt;= minPrice &amp;&amp; r.volume &gt;= minVol &amp;&amp; r.rsi14 &gt;= minRSI &amp;&amp; r.rsi14 &lt;= maxRSI)
+    const res = universe.filter(r => r.last >= minPrice && r.volume >= minVol && r.rsi14 >= minRSI && r.rsi14 <= maxRSI)
     setRows(res)
   }
 
