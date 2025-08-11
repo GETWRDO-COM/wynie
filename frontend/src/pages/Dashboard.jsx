@@ -7,9 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Separator } from "../components/ui/separator"
 import DataTable from "../components/DataTable"
 import ColumnSettings from "../components/ColumnSettings"
-import { getCandles as getMockCandles, computeRS as computeMockRS, computeAS as computeMockAS, LS } from "../mock/mock"
-import { Settings2, ListPlus, List, Pencil, Eraser, LineChart } from "lucide-react"
+import ScreenerPanel from "./ScreenerPanel"
 import { getBars, getLogo, getQuotes, computeRatings, getColumnSchema, getColumnPresets, saveColumnPreset } from "../services/api"
+import { Settings2, ListPlus, List, Pencil, Eraser, LineChart } from "lucide-react"
+import useQuotesWS from "../hooks/useQuotesWS"
+import { LS } from "../mock/mock"
 
 function useLocalState(key, initial) {
   const [v, setV] = useState(()=> LS.get(key, initial))
@@ -18,25 +20,20 @@ function useLocalState(key, initial) {
 }
 
 // Simple SVG candle chart as placeholder until TradingView package is provided
-function CandleChart({ symbol, drawings, setDrawings, useLive=true }) {
+function CandleChart({ symbol, drawings, setDrawings }) {
   const [bars, setBars] = useState([])
   useEffect(()=>{
     let cancelled = false
     ;(async()=>{
       try {
-        if (useLive) {
-          const to = new Date().toISOString().slice(0,10)
-          const from = new Date(new Date().setFullYear(new Date().getFullYear()-1)).toISOString().slice(0,10)
-          const d = await getBars(symbol, '1D', from, to)
-          if (!cancelled) setBars(d.bars||[])
-        } else {
-          const d = getMockCandles(symbol, 180)
-          if (!cancelled) setBars(d.map(c=>({ t:c.time, o:c.open, h:c.high, l:c.low, c:c.close, v:c.volume })))
-        }
+        const to = new Date().toISOString().slice(0,10)
+        const from = new Date(new Date().setFullYear(new Date().getFullYear()-1)).toISOString().slice(0,10)
+        const d = await getBars(symbol, '1D', from, to)
+        if (!cancelled) setBars(d.bars||[])
       } catch { setBars([]) }
     })()
     return ()=>{ cancelled = true }
-  }, [symbol, useLive])
+  }, [symbol])
 
   const W = 820, H = 420, PAD = 40
   const highs = bars.map(c=> c.h), lows = bars.map(c=> c.l)
@@ -102,15 +99,11 @@ export default function Dashboard() {
   const [presets, setPresets] = useLocalState("column_presets", {})
   const [drawings, setDrawings] = useLocalState("drawings", {})
   const [logos, setLogos] = useLocalState("logos", {})
-  const [schema, setSchema] = useState(null)
 
-  // Load schema & presets from backend
-  useEffect(()=>{ (async()=>{
-    try{ const s = await getColumnSchema(); setSchema(s); } catch {}
-    try{ const p = await getColumnPresets(); setPresets(p) } catch {}
-  })() }, [])
+  // live quotes via WS
+  const quotesMap = useQuotesWS(watchSymbols)
 
-  // Load quotes for the watchlist
+  // Load initial quotes for table
   useEffect(()=>{
     (async()=>{
       try{
@@ -133,6 +126,16 @@ export default function Dashboard() {
       } catch(e){ console.error(e) }
     })()
   }, [watchSymbols])
+
+  // Apply live quotes onto rows
+  useEffect(()=>{
+    if (!quotesMap || Object.keys(quotesMap).length===0) return
+    setRows(prev => prev.map(r => {
+      const q = quotesMap[r.symbol]
+      if (!q) return r
+      return { ...r, last: q.last ?? r.last, changePct: q.changePct ?? r.changePct, volume: q.volume ?? r.volume }
+    }))
+  }, [quotesMap])
 
   // Fetch RS/AS when windows or symbols change
   useEffect(()=>{
@@ -166,7 +169,7 @@ export default function Dashboard() {
     if (!watchSymbols.includes(s)) setWatchSymbols([...watchSymbols, s])
   }
 
-  const savePreset = async (name)=>{ if(!name) return; try { await saveColumnPreset(name, visibleColumns); setPresets(prev=> ({...prev, [name]: visibleColumns})) } catch { setPresets(prev=> ({...prev, [name]: visibleColumns})) } }
+  const savePreset = async (name)=>{ if(!name) return; setPresets(prev=> ({...prev, [name]: visibleColumns})) }
   const loadPreset = (name)=>{ if(!name) return; const cols = presets[name]; if (cols) setVisibleColumns(cols) }
   const resetRecommended = ()=> setVisibleColumns(["logo","symbol","last","changePct","volume","avgVol20d","runRate20d","sma20","sma50","sma200","rsi14","RS","AS","notes"])
 
@@ -232,7 +235,7 @@ export default function Dashboard() {
                 </div>
               </TabsContent>
               <TabsContent value="screener">
-                <Screener rows={rows} setRows={setRows} setSelected={setSelected} />
+                <ScreenerPanel onResults={(rows)=> setRows(rows)} />
               </TabsContent>
             </Tabs>
           </div>
@@ -240,50 +243,12 @@ export default function Dashboard() {
         <PanelResizeHandle className="w-1 bg-border" />
         <Panel defaultSize={70} minSize={35}>
           <div className="h-full p-3">
-            <CandleChart symbol={selected} drawings={drawings} setDrawings={setDrawings} useLive={true} />
+            <CandleChart symbol={selected} drawings={drawings} setDrawings={setDrawings} />
           </div>
         </Panel>
       </PanelGroup>
 
-      <ColumnSettings open={openCol} onOpenChange={setOpenCol} visibleColumns={visibleColumns} setVisibleColumns={setVisibleColumns} presets={presets} savePreset={savePreset} loadPreset={loadPreset} resetRecommended={resetRecommended} />
+      <ColumnSettings open={openCol} onOpenChange={setOpenCol} visibleColumns={visibleColumns} setVisibleColumns={setVisibleColumns} presets={presets} savePreset={savePreset} loadPreset={(name)=> { const cols = presets[name]; if (cols) setVisibleColumns(cols) }} resetRecommended={()=> setVisibleColumns(["logo","symbol","last","changePct","volume","avgVol20d","runRate20d","sma20","sma50","sma200","rsi14","RS","AS","notes"]) } />
     </div>
-  )
-}
-
-function Screener({ rows, setRows, setSelected }){
-  const [minPrice, setMinPrice] = useState(5)
-  const [minVol, setMinVol] = useState(500000)
-  const [minRSI, setMinRSI] = useState(0)
-  const [maxRSI, setMaxRSI] = useState(100)
-
-  const run = ()=>{
-    const res = rows.filter(r => (r.last ?? 0) >= minPrice && (r.volume ?? 0) >= minVol && (r.rsi14 ?? 50) >= minRSI && (r.rsi14 ?? 50) <= maxRSI)
-    setRows(res)
-  }
-
-  return (
-    <Card>
-      <CardHeader className="py-2"><CardTitle className="text-base">Quick Screener</CardTitle></CardHeader>
-      <CardContent className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-          <label className="text-sm">Min Price
-            <Input type="number" value={minPrice} onChange={(e)=> setMinPrice(parseFloat(e.target.value||0))} />
-          </label>
-          <label className="text-sm">Min Volume
-            <Input type="number" value={minVol} onChange={(e)=> setMinVol(parseInt(e.target.value||0))} />
-          </label>
-          <label className="text-sm">Min RSI
-            <Input type="number" value={minRSI} onChange={(e)=> setMinRSI(parseFloat(e.target.value||0))} />
-          </label>
-          <label className="text-sm">Max RSI
-            <Input type="number" value={maxRSI} onChange={(e)=> setMaxRSI(parseFloat(e.target.value||0))} />
-          </label>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={run}>Run</Button>
-          <Button variant="secondary" onClick={()=> { setMinPrice(5); setMinVol(500000); setMinRSI(0); setMaxRSI(100); }}>Reset</Button>
-        </div>
-      </CardContent>
-    </Card>
   )
 }
