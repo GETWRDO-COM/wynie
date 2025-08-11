@@ -174,7 +174,7 @@ function getMockUniverse() {
 
 // Percentile rank helper
 function percentile(values, v) {
-  const sorted = [...values].sort((a,b) =&gt; a-b)
+  const sorted = [...values].sort((a,b) => a-b)
   const idx = sorted.findIndex((x) =&gt; x &gt; v)
   const rank = idx === -1 ? sorted.length : idx
   return Math.round((rank / sorted.length) * 100)
