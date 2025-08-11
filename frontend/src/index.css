@@ -2,41 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Host Grotesk font-face - Bold from kit, Regular/Medium web fallbacks */
-@font-face {
-  font-family: 'Host Grotesk';
-  src: url('/assets/fonts/HostGrotesk-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Host Grotesk';
-  src: url('/assets/fonts/HostGrotesk-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Host Grotesk';
-  src: url('/assets/fonts/HostGrotesk-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
 :root {
-  --brand-start: #00d4ff; /* WRDO gradient start */
-  --brand-end: #7c3aed;   /* WRDO gradient end (purple-600) */
+  --brand-start: #00d4ff;
+  --brand-end: #7c3aed;
 }
 
 body {
   margin: 0;
-  font-family: 'Host Grotesk', Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
-    "Helvetica Neue", sans-serif;
+  font-family: 'Host Grotesk', Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+    'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-code { font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace; }
+code { font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace; }

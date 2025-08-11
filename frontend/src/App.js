@@ -25,7 +25,7 @@ const LoginForm = ({ onLogin }) => {
   return (
     <ThemeWrapper>
       <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="glass-panel glow-ring p-8 w-full max-w-md">
+        <div className="glass-panel glow-ring p-8 w-full max-w-md animate-fade-in">
           <div className="text-center mb-8">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 glow-ring" style={{ background: 'linear-gradient(135deg, var(--brand-start), var(--brand-end))' }}>
               <FaLock className="text-2xl text-white" />
@@ -55,7 +55,7 @@ const LoginForm = ({ onLogin }) => {
   );
 };
 
-const SettingsModal = ({ isOpen, onClose, user }) => { const [passwordData, setPasswordData] = useState({ current_password: '', new_password: '', confirm_password: '' }); const [loading, setLoading] = useState(false); const [message, setMessage] = useState(''); const [error, setError] = useState(''); const handleUpdatePassword = async (e) => { e.preventDefault(); if (passwordData.new_password !== passwordData.confirm_password) { setError('New passwords do not match.'); return; } setLoading(true); setError(''); setMessage(''); try { await api.post('/api/auth/settings', { current_password: passwordData.current_password, new_password: passwordData.new_password }); setMessage('Password updated successfully!'); setPasswordData({ current_password: '', new_password: '', confirm_password: '' }); } catch (err) { setError(err.response?.data?.detail || 'Failed to update password.'); } finally { setLoading(false); } }; if (!isOpen) return null; return (<div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"><div className="glass-card p-6 w-full max-w-md mx-4"><div className="flex justify-between items-center mb-4"><h2 className="text-xl font-bold text-white flex items-center">Settings</h2><button onClick={onClose} className="text-gray-400 hover:text-white text-xl">×</button></div><div className="mb-4 p-3 bg-white/5 rounded-lg"><p className="text-gray-300 text-sm">Account: {user?.email}</p><p className="text-gray-400 text-xs">Last Login: {user?.last_login ? new Date(user.last_login).toLocaleString() : 'N/A'}</p></div><form onSubmit={handleUpdatePassword} className="space-y-4"><h3 className="text-lg font-semibold text-white">Change Password</h3><input type="password" placeholder="Current Password" value={passwordData.current_password} onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })} className="w-full form-input" required /><input type="password" placeholder="New Password" value={passwordData.new_password} onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })} className="w-full form-input" required /><input type="password" placeholder="Confirm New Password" value={passwordData.confirm_password} onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })} className="w-full form-input" required />{error && <div className="text-red-400 text-sm">{error}</div>}{message && <div className="text-green-400 text-sm">{message}</div>}<button type="submit" disabled={loading} className="w-full btn btn-primary disabled:opacity-50">{loading ? 'Updating...' : 'Update Password'}</button></form></div></div>); };
+const SettingsModal = ({ isOpen, onClose, user }) => { const [passwordData, setPasswordData] = useState({ current_password: '', new_password: '', confirm_password: '' }); const [loading, setLoading] = useState(false); const [message, setMessage] = useState(''); const [error, setError] = useState(''); const handleUpdatePassword = async (e) => { e.preventDefault(); if (passwordData.new_password !== passwordData.confirm_password) { setError('New passwords do not match.'); return; } setLoading(true); setError(''); setMessage(''); try { await api.post('/api/auth/settings', { current_password: passwordData.current_password, new_password: passwordData.new_password }); setMessage('Password updated successfully!'); setPasswordData({ current_password: '', new_password: '', confirm_password: '' }); } catch (err) { setError(err.response?.data?.detail || 'Failed to update password.'); } finally { setLoading(false); } }; if (!isOpen) return null; return (<div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"><div className="glass-card p-6 w-full max-w-md mx-4 animate-fade-in"><div className="flex justify-between items-center mb-4"><h2 className="text-xl font-bold text-white flex items-center">Settings</h2><button onClick={onClose} className="text-gray-400 hover:text-white text-xl">×</button></div><div className="mb-4 p-3 bg-white/5 rounded-lg"><p className="text-gray-300 text-sm">Account: {user?.email}</p><p className="text-gray-400 text-xs">Last Login: {user?.last_login ? new Date(user.last_login).toLocaleString() : 'N/A'}</p></div><form onSubmit={handleUpdatePassword} className="space-y-4"><h3 className="text-lg font-semibold text-white">Change Password</h3><input type="password" placeholder="Current Password" value={passwordData.current_password} onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })} className="w-full form-input" required /><input type="password" placeholder="New Password" value={passwordData.new_password} onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })} className="w-full form-input" required /><input type="password" placeholder="Confirm New Password" value={passwordData.confirm_password} onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })} className="w-full form-input" required />{error && <div className="text-red-400 text-sm">{error}</div>}{message && <div className="text-green-400 text-sm">{message}</div>}<button type="submit" disabled={loading} className="w-full btn btn-primary disabled:opacity-50">{loading ? 'Updating...' : 'Update Password'}</button></form></div></div>); };
 
 const IndexChart = ({ data, title, timeframe }) => { const chartData = { labels: data?.dates || [], datasets: [{ label: title, data: data?.prices || [], borderColor: 'rgb(59, 130, 246)', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderWidth: 2, fill: true, tension: 0.1 }] }; const options = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: false } }, scales: { x: { display: false, grid: { color: 'rgba(75, 85, 99, 0.3)' } }, y: { display: true, grid: { color: 'rgba(75, 85, 99, 0.3)' }, ticks: { color: 'rgb(156, 163, 175)', font: { size: 10 } } } } }; return (<div className="h-32"><Line data={chartData} options={options} /></div>); };
 
@@ -98,29 +98,60 @@ function App() {
   return (
     <ThemeWrapper>
       <NavBar activeTab={activeTab} setActiveTab={setActiveTab} user={user} onSettings={() => setShowSettings(true)} onLogout={handleLogout} />
-      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} user={user} />
-      <main className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
-        {activeTab === 'dashboard' && (
-          <div className="space-y-6">
-            {dashboardData && (
-              <div className="glass-card p-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center">
-                    <h1 className="text-4xl font-bold mb-2">{dashboardData.greeting}</h1>
-                    <p className="text-gray-300">Welcome to HUNT BY WRDO</p>
+      <div className="animate-fade-in">
+        <main className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
+          {activeTab === 'dashboard' && (
+            <div className="space-y-6">
+              {dashboardData && (
+                <div className="glass-card p-6 animate-fade-in">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="text-center">
+                      <h1 className="text-4xl font-bold mb-2">{dashboardData.greeting}</h1>
+                      <p className="text-gray-300">Welcome to HUNT BY WRDO</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="glass-panel rounded-lg p-4 mb-2">
+                        <div className="text-gray-300">South Africa 🇿🇦 / United States 🇺🇸</div>
+                        <div className="text-xs text-gray-400">Dual timezone display</div>
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="glass-panel rounded-lg p-4 mb-2">
+                        <div className="text-gray-300">Market Status</div>
+                        <div className="text-xs text-gray-400">NYSE countdown &amp; overview</div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-center"><div className="glass-panel rounded-lg p-4 mb-2"><div className="text-gray-300">South Africa 🇿🇦 / United States 🇺🇸</div><div className="text-xs text-gray-400">Dual timezone display</div></div></div>
-                  <div className="text-center"><div className="glass-panel rounded-lg p-4 mb-2"><div className="text-gray-300">Market Status</div><div className="text-xs text-gray-400">NYSE countdown &amp; overview</div></div></div>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
-        {activeTab === 'swing-grid' && (<div className="glass-card p-6"><SwingAnalysisGrid api={api} etfs={selectedSector ? etfs.filter(e => e.sector === selectedSector) : etfs} sectors={sectors} selectedSector={selectedSector} setSelectedSector={setSelectedSector} analyzeChart={() => {}} addToWatchlist={() => {}} /></div>)}
-        {activeTab === 'ai-analysis' && (<div className="space-y-6"><AIAnalysisTab api={api} addToWatchlist={() => {}} /></div>)}
-        {activeTab === 'spreadsheet' && (<div className="glass-card p-6"><SpreadsheetTab api={api} etfs={etfs} sectors={sectors} selectedSector={selectedSector} setSelectedSector={setSelectedSector} exportLoading={exportLoading} setExportLoading={setExportLoading} /></div>)}
-        {activeTab === 'ai-chat' && (<AIChat user={user} />)}
-      </main>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'swing-grid' && (
+            <div className="glass-card p-6 animate-fade-in">
+              <SwingAnalysisGrid api={api} etfs={selectedSector ? etfs.filter(e => e.sector === selectedSector) : etfs} sectors={sectors} selectedSector={selectedSector} setSelectedSector={setSelectedSector} analyzeChart={() => {}} addToWatchlist={() => {}} />
+            </div>
+          )}
+
+          {activeTab === 'ai-analysis' && (
+            <div className="space-y-6 animate-fade-in">
+              <AIAnalysisTab api={api} addToWatchlist={() => {}} />
+            </div>
+          )}
+
+          {activeTab === 'spreadsheet' && (
+            <div className="glass-card p-6 animate-fade-in">
+              <SpreadsheetTab api={api} etfs={etfs} sectors={sectors} selectedSector={selectedSector} setSelectedSector={setSelectedSector} exportLoading={exportLoading} setExportLoading={setExportLoading} />
+            </div>
+          )}
+
+          {activeTab === 'ai-chat' && (
+            <div className="animate-fade-in">
+              <AIChat user={user} />
+            </div>
+          )}
+        </main>
+      </div>
     </ThemeWrapper>
   );
 }
