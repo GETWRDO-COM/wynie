@@ -405,6 +405,7 @@ class BackendTester:
         except Exception as e:
             self.log_result('websocket', 'WebSocket quotes with symbol and last fields', False, str(e))
     
+    def test_ratings_compute(self):
         print("\n=== Testing Ratings Compute ===")
         
         # Test 1: Compute RS/AS ratings
