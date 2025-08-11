@@ -21,19 +21,8 @@ function lastWeekdayOfMonthUTC(year, monthIndex, weekday){const d=new Date(Date.
 function isSameYMD(a,b){return a.getUTCFullYear()===b.getUTCFullYear()&&a.getUTCMonth()===b.getUTCMonth()&&a.getUTCDate()===b.getUTCDate();}
 function nyseHolidays(year){ const list=[]; list.push({ name:"New Year's Day", date: observedDate(new Date(Date.UTC(year,0,1))) }); list.push({ name:'Martin Luther King Jr. Day', date: nthWeekdayOfMonthUTC(year,0,1,3)}); list.push({ name:"Presidents' Day", date: nthWeekdayOfMonthUTC(year,1,1,3)}); const easter=easterSunday(year); const gf=new Date(easter.getTime()); gf.setUTCDate(gf.getUTCDate()-2); list.push({ name:'Good Friday', date: gf }); list.push({ name:'Memorial Day', date: lastWeekdayOfMonthUTC(year,4,1)}); list.push({ name:'Juneteenth', date: observedDate(new Date(Date.UTC(year,5,19))) }); list.push({ name:'Independence Day', date: observedDate(new Date(Date.UTC(year,6,4))) }); list.push({ name:'Labor Day', date: nthWeekdayOfMonthUTC(year,8,1,1)}); list.push({ name:'Thanksgiving Day', date: nthWeekdayOfMonthUTC(year,10,4,4)}); list.push({ name:'Christmas Day', date: observedDate(new Date(Date.UTC(year,11,25))) }); return list; }
 function nyseHolidayToday(nowET){ const parsed=parseInTZ(nowET,'America/New_York'); const todayUTC=new Date(Date.UTC(parsed.y,parsed.m-1,parsed.d)); const list=[...nyseHolidays(parsed.y), ...nyseHolidays(parsed.y-1), ...nyseHolidays(parsed.y+1)]; for(const h of list){ if(isSameYMD(h.date,todayUTC)) return h.name; } return null; }
-function dayAfterThanksgivingUTC(year){ // 4th Thursday in November + 1 day
-  const thanksgiving = nthWeekdayOfMonthUTC(year, 10, 4, 4); // Nov
-  const d = new Date(thanksgiving.getTime());
-  d.setUTCDate(d.getUTCDate() + 1);
-  return d;
-}
-function isHalfDay(nowET){
-  const p = parseInTZ(nowET, 'America/New_York');
-  const todayUTC = new Date(Date.UTC(p.y, p.m-1, p.d));
-  const list = [ dayAfterThanksgivingUTC(p.y), new Date(Date.UTC(p.y, 11, 24)) ]; // Black Friday, Christmas Eve
-  return list.some(d => isSameYMD(d, todayUTC));
-}
-
+function dayAfterThanksgivingUTC(year){ const thanksgiving = nthWeekdayOfMonthUTC(year, 10, 4, 4); const d = new Date(thanksgiving.getTime()); d.setUTCDate(d.getUTCDate() + 1); return d; }
+function isHalfDay(nowET){ const p = parseInTZ(nowET, 'America/New_York'); const todayUTC = new Date(Date.UTC(p.y, p.m-1, p.d)); const list = [ dayAfterThanksgivingUTC(p.y), new Date(Date.UTC(p.y, 11, 24)) ]; return list.some(d => isSameYMD(d, todayUTC)); }
 function nextNYSEOpenClose(now){ const tz='America/New_York'; const wd=getWeekday(now,tz); const isWeekend = wd==='Sat'||wd==='Sun'; const toOpen=secondsUntil(now,tz,9,30); const halfDay = isHalfDay(now); const closeHour = halfDay ? 13 : 16; const toClose=secondsUntil(now,tz,closeHour,0); const holidayName=nyseHolidayToday(now) || (halfDay ? 'Early Close' : null);
   if(!isWeekend && !nyseHolidayToday(now) && toOpen<=0 && toClose>0){ return { status:'Market Open', countdownLabel:`Closes in${halfDay ? ' (1pm ET)' : ''}`, seconds:toClose, holidayName, nextOpenText:null }; }
   if(!isWeekend && !nyseHolidayToday(now) && toOpen>0){ const nextOpenText=new Intl.DateTimeFormat('en-US',{ timeZone: tz, weekday:'short', month:'short', day:'2-digit', hour:'numeric', minute:'2-digit'}).format(new Date(now.getTime()+toOpen*1000)); return { status:'Market Closed', countdownLabel:'Opens in', seconds:toOpen, holidayName:null, nextOpenText }; }
@@ -51,15 +40,13 @@ const HeroBanner = ({ user }) => {
   const localTZ = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Africa/Johannesburg';
   const saTime = new Intl.DateTimeFormat('en-ZA', { timeZone: 'Africa/Johannesburg', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }).format(now);
   const usTime = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }).format(now);
-  const todayLocal = new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'long', day: '2-digit', timeZone: localTZ }).format(now);
+  const todayLocal = new Intl.DateTimeFormat('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: '2-digit', timeZone: localTZ }).format(now);
 
   const hourLocal = parseInTZ(now, localTZ).hh;
   let greetIcon = '🌙';
   if (hourLocal < 12) greetIcon = '☀️'; else if (hourLocal < 18) greetIcon = '🌤️';
   const greet = hourLocal < 12 ? 'Goeie môre' : hourLocal < 18 ? 'Goeie middag' : 'Goeie naand';
   const name = user?.name || 'Alwyn';
-
-  const openProgress = status.status === 'Market Open' ? Math.min(100, Math.max(0, (1 - status.seconds / ((isHalfDay(now) ? 3.5 : 6.5) * 3600)) * 100)) : 0;
 
   return (
     <div className="relative">
@@ -75,7 +62,9 @@ const HeroBanner = ({ user }) => {
             <div>
               <h1 className="mt-1 text-3xl md:text-4xl font-bold">HUNT by WRDO</h1>
               <p className="text-gray-300 mt-1">{greet} {name} {greetIcon}</p>
-              <div className="text-sm text-gray-400 mt-2">Today is {todayLocal}</div>
+              <div className="mt-2 inline-flex items-center px-3 py-1 rounded-lg border border-white/10 text-sm" style={{ background: 'linear-gradient(135deg, color-mix(in_oklab, var(--brand-start) 10%, transparent), color-mix(in_oklab, var(--brand-end) 10%, transparent))' }}>
+                <span className="text-white/90">Today is {todayLocal}</span>
+              </div>
             </div>
 
             {/* Right: Tiles */}
@@ -105,9 +94,6 @@ const HeroBanner = ({ user }) => {
                     <div className="text-xs text-gray-400">{status.countdownLabel}</div>
                     <div className="text-white font-mono text-lg">{formatHMS(status.seconds)}</div>
                   </div>
-                </div>
-                <div className="mt-3 w-full bg-white/10 rounded-full h-2 overflow-hidden">
-                  <div className="h-2 rounded-full" style={{ width: `${openProgress}%`, background: 'linear-gradient(90deg, var(--brand-start), var(--brand-end))' }} />
                 </div>
                 <div className="mt-3 grid grid-cols-1 lg:grid-cols-2 gap-3">
                   <WeatherWidget />

@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-// Fetch ZAR base rates and display conversions of 1 USD/EUR/GBP/JPY(100)/CNY to ZAR
 const CurrencyTicker = () => {
   const [rates, setRates] = useState(null);
   const [err, setErr] = useState('');
@@ -21,51 +20,40 @@ const CurrencyTicker = () => {
   const fetchRates = async () => {
     try {
       setErr('');
-      try {
-        const r = await fetchPrimary();
-        setRates(r);
-      } catch {
-        const r = await fetchFallback();
-        setRates(r);
-      }
-    } catch (e) {
+      try { setRates(await fetchPrimary()); }
+      catch { setRates(await fetchFallback()); }
+    } catch {
       setErr('FX unavailable');
     }
   };
 
-  useEffect(() => {
-    fetchRates();
-    const id = setInterval(fetchRates, 60_000);
-    return () => clearInterval(id);
-  }, []);
+  useEffect(() => { fetchRates(); const id = setInterval(fetchRates, 60_000); return () => clearInterval(id); }, []);
 
-  const items = useMemo(() => {
+  const rows = useMemo(() => {
     if (!rates) return [];
     const inv = (x) => (x ? 1 / x : null);
-    const usd = inv(rates.USD);
-    const eur = inv(rates.EUR);
-    const gbp = inv(rates.GBP);
-    const jpy = inv(rates.JPY);
-    const cny = inv(rates.CNY);
     return [
-      { code: 'USD', flagSrc: 'https://flagcdn.com/us.svg', label: '$1', value: usd },
-      { code: 'EUR', flagSrc: 'https://flagcdn.com/eu.svg', label: '€1', value: eur },
-      { code: 'GBP', flagSrc: 'https://flagcdn.com/gb.svg', label: '£1', value: gbp },
-      { code: 'JPY', flagSrc: 'https://flagcdn.com/jp.svg', label: '¥100', value: jpy != null ? jpy * 100 : null },
-      { code: 'CNY', flagSrc: 'https://flagcdn.com/cn.svg', label: '¥1', value: cny },
+      { flag: 'https://flagcdn.com/us.svg', pair: '$1', zar: inv(rates.USD) },
+      { flag: 'https://flagcdn.com/eu.svg', pair: '€1', zar: inv(rates.EUR) },
+      { flag: 'https://flagcdn.com/gb.svg', pair: '£1', zar: inv(rates.GBP) },
+      { flag: 'https://flagcdn.com/jp.svg', pair: '¥100', zar: rates.JPY ? (1 / rates.JPY) * 100 : null },
+      { flag: 'https://flagcdn.com/cn.svg', pair: '¥1', zar: inv(rates.CNY) },
     ];
   }, [rates]);
 
   return (
-    <div className="mt-3 flex flex-wrap gap-2">
-      {items.map((it) => (
-        <div key={it.code} className="px-2 py-1 rounded-lg text-xs text-white/90 border border-white/10 flex items-center gap-1" style={{ background: 'linear-gradient(135deg, color-mix(in_oklab, var(--brand-start) 12%, transparent), color-mix(in_oklab, var(--brand-end) 12%, transparent))' }}>
-          <img src={it.flagSrc} alt={it.code} className="w-3.5 h-3.5 rounded-sm" />
-          <span className="mr-1">{it.label}</span>
-          <span>= R{it.value != null ? it.value.toFixed(2) : '--'}</span>
-        </div>
-      ))}
-      {err && <div className="text-xs text-red-300">{err}</div>}
+    <div className="glass-panel p-3">
+      <div className="text-xs text-gray-400 mb-2">FX (ZAR conversions)</div>
+      {err && <div className="text-xs text-red-300 mb-2">{err}</div>}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+        {rows.map((r, i) => (
+          <div key={i} className="flex items-center gap-2 bg-white/5 rounded px-2 py-1">
+            <img src={r.flag} alt="flag" className="w-4 h-3 rounded-sm" />
+            <div className="text-xs text-white/90">{r.pair}</div>
+            <div className="ml-auto text-xs text-white font-semibold">R{r.zar != null ? r.zar.toFixed(2) : '--'}</div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
