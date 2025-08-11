@@ -570,6 +570,18 @@ backend:
     implemented: true
     working: true
     file: "/app/backend/server.py"
+  - task: "MarketCharts frontend + NewsTicker via backend + Polygon Settings UI"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/MarketCharts.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Implemented SPY/QQQ/I:DJI/TQQQ/SQQQ charts with time ranges, close/pre/post and % color; last-updated stamp, refresh every 5 min. NewsTicker now calls backend /api/news. Added Settings UI to save Polygon key to backend encrypted."
+
     stuck_count: 0
     priority: "medium"
     needs_retesting: false
