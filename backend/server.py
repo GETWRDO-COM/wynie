@@ -2322,6 +2322,10 @@ async def get_etf_regime_signal():
     await db.signals.insert_one(to_save)
     return signal_payload
 
+    to_save["module"] = "etf_regime"
+    await db.signals.insert_one(to_save)
+    return signal_payload
+
 # ==================== END MSAE + ETF ENGINE ====================
 
 # Mount the router
