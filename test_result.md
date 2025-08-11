@@ -174,6 +174,17 @@
       - working: true
         agent: "main"
         comment: "Frontend mock loads, Column Settings opens, table sorts; temporary SVG chart."
+  - task: "Frontend wired to backend (Polygon quotes/bars/logos)"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/Dashboard.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Connected to backend services via src/services/api.js; added logos in table; chart uses backend bars. Request automated UI test."
 
 ## metadata:
   created_by: "main_agent"
