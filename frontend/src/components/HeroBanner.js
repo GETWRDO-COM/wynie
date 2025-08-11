@@ -63,7 +63,7 @@ const HeroBanner = ({ user }) => {
           <p className="text-gray-300 mt-1 mb-4">{greet} {name} {greetIcon}</p>
 
           {/* Clocks + Market below greeting */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-4 items-stretch">
             <div className="glass-panel p-4">
               <div className="flex items-center gap-2 text-xs text-gray-400"><img src="https://flagcdn.com/za.svg" alt="ZA" className="w-4 h-3 rounded-sm" /><span>Africa/Cape Town</span></div>
               <div className="text-xl font-bold">{saTime}</div>
