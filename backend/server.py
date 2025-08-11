@@ -780,6 +780,76 @@ async def update_etf_data():
         logging.error(f"Error updating ETF data: {e}")
         return []
 
+# ==================== NEW ENDPOINTS HELPER FUNCTIONS ====================
+
+async def get_polygon_api_key() -> Optional[str]:
+    # DB first
+    doc = await db.app_settings.find_one({"key": "polygon_api_key"})
+    if doc and doc.get("encrypted_value"):
+        try:
+            return fernet.decrypt(doc["encrypted_value"]).decode()
+        except Exception:
+            pass
+    # Fallback to env
+    return os.environ.get("POLYGON_API_KEY")
+
+# --- News Proxy ---
+NEWS_FEEDS = {
+    "All": 'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en',
+    "USA": 'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en',
+    "World": 'https://news.google.com/rss/search?q=world%20news&hl=en-US&gl=US&ceid=US:en',
+    "South Africa": 'https://news.google.com/rss?hl=en-ZA&gl=ZA&ceid=ZA:en',
+    "Stock Market": 'https://news.google.com/rss/search?q=stock%20market&hl=en-US&gl=US&ceid=US:en',
+    "Finance News": 'https://news.google.com/rss/search?q=finance&hl=en-US&gl=US&ceid=US:en',
+}
+
+# --- CNN Fear & Greed ---
+CNN_JSON_URLS = [
+    "https://production-files-cnn.com/markets/fearandgreed/graphdata.json",
+    "https://production-files-cnn.com/markets/fearandgreed/greedandfear.json",
+]
+CNN_PAGE_URLS = [
+    "https://edition.cnn.com/markets/fear-and-greed",
+    "https://money.cnn.com/data/fear-and-greed/",
+]
+
+# --- Polygon Aggregates ---
+TIME_RANGE_CONFIG = {
+    "1D": {"multiplier": 5, "timespan": "minute", "days_back": 1},
+    "1W": {"multiplier": 30, "timespan": "minute", "days_back": 7},
+    "1M": {"multiplier": 1, "timespan": "day", "days_back": 31},
+    "YTD": {"multiplier": 1, "timespan": "day", "from_start_of_year": True},
+    "1Y": {"multiplier": 1, "timespan": "day", "days_back": 365},
+    "5Y": {"multiplier": 1, "timespan": "week", "days_back": 365*5},
+}
+
+async def fetch_polygon_prev_close(session: aiohttp.ClientSession, base: str, ticker: str, api_key: str):
+    url = f"{base}/v2/aggs/ticker/{quote(ticker, safe=':')}/prev?adjusted=true&apiKey={api_key}"
+    async with session.get(url, timeout=30) as resp:
+        if resp.status != 200:
+            return None
+        data = await resp.json()
+        results = data.get("results") or []
+        if results:
+            return results[0].get("c")
+        return None
+
+async def fetch_polygon_open_close(session: aiohttp.ClientSession, base: str, ticker: str, date_str: str, api_key: str):
+    # Only for ETFs/stocks; indices may not support
+    url = f"{base}/v1/open-close/{quote(ticker, safe=':')}/{date_str}?adjusted=true&apiKey={api_key}"
+    async with session.get(url, timeout=30) as resp:
+        if resp.status != 200:
+            return None
+        try:
+            data = await resp.json()
+        except Exception:
+            return None
+        return {
+            "close": data.get("close"),
+            "preMarket": data.get("preMarket"),
+            "afterHours": data.get("afterHours"),
+        }
+
 # ==================== API ROUTES ====================
 
 # Authentication Routes
