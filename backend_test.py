@@ -1947,6 +1947,10 @@ class ETFBackendTester:
             ("Polygon Aggregates", self.test_polygon_aggregates),
             ("CNN Fear & Greed Index", self.test_greed_fear_index),
             ("News Proxy", self.test_news_proxy),
+        ]
+        
+        # Auth-protected new endpoint tests (require authentication)
+        auth_new_endpoint_tests = [
             ("Polygon Integration Auth", self.test_polygon_integration_auth),
         ]
         
