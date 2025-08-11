@@ -1676,6 +1676,257 @@ class ETFBackendTester:
             self.log_test("Enhanced Calculations", False, f"Error: {str(e)}")
             return False
     
+    def test_polygon_aggregates(self):
+        """Test Polygon aggregates endpoint with different parameters"""
+        try:
+            # Test default parameters
+            default_response = self.session.get(f"{API_BASE}/market/aggregates")
+            if default_response.status_code != 200:
+                self.log_test("Polygon Aggregates", False, f"Default params failed: HTTP {default_response.status_code}: {default_response.text}")
+                return False
+            
+            default_data = default_response.json()
+            required_fields = ['range', 'last_updated', 'data']
+            missing_fields = [field for field in required_fields if field not in default_data]
+            if missing_fields:
+                self.log_test("Polygon Aggregates", False, f"Default response missing fields: {missing_fields}")
+                return False
+            
+            # Test with specific range and tickers
+            test_response = self.session.get(f"{API_BASE}/market/aggregates?range=1D&tickers=SPY,QQQ,I:DJI,TQQQ,SQQQ")
+            if test_response.status_code != 200:
+                self.log_test("Polygon Aggregates", False, f"Specific params failed: HTTP {test_response.status_code}: {test_response.text}")
+                return False
+            
+            test_data = test_response.json()
+            
+            # Validate data structure
+            data = test_data.get('data', {})
+            expected_tickers = ['SPY', 'QQQ', 'I:DJI', 'TQQQ', 'SQQQ']
+            
+            for ticker in expected_tickers:
+                if ticker not in data:
+                    self.log_test("Polygon Aggregates", False, f"Missing ticker {ticker} in response")
+                    return False
+                
+                ticker_data = data[ticker]
+                required_ticker_fields = ['series', 'close', 'prev_close', 'change_pct']
+                optional_fields = ['pre_market', 'post_market']
+                
+                missing_ticker_fields = [field for field in required_ticker_fields if field not in ticker_data]
+                if missing_ticker_fields:
+                    self.log_test("Polygon Aggregates", False, f"{ticker} missing fields: {missing_ticker_fields}")
+                    return False
+                
+                # Validate series is array
+                series = ticker_data.get('series', [])
+                if not isinstance(series, list):
+                    self.log_test("Polygon Aggregates", False, f"{ticker} series is not an array")
+                    return False
+                
+                # Validate numeric fields
+                close = ticker_data.get('close')
+                prev_close = ticker_data.get('prev_close')
+                change_pct = ticker_data.get('change_pct')
+                
+                if close is not None and not isinstance(close, (int, float)):
+                    self.log_test("Polygon Aggregates", False, f"{ticker} close is not numeric: {close}")
+                    return False
+                
+                if prev_close is not None and not isinstance(prev_close, (int, float)):
+                    self.log_test("Polygon Aggregates", False, f"{ticker} prev_close is not numeric: {prev_close}")
+                    return False
+                
+                if change_pct is not None and not isinstance(change_pct, (int, float)):
+                    self.log_test("Polygon Aggregates", False, f"{ticker} change_pct is not numeric: {change_pct}")
+                    return False
+            
+            # Validate last_updated exists
+            last_updated = test_data.get('last_updated')
+            if not last_updated:
+                self.log_test("Polygon Aggregates", False, "Missing last_updated field")
+                return False
+            
+            self.log_test("Polygon Aggregates", True, f"Polygon aggregates working: tested default and 1D range with {len(expected_tickers)} tickers, all required fields present")
+            return True
+            
+        except Exception as e:
+            self.log_test("Polygon Aggregates", False, f"Error: {str(e)}")
+            return False
+
+    def test_greed_fear_index(self):
+        """Test CNN Fear & Greed Index endpoint"""
+        try:
+            response = self.session.get(f"{API_BASE}/greed-fear")
+            if response.status_code != 200:
+                self.log_test("Greed Fear Index", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            data = response.json()
+            
+            # Validate required fields
+            required_fields = ['now', 'last_updated']
+            missing_fields = [field for field in required_fields if field not in data]
+            if missing_fields:
+                self.log_test("Greed Fear Index", False, f"Missing required fields: {missing_fields}")
+                return False
+            
+            # Validate 'now' field is integer
+            now_value = data.get('now')
+            if not isinstance(now_value, int) or not (0 <= now_value <= 100):
+                self.log_test("Greed Fear Index", False, f"Invalid 'now' value: {now_value} (should be integer 0-100)")
+                return False
+            
+            # Validate last_updated is ISO format
+            last_updated = data.get('last_updated')
+            if not isinstance(last_updated, str):
+                self.log_test("Greed Fear Index", False, f"Invalid last_updated format: {last_updated}")
+                return False
+            
+            # Check for either historical data or timeseries
+            has_historical = any(field in data for field in ['previous_close', 'one_week_ago', 'one_month_ago', 'one_year_ago'])
+            has_timeseries = 'timeseries' in data
+            
+            if not (has_historical or has_timeseries):
+                self.log_test("Greed Fear Index", False, "Missing both historical data and timeseries")
+                return False
+            
+            # Validate source field
+            source = data.get('source')
+            valid_sources = ['cnn-json', 'cnn-scrape']
+            if source not in valid_sources:
+                self.log_test("Greed Fear Index", False, f"Invalid source: {source} (should be one of {valid_sources})")
+                return False
+            
+            self.log_test("Greed Fear Index", True, f"CNN Fear & Greed Index working: now={now_value}, source={source}, last_updated present")
+            return True
+            
+        except Exception as e:
+            self.log_test("Greed Fear Index", False, f"Error: {str(e)}")
+            return False
+
+    def test_news_proxy(self):
+        """Test News proxy endpoint with different categories"""
+        try:
+            # Test default (All) category
+            default_response = self.session.get(f"{API_BASE}/news")
+            if default_response.status_code != 200:
+                self.log_test("News Proxy", False, f"Default category failed: HTTP {default_response.status_code}: {default_response.text}")
+                return False
+            
+            default_data = default_response.json()
+            required_fields = ['category', 'items']
+            missing_fields = [field for field in required_fields if field not in default_data]
+            if missing_fields:
+                self.log_test("News Proxy", False, f"Default response missing fields: {missing_fields}")
+                return False
+            
+            # Validate items array
+            items = default_data.get('items', [])
+            if not isinstance(items, list):
+                self.log_test("News Proxy", False, "Items is not an array")
+                return False
+            
+            if len(items) == 0:
+                self.log_test("News Proxy", False, "No news items returned")
+                return False
+            
+            # Validate item structure
+            sample_item = items[0]
+            required_item_fields = ['title', 'link']
+            missing_item_fields = [field for field in required_item_fields if field not in sample_item]
+            if missing_item_fields:
+                self.log_test("News Proxy", False, f"News item missing fields: {missing_item_fields}")
+                return False
+            
+            # Validate title and link are strings
+            if not isinstance(sample_item['title'], str) or not isinstance(sample_item['link'], str):
+                self.log_test("News Proxy", False, "Title or link is not a string")
+                return False
+            
+            # Test specific category
+            category_response = self.session.get(f"{API_BASE}/news?category=Stock Market")
+            if category_response.status_code != 200:
+                self.log_test("News Proxy", False, f"Stock Market category failed: HTTP {category_response.status_code}")
+                return False
+            
+            category_data = category_response.json()
+            if category_data.get('category') != 'Stock Market':
+                self.log_test("News Proxy", False, f"Category mismatch: expected 'Stock Market', got '{category_data.get('category')}'")
+                return False
+            
+            # Validate cached field may be present
+            cached_field_present = 'cached' in default_data or 'cached' in category_data
+            
+            self.log_test("News Proxy", True, f"News proxy working: {len(items)} items returned, category filtering works, cached behavior acceptable")
+            return True
+            
+        except Exception as e:
+            self.log_test("News Proxy", False, f"Error: {str(e)}")
+            return False
+
+    def test_polygon_integration_auth(self):
+        """Test auth-protected Polygon API key management endpoints"""
+        try:
+            if not self.auth_token:
+                self.log_test("Polygon Integration Auth", False, "No auth token available - run authentication test first")
+                return False
+            
+            auth_headers = {"Authorization": f"Bearer {self.auth_token}"}
+            
+            # Test save Polygon API key
+            test_key = "test_polygon_key_12345"
+            key_data = {"api_key": test_key}
+            
+            save_response = self.session.post(f"{API_BASE}/integrations/polygon/key", json=key_data, headers=auth_headers)
+            if save_response.status_code != 200:
+                self.log_test("Polygon Integration Auth", False, f"Save key failed: HTTP {save_response.status_code}: {save_response.text}")
+                return False
+            
+            save_result = save_response.json()
+            if 'message' not in save_result:
+                self.log_test("Polygon Integration Auth", False, "Save key response missing message")
+                return False
+            
+            # Verify the key is not returned in the response (security)
+            if 'api_key' in save_result or test_key in str(save_result):
+                self.log_test("Polygon Integration Auth", False, "API key returned in response - security issue")
+                return False
+            
+            # Test get Polygon status
+            status_response = self.session.get(f"{API_BASE}/integrations/polygon/status", headers=auth_headers)
+            if status_response.status_code != 200:
+                self.log_test("Polygon Integration Auth", False, f"Get status failed: HTTP {status_response.status_code}")
+                return False
+            
+            status_result = status_response.json()
+            if 'configured' not in status_result:
+                self.log_test("Polygon Integration Auth", False, "Status response missing 'configured' field")
+                return False
+            
+            # After saving a key, configured should be true
+            if not status_result.get('configured'):
+                self.log_test("Polygon Integration Auth", False, "Status shows not configured after saving key")
+                return False
+            
+            # Test unauthorized access (without token)
+            unauth_save_response = self.session.post(f"{API_BASE}/integrations/polygon/key", json=key_data)
+            if unauth_save_response.status_code != 401:
+                self.log_test("Polygon Integration Auth", False, f"Unauthorized save should return 401, got {unauth_save_response.status_code}")
+                return False
+            
+            unauth_status_response = self.session.get(f"{API_BASE}/integrations/polygon/status")
+            if unauth_status_response.status_code != 401:
+                self.log_test("Polygon Integration Auth", False, f"Unauthorized status should return 401, got {unauth_status_response.status_code}")
+                return False
+            
+            self.log_test("Polygon Integration Auth", True, "Polygon API key management working: secure key storage, status endpoint, proper authentication required")
+            return True
+            
+        except Exception as e:
+            self.log_test("Polygon Integration Auth", False, f"Error: {str(e)}")
+            return False
+
     def cleanup(self):
         """Clean up any test data created"""
         for item_id in self.watchlist_items_created:
