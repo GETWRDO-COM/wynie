@@ -129,7 +129,7 @@ function getMockUniverse() {
     const last = closes.at(-1)
     const chg = ((last - closes.at(-2)) / closes.at(-2)) * 100
     const vToday = candles.at(-1).volume
-    const avg20 = Math.round(candles.slice(-20).reduce((a, c) =&gt; a + c.volume, 0) / 20)
+    const avg20 = Math.round(candles.slice(-20).reduce((a, c) => a + c.volume, 0) / 20)
     const hi52 = Math.max(...candles.slice(-252).map((c) =&gt; c.high))
     const lo52 = Math.min(...candles.slice(-252).map((c) =&gt; c.low))
     const sector = SECTORS[Math.floor(rnd() * SECTORS.length)]
