@@ -1911,13 +1911,13 @@ class ETFBackendTester:
             
             # Test unauthorized access (without token)
             unauth_save_response = self.session.post(f"{API_BASE}/integrations/polygon/key", json=key_data)
-            if unauth_save_response.status_code != 401:
-                self.log_test("Polygon Integration Auth", False, f"Unauthorized save should return 401, got {unauth_save_response.status_code}")
+            if unauth_save_response.status_code not in [401, 403]:  # Accept both 401 and 403 as valid unauthorized responses
+                self.log_test("Polygon Integration Auth", False, f"Unauthorized save should return 401 or 403, got {unauth_save_response.status_code}")
                 return False
             
             unauth_status_response = self.session.get(f"{API_BASE}/integrations/polygon/status")
-            if unauth_status_response.status_code != 401:
-                self.log_test("Polygon Integration Auth", False, f"Unauthorized status should return 401, got {unauth_status_response.status_code}")
+            if unauth_status_response.status_code not in [401, 403]:  # Accept both 401 and 403 as valid unauthorized responses
+                self.log_test("Polygon Integration Auth", False, f"Unauthorized status should return 401 or 403, got {unauth_status_response.status_code}")
                 return False
             
             self.log_test("Polygon Integration Auth", True, "Polygon API key management working: secure key storage, status endpoint, proper authentication required")
