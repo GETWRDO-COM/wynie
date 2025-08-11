@@ -39,7 +39,9 @@ class BackendTester:
             'marketdata': {'passed': 0, 'failed': 0, 'errors': []},
             'watchlists': {'passed': 0, 'failed': 0, 'errors': []},
             'columns': {'passed': 0, 'failed': 0, 'errors': []},
-            'ratings': {'passed': 0, 'failed': 0, 'errors': []}
+            'ratings': {'passed': 0, 'failed': 0, 'errors': []},
+            'screener': {'passed': 0, 'failed': 0, 'errors': []},
+            'websocket': {'passed': 0, 'failed': 0, 'errors': []}
         }
         
     def log_result(self, category, test_name, success, error_msg=None):
