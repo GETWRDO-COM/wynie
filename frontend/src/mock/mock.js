@@ -90,7 +90,7 @@ function sma(arr, n, accessor = (d) => d) {
   let sum = 0
   for (let i = 0; i < arr.length; i++) {
     sum += accessor(arr[i])
-    if (i &gt;= n) sum -= accessor(arr[i - n])
+    if (i >= n) sum -= accessor(arr[i - n])
     res.push(i &gt;= n - 1 ? sum / n : null)
   }
   return res
