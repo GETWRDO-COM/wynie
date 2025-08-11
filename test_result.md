@@ -436,6 +436,8 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Added Polygon-backed aggregates API, CNN Fear & Greed with JSON + scrape fallback + 6h cache, and backend news proxy. Frontend: implemented MarketCharts with range buttons and colored % change, wired NewsTicker to backend, added Settings UI for saving Polygon key securely. Request backend tests focusing on these new endpoints."
+  - agent: "testing"
+    message: "✅ NEW ENDPOINTS TESTING COMPLETED: Conducted comprehensive testing of all new endpoints as requested. RESULTS: (1) GET /api/market/aggregates - ✅ PASS: Default and range=1D both working, all 5 tickers present (SPY, QQQ, I:DJI, TQQQ, SQQQ) with numeric fields populated, I:DJI specifically confirmed working. (2) GET /api/greed-fear - ✅ PASS: Shape correct, now=73 in valid 0-100 range, last_updated field exists. (3) GET /api/news?category=Stock%20Market - ✅ PASS: Items array non-empty with 38 news items returned. (4) Auth flow - ✅ PASS: Login with beetge@mwebbiz.co.za successful, Polygon key storage working, status endpoint shows configured=true. ALL NEW ENDPOINTS STABLE AND FUNCTIONAL. Overall backend test results: 28/28 tests passed (100% success rate). System ready for production use."
 
 agent_communication:
   - agent: "main"
