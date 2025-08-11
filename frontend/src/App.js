@@ -8,6 +8,8 @@ import AIAnalysisTab from './components/AIAnalysisTab';
 import SpreadsheetTab from './components/SpreadsheetTab';
 import ThemeWrapper from './components/ThemeWrapper';
 import NavBar from './components/NavBar';
+import AIChat from './components/AIChat';
+import HeroBanner from './components/HeroBanner';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
@@ -102,28 +104,7 @@ function App() {
         <main className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
-              {dashboardData && (
-                <div className="glass-card p-6 animate-fade-in">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="text-center">
-                      <h1 className="text-4xl font-bold mb-2">{dashboardData.greeting}</h1>
-                      <p className="text-gray-300">Welcome to HUNT BY WRDO</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="glass-panel rounded-lg p-4 mb-2">
-                        <div className="text-gray-300">South Africa 🇿🇦 / United States 🇺🇸</div>
-                        <div className="text-xs text-gray-400">Dual timezone display</div>
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="glass-panel rounded-lg p-4 mb-2">
-                        <div className="text-gray-300">Market Status</div>
-                        <div className="text-xs text-gray-400">NYSE countdown &amp; overview</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+              <HeroBanner />
             </div>
           )}
 
@@ -147,7 +128,7 @@ function App() {
 
           {activeTab === 'ai-chat' && (
             <div className="animate-fade-in">
-              <AIChat user={user} />
+              <AIChat api={api} user={user} />
             </div>
           )}
         </main>
