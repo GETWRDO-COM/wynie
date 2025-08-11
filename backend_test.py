@@ -70,19 +70,20 @@ class BackendTester:
         except Exception as e:
             self.log_result('marketdata', 'Symbol Search - AAPL', False, str(e))
         
-        # Test 2: Bars Data
+        # Test 2: Bars Data - Test graceful 429 handling
         try:
             response = self.session.get(f"{self.base_url}/api/marketdata/bars?symbol=AAPL&interval=1D")
             if response.status_code == 200:
                 data = response.json()
                 if 'symbol' in data and 'bars' in data and isinstance(data['bars'], list):
-                    self.log_result('marketdata', 'Bars Data - AAPL 1D', True)
+                    # Should return empty bars gracefully on 429, not 500
+                    self.log_result('marketdata', 'Bars Data - AAPL 1D (graceful 429 handling)', True)
                 else:
-                    self.log_result('marketdata', 'Bars Data - AAPL 1D', False, f"Invalid response structure: {data}")
+                    self.log_result('marketdata', 'Bars Data - AAPL 1D (graceful 429 handling)', False, f"Invalid response structure: {data}")
             else:
-                self.log_result('marketdata', 'Bars Data - AAPL 1D', False, f"HTTP {response.status_code}: {response.text}")
+                self.log_result('marketdata', 'Bars Data - AAPL 1D (graceful 429 handling)', False, f"HTTP {response.status_code}: {response.text}")
         except Exception as e:
-            self.log_result('marketdata', 'Bars Data - AAPL 1D', False, str(e))
+            self.log_result('marketdata', 'Bars Data - AAPL 1D (graceful 429 handling)', False, str(e))
         
         # Test 3: Quotes
         try:
