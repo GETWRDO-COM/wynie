@@ -37,8 +37,8 @@ const HeroBanner = ({ user }) => {
   useEffect(() => { setStatus(nextNYSEOpenClose(now)); }, [now]);
 
   const localTZ = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Africa/Johannesburg';
-  const saTime = new Intl.DateTimeFormat('en-US', { timeZone: 'Africa/Johannesburg', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }).format(now);
-  const usTime = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }).format(now);
+  const saTime = new Intl.DateTimeFormat('en-US', { timeZone: 'Africa/Johannesburg', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }).format(now).toUpperCase();
+  const usTime = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }).format(now).toUpperCase();
   const todayLocal = new Intl.DateTimeFormat('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: '2-digit', timeZone: localTZ }).format(now);
 
   const hourLocal = parseInTZ(now, localTZ).hh;
