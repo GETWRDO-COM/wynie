@@ -1,0 +1,40 @@
+@import @/styles/variables
+
+.noResult
+    position: absolute
+    inset: 68px 12px 12px
+    overflow: hidden
+
+.preview
+    position: absolute
+    top: 43%
+    left: 50%
+    transform: translate(-50%,-50%)
+
+.title
+    position: absolute
+    top: 50%
+    right: calc(50% - 44px)
+    transform: translateY(-27px)
+    z-index: 2
+    font-size: 20px
+    line-height: 1.2
+    font-weight: 700
+    color: rgba($n2, .76)
+
+.text
+    position: absolute
+    left: 0
+    right: 0
+    bottom: 20px
+    z-index: 2
+    text-align: center
+    color: $text-tertiary
+    opacity: .8
+    span
+        word-wrap: break-word
+        color: $text-primary
+
+
+
+

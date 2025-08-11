@@ -1,0 +1,178 @@
+@import @/styles/variables
+
+.head
+    position: absolute
+    top: 12px
+    left: 12px
+    right: 12px
+    display: flex
+    align-items: center
+    margin-bottom: 12px
+    &.hide
+        opacity: .1
+
+.search
+    position: relative
+    flex-grow: 1
+    margin-right: 8px
+    cursor: pointer
+    &:hover
+        .input
+            &::placeholder
+                color: rgba($n2, .56)
+        .result
+            svg
+                fill: rgba($n2, .56)
+    &.hide
+        opacity: .1
+
+.input
+    width: 100%
+    height: 44px
+    padding: 0 44px 0 48px
+    background: transparent
+    box-shadow: none
+    border: 1px solid transparent
+    border-radius: 22px
+    background: rgba($n3, .7)
+    +base-2r
+    color: rgba($n2, .76)
+    outline: none
+    transition: border-color .2s
+    &::placeholder
+        color: rgba($n2, .25)
+        transition: color .2s
+    &:focus
+        border-color: rgba($n2, .1)
+
+.add
+    position: relative
+    z-index: 4
+    flex-shrink: 0
+    width: 44px
+    height: 44px
+    margin-left: auto
+    padding: 0
+    background: rgba($n3, 0.7)
+    box-shadow: 2px 4px 16px 0px rgba(248, 248, 248, 0.06) inset
+    // backdrop-filter: blur(50px)
+    border: none
+    border-radius: 50%
+    cursor: pointer
+    font-size: 0
+    outline: none
+    transition: background .2s
+    &:after,
+    &:before
+        content: ""
+        position: absolute
+        inset: 0
+        border-radius: 50%
+    &:after
+        z-index: 1
+        border: 1.5px solid rgba(255, 255, 255, 0.1)
+        mask-image: linear-gradient(160deg, black, transparent 50%)
+    &:before
+        background: linear-gradient(0deg, rgba(248, 248, 248, 0.10) 0%, rgba(248, 248, 248, 0.10) 100%)
+        opacity: 0
+        transition: opacity .2s
+    svg
+        position: relative
+        z-index: 2
+        fill: $text-secondary
+        transition: transform .2s
+    &:hover
+        z-index: 6
+        &:before
+            opacity: 1
+        .tooltip
+            visibility: visible
+            opacity: 1
+    &:active
+        background: rgba($n3, 0.9)
+        &:before
+            opacity: 0
+        svg
+            transform: rotate(45deg) scale(.85)
+    &.active
+        background: rgba($n3, 0.9)
+        svg
+            transform: rotate(45deg)
+
+.tooltip
+    position: absolute
+    top: calc(100% + 8px)
+    right: 0
+    z-index: 5
+    padding: 4px 8px
+    white-space: nowrap
+    border-radius: 8px
+    background: rgba($n3, 0.60)
+    backdrop-filter: blur(50px)
+    font-size: 12px
+    line-height: 1.35
+    color: $text-secondary
+    visibility: hidden
+    opacity: 0
+    pointer-events: none
+    transition: all .2s
+    @media only screen and (max-width: "767px")
+        display: none
+    &:before
+        content: ""
+        position: absolute
+        right: 16px
+        bottom: 100%
+        width: 12px
+        height: 6px
+        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6' fill='none' viewBox='0 0 12 6'%3E%3Cpath d='M8.263 2.263L12 6H0l3.737-3.737c.792-.792 1.188-1.188 1.645-1.336a2 2 0 0 1 1.236 0c.457.148.853.544 1.645 1.336z' fill='%23282828' fill-opacity='.6'/%3E%3C/svg%3E") no-repeat 0 0 / 100% auto
+
+.result,
+.clear
+    position: absolute
+    top: 10px
+    padding: 0
+    background: transparent
+    border: 0
+    font-size: 0
+
+.result
+    left: 12px
+    svg
+        fill: rgba($n2, .4)
+        transition: fill .2s
+
+.clear
+    right: 10px
+    width: 24px
+    height: 24px
+    border-radius: 50%
+    background: rgba($n2, .1)
+    visibility: hidden
+    opacity: 0
+    cursor: pointer
+    transition: all .2s
+    svg
+        width: 12px
+        height: 12px
+        fill: rgba($n2, .8)
+        transition: fill .2s
+    &.visible
+        visibility: visible
+        opacity: 1
+        &:hover
+            background: rgba($n2, .2)
+
+.line
+    display: flex
+    align-items: center
+
+.sign
+    display: flex
+    justify-content: center
+    align-items: center
+    width: 20px
+    height: 20px
+    margin: 0 -4px 0 8px
+    background: rgba(248, 248, 248, 0.07)
+    border-radius: 4px

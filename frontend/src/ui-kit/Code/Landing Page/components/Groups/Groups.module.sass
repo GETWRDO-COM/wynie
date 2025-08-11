@@ -1,0 +1,234 @@
+@import @/styles/variables
+
+.groups
+    position: relative
+    border-radius: 32px
+    &:before,
+    &:after
+        content: ""
+        position: absolute
+        inset: 0
+        border-radius: 32px
+    &:before
+        background: rgba(248, 248, 248, 0.04)
+        box-shadow: inset 2px 4px 16px 0px rgba(248, 248, 248, 0.06), 0px 24px 24px -16px rgba(5, 5, 5, 0.09), 0px 6px 13px 0px rgba(5, 5, 5, 0.10), 0px 6px 4px -4px rgba(5, 5, 5, 0.10), 0px 5px 1.5px -4px rgba(5, 5, 5, 0.25)
+        backdrop-filter: blur(50px)
+    &:after
+        border: 1.5px solid rgba(255, 255, 255, 0.05)
+        mask-image: linear-gradient(160deg, black, transparent 50%)
+        pointer-events: none
+
+.inner
+    position: relative
+    z-index: 2
+    padding: 12px
+
+.head,
+.list
+    &.hide
+        opacity: .1
+
+.head
+    display: flex
+    align-items: center
+    margin-bottom: 12px
+
+.search
+    display: flex
+    align-items: center
+    flex-grow: 1
+    height: 44px
+    padding: 0 10px
+    background: rgba($n3, .7)
+    border-radius: 22px
+    +base-2r
+    color: rgba($n2, .25)
+    svg
+        flex-shrink: 0
+        margin-right: 12px
+        fill: rgba($n2, .4)
+
+.add
+    position: relative
+    display: flex
+    justify-content: center
+    align-items: center
+    flex-shrink: 0
+    width: 44px
+    height: 44px
+    margin-left: 8px
+    border-radius: 50%
+    overflow: hidden
+    background: rgba(40, 40, 40, 0.70)
+    box-shadow: inset 2px 4px 16px 0px rgba(248, 248, 248, 0.06)
+    backdrop-filter: blur(50px)
+    svg
+        fill: $text-secondary
+    &:after
+        content: ""
+        position: absolute
+        inset: 0
+        border: 1.5px solid rgba(255, 255, 255, 0.1)
+        border-radius: 50%
+        mask-image: linear-gradient(160deg, black, transparent 50%)
+        pointer-events: none
+
+.group
+    position: relative
+    display: flex
+    align-items: center
+    height: 68px
+    padding: 0 12px
+    background: rgba(248, 248, 248, 0.02)
+    border-radius: 20px
+    +base-2r
+    &:after
+        content: ""
+        position: absolute
+        inset: 0
+        border: 1.5px solid rgba(255, 255, 255, 0.05)
+        border-radius: 20px
+        mask-image: linear-gradient(175deg, black, transparent 50%)
+        pointer-events: none
+    &.hover
+        background: rgba(248, 248, 248, 0.10)
+    &:not(:last-child)
+        margin-bottom: 8px
+    .icon
+        margin-right: 16px
+        background: rgba($n2, .05)
+        svg
+            fill: rgba($text-primary, .8)
+
+.icon
+    display: flex
+    justify-content: center
+    align-items: center
+    width: 44px
+    height: 44px
+    flex-shrink: 0
+    border-radius: 50%
+
+.title
+    margin-right: auto
+    font-weight: 500
+    color: rgba($text-primary, .8)
+
+.counter
+    flex-shrink: 0
+    width: 20px
+    text-align: center
+    color: rgba($text-secondary, .8)
+
+.cursor
+    position: absolute
+    top: 60%
+    left: 50%
+    z-index: 5
+    img
+        opacity: 1
+
+.tooltip
+    position: absolute
+    top: calc(100% - 8px)
+    right: calc(100% - 4px)
+    padding: 8px 16px
+    border-radius: 32px
+    background: linear-gradient(0deg, rgba(212, 84, 29, 0.95) 0%, rgba(212, 84, 29, 0.95) 100%)
+    box-shadow: 0px 24px 32px -12px rgba(18, 18, 18, 0.10), inset 2px 4px 16px 0px rgba(248, 248, 248, 0.06)
+    backdrop-filter: blur(16px)
+    font-weight: 500
+    color: rgba($n2, .76)
+
+.new
+    position: relative
+    margin-top: 8px
+
+.field
+    position: relative
+    display: flex
+    align-items: center
+    height: 68px
+    padding: 0 12px
+    background: rgba($n3, 0.5)
+    border-radius: 20px
+    +base-2r
+    &:after
+        content: ""
+        position: absolute
+        inset: 0
+        border: 1.5px solid rgba(255, 255, 255, 0.05)
+        border-radius: 20px
+        mask-image: linear-gradient(175deg, black, transparent 50%)
+        pointer-events: none
+    .icon
+        margin-right: 16px
+        background: rgba($n2, .1)
+        svg
+            fill: rgba($text-primary, .8)
+
+.subtitle
+    position: relative
+    +base-2m
+    color: rgba($n2, .21)
+
+.dropdown
+    position: absolute
+    left: 0
+    right: 0
+    bottom: calc(100% + 8px)
+    padding: 16px 12px 12px
+    +t
+        max-width: 441px
+    &:before,
+    &:after
+        content: ""
+        position: absolute
+        inset: 0
+        border-radius: 32px
+    &:before
+        background: rgba(248, 248, 248, 0.05)
+        box-shadow: 0px 24px 32px -12px rgba(18, 18, 18, 0.10), inset 2px 4px 16px 0px rgba(248, 248, 248, 0.06)
+        backdrop-filter: blur(16px)
+
+.box
+    position: relative
+    z-index: 2
+    .icon
+        svg
+            fill: rgba($n2, .4)
+        &.active
+            background: rgba($n2, .1)
+            svg
+                fill: $text-primary
+    &:not(:last-child)
+        margin-bottom: 16px
+
+.wrap
+    display: flex
+    flex-wrap: wrap
+
+.category
+    margin-bottom: 4px
+    padding-left: 12px
+    +caption-sm
+    color: rgba($n2, .25)
+
+.color
+    position: relative
+    width: 24px
+    height: 24px
+    margin: 10px
+    border-radius: 50%
+    &.active
+        &:after
+            content: ""
+            position: absolute
+            top: 50%
+            left: 50%
+            width: 12px
+            height: 12px
+            transform: translate(-50%,-50%)
+            border-radius: 50%
+            background: rgba($n3, .8)
+

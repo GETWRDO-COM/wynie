@@ -1,0 +1,47 @@
+@import @/styles/variables
+
+.stars
+    display: flex
+    justify-content: center
+    gap: 8px
+    margin-bottom: 16px
+
+.star
+    position: relative
+    display: flex
+    justify-content: center
+    align-items: center
+    width: 44px
+    height: 44px
+    &:before,
+    &:after
+        content: ""
+        position: absolute
+        inset: 0
+        border-radius: 32px
+    &:before
+        background: rgba(248, 248, 248, 0.02)
+        box-shadow: inset 2px 4px 16px 0px rgba(248, 248, 248, 0.06)
+        backdrop-filter: blur(50px)
+    &:after
+        border: 1.5px solid rgba(255, 255, 255, 0.1)
+        mask-image: linear-gradient(160deg, black, transparent 50%)
+        pointer-events: none
+    img
+        z-index: 2
+        opacity: 1
+
+.row
+    display: flex
+    justify-content: center
+    align-items: center
+    opacity: .8
+    color: $text-tertiary
+    span
+        font-weight: 700
+        color: $text-primary
+
+.logo
+    margin-left: 8px
+    img
+        opacity: 1

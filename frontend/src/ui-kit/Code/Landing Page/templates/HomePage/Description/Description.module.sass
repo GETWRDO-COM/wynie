@@ -1,0 +1,122 @@
+@import @/styles/variables
+
+.wrapper
+    position: relative
+    +t
+        border-radius: 80px
+        overflow: hidden
+    +m
+        border-radius: 48px
+    &:before,
+    &:after
+        content: ""
+        position: absolute
+        inset: 0
+        border-radius: 108px
+        +d
+            border-radius: 96px
+        +t
+            border-radius: 80px
+        +m
+            border-radius: 48px
+    &:before
+        background: radial-gradient(100% 100% at 50% 0%, rgba(255, 255, 255, 0.04) 0%, rgba(248, 248, 248, 0.00) 54.17%)
+        box-shadow: inset 2px 4px 16px 0px rgba(248, 248, 248, 0.06), 0px 24px 24px -16px rgba(5, 5, 5, 0.09), 0px 6px 13px 0px rgba(5, 5, 5, 0.10), 0px 6px 4px -4px rgba(5, 5, 5, 0.10), 0px 5px 1.5px -4px rgba(5, 5, 5, 0.25)
+        backdrop-filter: blur(50px)
+    &:after
+        border: 1.5px solid rgba(255, 255, 255, 0.1)
+        mask-image: linear-gradient(172deg, black, transparent 50%)
+        pointer-events: none
+        opacity: 0
+        transition: opacity .2s
+
+.inner
+    position: relative
+    z-index: 2
+    padding: 80px 48px 0
+    +m
+        padding: 32px 28px 0
+
+.head
+    max-width: 626px
+    margin: 0 auto 48px
+    text-align: center
+
+.title
+    margin-bottom: 20px
+    opacity: .8
+    +m
+        font-size: 36px
+        line-height: 1.2
+
+.info
+    margin-bottom: 32px
+    +info
+    color: $text-secondary
+
+.button
+    margin-bottom: 12px
+
+.version
+    font-size: 10px
+    line-height: 1.2
+    color: $text-tertiary
+
+.preview
+    position: relative
+    padding-left: 32px
+    text-align: center
+    +m
+        margin: 0 -112px
+    > img
+        +t
+            width: auto
+            height: auto
+
+.stars
+    position: absolute
+    left: 50%
+    bottom: 0
+    width: 776px
+    z-index: -1
+    transform: translateX(-50%)
+    +d
+        width: 717px
+    +t
+        width: 520px
+    +m
+        width: 360px
+
+.cursor
+    position: absolute
+    z-index: 5
+    img
+        opacity: 1
+    &:nth-child(1)
+        top: -51px
+        left: calc(50% - 258px)
+        +t
+            left: calc(50% - 203px)
+        .tooltip
+            top: calc(100% - 11px)
+            right: calc(100% - 4px)
+            background: linear-gradient(0deg, rgba(212, 84, 29, 0.95) 0%, rgba(212, 84, 29, 0.95) 100%)
+            box-shadow: 0px 24px 32px -12px rgba(18, 18, 18, 0.10), inset 2px 4px 16px 0px rgba(248, 248, 248, 0.06)
+    &:nth-child(2)
+        top: 16px
+        right: calc(50% - 363px)
+        +t
+            right: calc(50% - 223px)
+        .tooltip
+            top: calc(100% - 10px)
+            left: calc(100% - 4px)
+            background: rgba(#353DF4, .95)
+            box-shadow: 0px 24px 32px -12px rgba(18, 18, 18, 0.10), inset 2px 4px 16px 0px rgba(248, 248, 248, 0.06)
+
+.tooltip
+    position: absolute
+    padding: 8px 16px
+    border-radius: 32px
+    backdrop-filter: blur(16px)
+    +base-2m
+    color: rgba($n2, .76)

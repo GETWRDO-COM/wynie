@@ -1,0 +1,103 @@
+@import @/styles/variables
+
+.head
+    max-width: 600px
+    margin: 0 auto 48px
+    text-align: center
+    +t
+        margin-bottom: 40px
+    +m
+        margin-bottom: 16px
+
+.title
+    +gradient-text
+    +m
+        font-size: 36px
+        line-height: 1.2
+
+.info
+    +info
+    color: rgba($n2, .4)
+
+.tabs
+    position: relative
+    display: flex
+    max-width: 280px
+    margin: 80px auto 0
+    padding: 4px
+    background: rgba(18, 18, 18, 0.40)
+    border-radius: 22px
+    +t
+        margin-top: 64px
+        border-radius: 28px
+    +m
+        max-width: 100%
+        margin-top: 44px
+    &:before,
+    &:after
+        content: ""
+        position: absolute
+        left: 4px
+        width: calc(50% - 4px)
+        height: 36px
+        border-radius: 18px
+        pointer-events: none
+        transition: transform .2s
+        +t
+            height: 48px
+            border-radius: 24px
+    &:before
+        background: rgba(248, 248, 248, 0.05)
+        box-shadow: 0px 4px 4px 0px rgba(255, 255, 255, 0.05) inset, 0px 8px 16px -4px rgba(18, 18, 18, 0.20)
+    &:after
+        border: 1.5px solid rgba(255, 255, 255, 0.05)
+        mask-image: linear-gradient(172deg, black, transparent 50%)
+    &.active
+        &:before,
+        &:after
+            transform: translateX(100%)
+
+.tab
+    position: relative
+    z-index: 2
+    display: flex
+    justify-content: center
+    align-items: center
+    height: 36px
+    flex: 1
+    +base-2s
+    color: rgba($n2, .56)
+    transition: color .2s
+    +t
+        height: 48px
+    &:hover,
+    &.active
+        color: $text-primary
+
+.list
+    display: flex
+    margin: 0 -16px
+    +t
+        margin: 0 -32px
+        overflow: auto
+        -ms-overflow-style: none
+        scrollbar-width: none
+        -webkit-overflow-scrolling: touch
+        &::-webkit-scrollbar
+            display: none
+        &:before,
+        &:after
+            content: ""
+            flex-shrink: 0
+            width: 16px
+    +m
+        margin: 0 -24px
+
+.foot
+    display: flex
+    justify-content: center
+    margin-top: 80px
+    +t
+        margin-top: 64px
+    +m
+        margin-top: 40px

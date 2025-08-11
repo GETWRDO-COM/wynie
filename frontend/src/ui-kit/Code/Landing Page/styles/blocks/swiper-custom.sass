@@ -1,0 +1,27 @@
+.swiper-testimonials-author
+    overflow: visible !important
+    .swiper-slide
+        &.swiper-slide-active
+            background: rgba(248, 248, 248, 0.10)
+            box-shadow: 0px 24px 32px -12px rgba(18, 18, 18, 0.10), inset 2px 4px 16px 0px rgba(248, 248, 248, 0.06)
+            &:before
+                opacity: 1
+
+.swiper-pagination-bullets.swiper-pagination-testimonials
+    position: relative
+    display: flex
+    top: auto !important
+    left: auto !important
+    right: auto !important
+    bottom: auto !important
+    margin: 0 12px
+    .swiper-pagination-bullet
+        width: 8px
+        height: 8px
+        margin: 0 4px
+        background: rgba($n2, .25)
+        border-radius: 50%
+        opacity: 1
+        transition: background .2s
+        &.swiper-pagination-bullet-active
+            background: rgba($n2, .7)

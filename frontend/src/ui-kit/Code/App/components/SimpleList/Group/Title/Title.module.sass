@@ -1,0 +1,25 @@
+@import @/styles/variables
+
+.title,
+.input
+    position: relative
+    z-index: 3
+    margin-right: auto
+    +base-2m
+    color: rgba($n2, .76)
+
+.title
+    overflow: hidden
+    white-space: nowrap
+    text-overflow: ellipsis
+    cursor: pointer
+
+.input
+    flex-grow: 1
+    width: auto
+    height: 20px
+    padding: 0
+    background: transparent
+    border: none
+    resize: none
+    outline: none

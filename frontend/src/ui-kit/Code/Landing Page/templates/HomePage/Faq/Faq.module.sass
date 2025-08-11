@@ -1,0 +1,41 @@
+@import @/styles/variables
+
+.container
+    display: flex
+    +t
+        display: block
+        padding: 0 40px
+    +m
+        padding: 0 24px
+
+.wrap
+    flex-shrink: 0
+    width: 380px
+    margin-right: 140px
+    +w
+        margin-right: 80px
+    +d
+        width: 320px
+    +t
+        width: 100%
+        margin: 0 0 56px
+        text-align: center
+
+.title
+    margin-bottom: 28px
+    +gradient-text
+    +m
+        margin-bottom: 18px
+        font-size: 36px
+        line-height: 1.2
+
+.info
+    margin-bottom: 40px
+    +info
+    color: rgba($n2, .4)
+
+.list
+    width: 100%
+    max-width: 720px
+    margin-left: auto
+

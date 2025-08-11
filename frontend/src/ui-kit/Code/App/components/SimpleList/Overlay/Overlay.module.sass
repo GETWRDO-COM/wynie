@@ -1,0 +1,16 @@
+@import @/styles/variables
+
+.overlay
+    position: absolute
+    inset: 0
+    z-index: 3
+    // background: rgba(40, 40, 40, 0.7)
+    // box-shadow: 2px 4px 16px 0px rgba(248, 248, 248, 0.06) inset
+    border-radius: 32px
+    // backdrop-filter: blur(50px)
+    visibility: hidden
+    opacity: 0
+    transition: all .2s
+    &.visible
+        visibility: visible
+        opacity: 1

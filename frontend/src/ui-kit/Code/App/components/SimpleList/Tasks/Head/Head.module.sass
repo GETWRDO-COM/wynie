@@ -1,0 +1,131 @@
+@import @/styles/variables
+
+.head
+    display: flex
+    position: absolute
+    top: 12px
+    left: 12px
+    right: 12px
+    transition: opacity .2s
+    &.hide
+        opacity: .1
+
+.back
+    display: flex
+    margin-right: 16px
+    transition: opacity .2s
+    span
+        padding-top: 10px
+        +title
+        color: $text-primary
+    &:hover
+        .arrow
+            background: rgba($n3, 0.9)
+    &.hide
+        opacity: .1
+
+.arrow,
+.add
+    position: relative
+    flex-shrink: 0
+    width: 44px
+    height: 44px
+    border-radius: 50%
+    background: rgba($n3, 0.70)
+    box-shadow: 2px 4px 16px 0px rgba(248, 248, 248, 0.06) inset
+    // backdrop-filter: blur(50px)
+    padding: 0
+    border: none
+    cursor: pointer
+    font-size: 0
+    transition: background .2s
+    &:after,
+    &:before
+        content: ""
+        position: absolute
+        inset: 0
+        border-radius: 50%
+    &:after
+        border: 1.5px solid rgba(255, 255, 255, 0.1)
+        mask-image: linear-gradient(160deg, black, transparent 50%)
+    &:before
+        background: linear-gradient(0deg, rgba(248, 248, 248, 0.10) 0%, rgba(248, 248, 248, 0.10) 100%)
+        opacity: 0
+        transition: opacity .2s
+    &:hover
+        &:before
+            opacity: 1
+    &:active
+        background: rgba($n3, 0.9)
+        &:before
+            opacity: 0
+        svg
+            transform: scale(.85)
+    svg
+        position: relative
+        z-index: 2
+        fill: $text-secondary
+        transition: transform .2s
+    
+.arrow
+    display: flex
+    justify-content: center
+    align-items: center
+    margin-right: 12px
+
+.add
+    position: relative
+    z-index: 8
+    margin-left: auto
+    svg
+        transition: transform .2s
+    &:hover
+        .tooltip
+            opacity: 1
+            visibility: visible
+    &.active
+        background: rgba($n3, .9)
+        svg
+            transform: rotate(45deg)
+
+.tooltip
+    position: absolute
+    top: calc(100% + 8px)
+    right: 0
+    z-index: 5
+    padding: 4px 8px
+    white-space: nowrap
+    border-radius: 8px
+    background: rgba($n3, 0.60)
+    backdrop-filter: blur(50px)
+    font-size: 12px
+    line-height: 1.35
+    color: $text-secondary
+    visibility: hidden
+    opacity: 0
+    pointer-events: none
+    transition: all .2s
+    @media only screen and (max-width: "767px")
+        display: none
+    &:before
+        content: ""
+        position: absolute
+        right: 16px
+        bottom: 100%
+        width: 12px
+        height: 6px
+        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6' fill='none' viewBox='0 0 12 6'%3E%3Cpath d='M8.263 2.263L12 6H0l3.737-3.737c.792-.792 1.188-1.188 1.645-1.336a2 2 0 0 1 1.236 0c.457.148.853.544 1.645 1.336z' fill='%23282828' fill-opacity='.6'/%3E%3C/svg%3E") no-repeat 0 0 / 100% auto
+
+.line
+    display: flex
+    align-items: center
+
+.sign
+    display: flex
+    justify-content: center
+    align-items: center
+    width: 20px
+    height: 20px
+    margin: 0 -4px 0 8px
+    background: rgba(248, 248, 248, 0.07)
+    border-radius: 4px

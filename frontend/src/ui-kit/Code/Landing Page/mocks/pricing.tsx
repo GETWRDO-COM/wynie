@@ -1,0 +1,47 @@
+export const pricing = [
+    {
+        id: "0",
+        title: "SimpleStart",
+        priceMonthly: 15,
+        priceAnnually: 150,
+        image: "/images/pricing-pic-1.png",
+        description: "A free account with:",
+        options: [
+            "Up to 10 lists",
+            "100 items per list",
+            "Basic categorization",
+            "Mobile app access",
+            "Cross-device sync (2 devices max)",
+        ],
+    },
+    {
+        id: "1",
+        title: "SimplePro",
+        priceMonthly: 25,
+        priceAnnually: 250,
+        image: "/images/pricing-pic-2.png",
+        description: "All SimpleStart features, plus:",
+        options: [
+            "Unlimited lists",
+            "Unlimited items per list",
+            "Advanced categorization and tagging",
+            "Mobile and desktop app access",
+            "Dedicated account manager",
+        ],
+    },
+    {
+        id: "2",
+        title: "SimpleTeam",
+        priceMonthly: 35,
+        priceAnnually: 350,
+        image: "/images/pricing-pic-3.png",
+        description: "All SimplePro features, plus:",
+        options: [
+            "Team collaboration tools",
+            "Admin controls and user management",
+            "Advanced security features",
+            "API access for integrations",
+            "Dedicated account manager",
+        ],
+    },
+];
