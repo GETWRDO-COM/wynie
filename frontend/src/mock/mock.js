@@ -106,7 +106,7 @@ function rsi(values, n = 14) {
   }
   let avgGain = gains / n
   let avgLoss = losses / n
-  for (let i = n + 1; i &lt; values.length; i++) {
+  for (let i = n + 1; i < values.length; i++) {
     const ch = values[i] - values[i - 1]
     const gain = Math.max(0, ch)
     const loss = Math.max(0, -ch)
