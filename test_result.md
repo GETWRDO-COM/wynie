@@ -438,6 +438,18 @@ agent_communication:
 
 backend:
   - task: "Enhanced ETF Data API with SA greetings and real-time tracking"
+  - task: "Polygon aggregates, CNN Fear & Greed, News proxy"
+    implemented: true
+    working: false
+    file: "/app/backend/server_enhanced.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Added /api/market/aggregates (Polygon), /api/greed-fear (CNN via JSON with scrape fallback), /api/news proxy with cache. Stored user's Polygon key in backend env and added secure key storage endpoints."
+
     implemented: true
     working: true
     file: "/app/backend/server.py"
