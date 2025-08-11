@@ -107,9 +107,7 @@ function App() {
                   <div className="space-y-3">
                     <div className="text-xs text-gray-400">Polygon.io</div>
                     <div>
-                      {/* Lazy import not necessary here */}
-                      {/* eslint-disable-next-line */}
-                      {require('./components/PolygonKeySettings').default()}
+                      <PolygonKeySettings />
                     </div>
                   </div>
                 </div>
