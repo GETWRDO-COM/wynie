@@ -192,9 +192,9 @@ function computeRS(universe, windowDays = 63) { // ~3M trading days
 }
 
 function computeAS(universe, shortDays = 21, longDays = 63) {
-  const accel = universe.map((row) =&gt; {
+  const accel = universe.map((row) => {
     const candles = genOhlc(row.symbol, 240, 100 + SYMBOLS.indexOf(row.symbol))
-    const closes = candles.map((c) =&gt; c.close)
+    const closes = candles.map((c) => c.close)
     const end = closes.at(-1)
     const s = closes.at(-(shortDays + 1)) || closes[0]
     const l = closes.at(-(longDays + 1)) || closes[0]
@@ -202,7 +202,7 @@ function computeAS(universe, shortDays = 21, longDays = 63) {
     const rocL = (end - l) / l
     return rocS - rocL
   })
-  return universe.map((row, i) =&gt; percentile(accel, accel[i]))
+  return universe.map((row, i) => percentile(accel, accel[i]))
 }
 
 // Local storage helpers
