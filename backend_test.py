@@ -9,6 +9,9 @@ import json
 import sys
 from datetime import datetime
 import time
+import websocket
+import threading
+import asyncio
 
 # Get backend URL from frontend .env
 def get_backend_url():
