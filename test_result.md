@@ -191,4 +191,6 @@
 
 ## agent_communication:
   - agent: "main"
-    message: "Please run backend tests for the above endpoints. Base URL is REACT_APP_BACKEND_URL with /api prefix. Validate happy paths and error handling." 
+    message: "Please run backend tests for the above endpoints. Base URL is REACT_APP_BACKEND_URL with /api prefix. Validate happy paths and error handling."
+  - agent: "testing"
+    message: "Backend testing completed successfully. All 4 backend tasks are now working. Fixed minor MongoDB ObjectId serialization issues in watchlists and added error handling for Polygon API rate limits in ratings compute. All endpoints tested with real data from Polygon API. Created comprehensive backend_test.py with 17 test cases covering all CRUD operations, error handling, and data validation."
