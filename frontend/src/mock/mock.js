@@ -125,7 +125,7 @@ function getMockUniverse() {
   for (let i = 0; i < SYMBOLS.length; i++) {
     const s = SYMBOLS[i]
     const candles = genOhlc(s, 240, 100 + i)
-    const closes = candles.map((c) =&gt; c.close)
+    const closes = candles.map((c) => c.close)
     const last = closes.at(-1)
     const chg = ((last - closes.at(-2)) / closes.at(-2)) * 100
     const vToday = candles.at(-1).volume
