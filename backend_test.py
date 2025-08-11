@@ -1999,7 +1999,7 @@ class ETFBackendTester:
                 print(f"❌ FAIL {test_name}: Unexpected error: {str(e)}")
                 new_failed += 1
         
-        # Run core system tests
+        # Run core system tests (including authentication)
         print("\n🏗️ CORE SYSTEM: Testing All Backend Features")
         print("-" * 60)
         core_passed = 0
@@ -2015,6 +2015,23 @@ class ETFBackendTester:
             except Exception as e:
                 print(f"❌ FAIL {test_name}: Unexpected error: {str(e)}")
                 core_failed += 1
+        
+        # Run auth-protected new endpoint tests after authentication is set up
+        print("\n🔐 AUTH-PROTECTED NEW ENDPOINTS: Testing After Authentication")
+        print("-" * 60)
+        auth_new_passed = 0
+        auth_new_failed = 0
+        
+        for test_name, test_func in auth_new_endpoint_tests:
+            print(f"\n🧪 Running {test_name}...")
+            try:
+                if test_func():
+                    auth_new_passed += 1
+                else:
+                    auth_new_failed += 1
+            except Exception as e:
+                print(f"❌ FAIL {test_name}: Unexpected error: {str(e)}")
+                auth_new_failed += 1
         
         # Cleanup
         self.cleanup()
