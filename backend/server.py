@@ -56,6 +56,31 @@ OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
 JWT_SECRET = os.environ.get('JWT_SECRET', 'etf-intelligence-secret-key')
 JWT_ALGORITHM = "HS256"
 
+# In-memory caches
+CACHE: Dict[str, Dict[str, Any]] = {}
+
+def cache_get(key: str):
+    item = CACHE.get(key)
+    if not item:
+        return None
+    if datetime.now(timezone.utc) > item["expires_at"]:
+        CACHE.pop(key, None)
+        return None
+    return item["value"]
+
+def cache_set(key: str, value: Any, ttl_seconds: int):
+    CACHE[key] = {
+        "value": value,
+        "expires_at": datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds)
+    }
+
+# --- Encryption helpers for settings ---
+FERNET_KEY = base64.urlsafe_b64encode(sha256(JWT_SECRET.encode()).digest())
+fernet = Fernet(FERNET_KEY)
+
+class PolygonKeyInput(BaseModel):
+    api_key: str
+
 # Security
 security = HTTPBearer()
 
