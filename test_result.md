@@ -435,6 +435,10 @@ test_plan:
 
 agent_communication:
   - agent: "main"
+    message: "Added Polygon-backed aggregates API, CNN Fear & Greed with JSON + scrape fallback + 6h cache, and backend news proxy. Frontend: implemented MarketCharts with range buttons and colored % change, wired NewsTicker to backend, added Settings UI for saving Polygon key securely. Request backend tests focusing on these new endpoints."
+
+agent_communication:
+  - agent: "main"
     message: "🏆 FINAL COMPREHENSIVE SYSTEM COMPLETION: Successfully implemented and tested ALL requested enhanced features. The ETF Intelligence System is now a complete, professional-grade trading platform with: (1) Full authentication system with JWT security (2) AI chat integration with OpenAI GPT-4.1 and model selection (3) Universal company search with logos and detailed information (4) TradingView integration with advanced charting (5) Interactive charts with multiple timeframes (6) Google Sheets-style spreadsheet interface with formula transparency (7) Enhanced watchlist management (8) Professional UI/UX with dark theme (9) Real-time market data integration (10) Comprehensive testing with 100% success rates. System screenshots showcase fully functional dashboard, analysis grid, AI assistant, spreadsheet interface, and AI chat. Ready for immediate production deployment."
 
 backend:
