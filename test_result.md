@@ -372,7 +372,7 @@ backend:
     file: "/app/frontend/src/App.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "user"
@@ -380,6 +380,9 @@ backend:
       - working: true
         agent: "main"
         comment: "Removed lock icon from login UI, added eslint-plugin-react-hooks and CRA-compatible .eslintrc.json (react-app extends), fixed HTML entity issues in App.js causing babel parser errors."
+      - working: true
+        agent: "testing"
+        comment: "✅ QUICK SMOKE TEST COMPLETED: Re-validated all requested auth and news endpoints after frontend lint changes. RESULTS: (1) POST /api/auth/login with beetge@mwebbiz.co.za - ✅ PASS: Login successful, token received (auto-create working). (2) GET /api/auth/me with token - ✅ PASS: User info retrieved correctly. (3) GET /api/news?category=Stock%20Market - ✅ PASS: 92 news items returned. (4) GET /api/greed-fear - ✅ PASS: Score 50 (valid 0-100 range). (5) GET /api/market/aggregates - ✅ PASS: All 5 tickers present (SPY, QQQ, I:DJI, TQQQ, SQQQ). (6) GET /api/market-score - ✅ PASS: Score 24, Classification Yellow Day. ALL 6/6 TESTS PASSED. Backend endpoints are completely stable and unaffected by frontend lint changes."
 
       - working: true
         agent: "testing"
