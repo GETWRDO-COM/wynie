@@ -192,7 +192,7 @@ export default function WatchlistsPanel({ onUseSymbols }){
                              onDragStart={(e)=> onDragStartSym(e, s, sec.id, idx)}
                              onDragOver={onDragOverSymbol}
                              onDrop={(e)=> onDropIntoSection(e, sec.id, idx)}>
-                          <span>{s}</span>
+                          <span className="flex items-center gap-1"><span className="text-muted-foreground"><svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' class='inline-block' viewBox='0 0 24 24' fill='currentColor'><path d='M9 3h6v2H9zm-6 8h18v2H3zm4 8h10v2H7z'></path></svg></span>{s}</span>
                           <Select onValueChange={(to)=> moveSymbol(s, sec.id, to)}>
                             <SelectTrigger className="w-32"><SelectValue placeholder="Move"/></SelectTrigger>
                             <SelectContent>
