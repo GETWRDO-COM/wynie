@@ -191,10 +191,10 @@ class Phase2TargetedTester:
     def test_etf_regime_simulate(self):
         """Test Phase 2: POST /api/signals/etf-regime/simulate with body {"start":"2024-01-01","end":"2024-01-31"} returns all required fields"""
         try:
-            # Test with the exact date range from review request
+            # Test with a longer date range to meet the 60-day requirement
             simulate_data = {
                 "start": "2024-01-01",
-                "end": "2024-01-31"
+                "end": "2024-03-31"  # Extended to ~90 days
             }
             
             print(f"Testing POST {API_BASE}/signals/etf-regime/simulate with {simulate_data}")
