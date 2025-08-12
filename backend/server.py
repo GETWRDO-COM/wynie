@@ -70,7 +70,7 @@ class StatusCheckCreate(BaseModel):
 async def ensure_indexes_and_seed():
     # Unique indexes for idempotency and keys
     await db.accounts.create_index('external_account_id', unique=True)
-    await db.accounts.create_index('_id', unique=True)
+    # _id is already unique by default; do not recreate index on _id
     await db.ingest_jobs.create_index('idempotency_key', unique=True)
     await db.ingest_jobs.create_index('account_id')
     # Seed two accounts if not present
