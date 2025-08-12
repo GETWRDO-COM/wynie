@@ -129,7 +129,7 @@ const NewsSection = ({ api }) => {
         </div>
         <div>
           <div className="text-xs text-white/90 mb-2 font-semibold flex items-center gap-2"><span className="px-2 py-0.5 rounded bg-gradient-to-r from-green-500/80 to-blue-500/80 text-black">Earnings</span><span className="text-gray-400 font-normal">announcements</span></div>
-          <ul className="space-y-2">
+          <ul className="space-y-2 bg-white/5 border border-white/10 rounded-lg p-3">
             {(earnings||[]).slice(0,8).map((e, i) => (
               <li key={i} className="text-sm">
                 <a href={e.link} target="_blank" rel="noopener noreferrer" className="text-white/90 hover:text-white underline-offset-2 hover:underline">{e.ticker}</a>
