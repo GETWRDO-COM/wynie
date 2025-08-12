@@ -586,9 +586,9 @@ backend:
     file: "/app/backend/server.py"
   - task: "MarketCharts frontend + NewsTicker via backend + Polygon Settings UI + GreedFear UI + Floating AI"
     implemented: true
-    working: true
+    working: false
     file: "/app/frontend/src/components/MarketCharts.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -598,6 +598,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ COMPREHENSIVE TESTING COMPLETED: All requested features tested successfully. (1) Login page input visibility - ✅ PASS: Email and password inputs visible with white text, accepts typing correctly. (2) Navbar labels - ✅ PASS: Exactly 'Dashboard, Analysis, AI, Spreadsheets' as required. (3) Dashboard core widgets - ✅ PASS: Greed & Fear card visible with CNN logo and numeric score (73), MarketCharts component renders SPY chart with all 6 timeframe buttons (1D/1W/1M/YTD/1Y/5Y) working correctly. (4) NewsTicker - ✅ PASS: Bottom ticker present with 21,551 characters of news content and category select dropdown. (5) Floating AI chat - ⚠️ PARTIAL: Button visible in bottom-right, but panel opening blocked by emergent badge overlay (system limitation). Fixed GreedFearCard.js null reference error during testing. All core functionality working as specified."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE FOUND: Market Snapshot duplication detected during UI validation testing. Found 2 'Market Snapshot' sections on dashboard (should be exactly 1). One appears in DashboardQuickSections component and another in MarketCharts component. This creates confusion and duplicate content. Charts render correctly and timeframe buttons work, but the duplication needs to be resolved by removing one of the Market Snapshot headers or consolidating the components."
 
     stuck_count: 0
     priority: "medium"
