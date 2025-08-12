@@ -121,15 +121,18 @@
         comment: "✅ Settings endpoints working perfectly. GET /api/settings returns booleans for polygon and finnhub keys. POST /api/settings successfully updates in-memory clients and persists keys to backend/.env. Subsequent GET shows finnhub: true after key update."
   - task: "Finnhub fundamentals integration"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/finnhub_client.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "Company profile and metrics wired with TTL cache and backoff."
+      - working: true
+        agent: "testing"
+        comment: "✅ Finnhub fundamentals integration working correctly. GET /api/marketdata/fundamentals?symbols=AAPL,MSFT returns proper data map with both symbols. Each symbol has fundamentals data structure with fields like marketCap, peTTM, etc. Integration with Finnhub client functioning as expected."
   - task: "Screener registry expansion"
     implemented: true
     working: true
