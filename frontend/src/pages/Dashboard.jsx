@@ -19,7 +19,6 @@ function useLocalState(key, initial) {
   return [v, setV]
 }
 
-// Simple SVG candle chart as placeholder until TradingView package is provided
 function CandleChart({ symbol, drawings, setDrawings }) {
   const [bars, setBars] = useState([])
   useEffect(()=>{
@@ -88,7 +87,7 @@ function CandleChart({ symbol, drawings, setDrawings }) {
 export default function Dashboard() {
   const [rows, setRows] = useState([])
   const [selected, setSelected] = useLocalState("selectedSymbol", "AAPL")
-  const [visibleColumns, setVisibleColumns] = useLocalState("visibleColumns", ["logo","symbol","last","changePct","volume","avgVol20d","runRate20d","sma20","sma50","sma200","rsi14","RS","AS","notes"]) 
+  const [visibleColumns, setVisibleColumns] = useLocalState("visibleColumns", ["logo","symbol","last","changePct","volume","avgVol20d","runRate20d","sma20","sma50","sma200","rsi14","RS","AS"]) 
   const [sort, setSort] = useState({ key: "RS", dir: "desc" })
   const [rsWindow, setRsWindow] = useLocalState("rsWindow", 63)
   const [asShort, setAsShort] = useLocalState("asShort", 21)
@@ -96,12 +95,19 @@ export default function Dashboard() {
   const [watchSymbols, setWatchSymbols] = useLocalState("watchlist_default", ["AAPL","MSFT","NVDA","AMZN","GOOGL"]) 
   const [query, setQuery] = useState("")
   const [openCol, setOpenCol] = useState(false)
-  const [presets, setPresets] = useLocalState("column_presets", {})
+  const [presets, setPresets] = useState({})
   const [drawings, setDrawings] = useLocalState("drawings", {})
   const [logos, setLogos] = useLocalState("logos", {})
+  const [columnDefs, setColumnDefs] = useState([])
 
   // live quotes via WS
   const quotesMap = useQuotesWS(watchSymbols)
+
+  // Load column schema & presets
+  useEffect(()=>{ (async()=>{
+    try{ const s = await getColumnSchema(); const cols = s.categories.flatMap(g=> g.columns); setColumnDefs(cols) } catch {}
+    try{ const p = await getColumnPresets(); setPresets(p) } catch {}
+  })() }, [])
 
   // Load initial quotes for table
   useEffect(()=>{
@@ -169,16 +175,16 @@ export default function Dashboard() {
     if (!watchSymbols.includes(s)) setWatchSymbols([...watchSymbols, s])
   }
 
-  const savePreset = async (name)=>{ if(!name) return; setPresets(prev=> ({...prev, [name]: visibleColumns})) }
+  const savePreset = async (name)=>{ if(!name) return; try { await saveColumnPreset(name, visibleColumns); setPresets(prev=> ({...prev, [name]: visibleColumns})) } catch { setPresets(prev=> ({...prev, [name]: visibleColumns})) } }
   const loadPreset = (name)=>{ if(!name) return; const cols = presets[name]; if (cols) setVisibleColumns(cols) }
-  const resetRecommended = ()=> setVisibleColumns(["logo","symbol","last","changePct","volume","avgVol20d","runRate20d","sma20","sma50","sma200","rsi14","RS","AS","notes"])
+  const resetRecommended = ()=> setVisibleColumns(["logo","symbol","last","changePct","volume","avgVol20d","runRate20d","sma20","sma50","sma200","rsi14","RS","AS"])
 
   const onEdit = (symbol, key, value)=>{ setRows(prev => prev.map(r => r.symbol===symbol ? ({...r, [key]: value}) : r)) }
 
   return (
     <div className="h-screen w-full flex flex-col">
       <header className="h-12 border-b px-4 flex items-center justify-between bg-card">
-        <div className="font-semibold">Deepvue Workstation (Live • Polygon)</div>
+        <div className="font-semibold">Deepvue Workstation (Live • Polygon + Finnhub)</div>
         <div className="flex items-center gap-3 text-sm">
           <div className="flex items-center gap-2">
             <label>RS window</label>
@@ -231,7 +237,7 @@ export default function Dashboard() {
                 <Separator className="my-2"/>
                 <Input placeholder="Search in list" value={query} onChange={(e)=> setQuery(e.target.value)} />
                 <div className="mt-2">
-                  <DataTable rows={filteredRows} visibleColumns={visibleColumns} onColumnsClick={()=> setOpenCol(true)} sort={sort} setSort={setSort} onRowClick={(r)=> setSelected(r.symbol)} onEdit={onEdit} logos={logos} />
+                  <DataTable rows={filteredRows} columnDefs={columnDefs} visibleColumns={visibleColumns} onColumnsClick={()=> setOpenCol(true)} sort={sort} setSort={setSort} onRowClick={(r)=> setSelected(r.symbol)} onEdit={onEdit} logos={logos} />
                 </div>
               </TabsContent>
               <TabsContent value="screener">
@@ -248,7 +254,7 @@ export default function Dashboard() {
         </Panel>
       </PanelGroup>
 
-      <ColumnSettings open={openCol} onOpenChange={setOpenCol} visibleColumns={visibleColumns} setVisibleColumns={setVisibleColumns} presets={presets} savePreset={savePreset} loadPreset={(name)=> { const cols = presets[name]; if (cols) setVisibleColumns(cols) }} resetRecommended={()=> setVisibleColumns(["logo","symbol","last","changePct","volume","avgVol20d","runRate20d","sma20","sma50","sma200","rsi14","RS","AS","notes"]) } />
+      <ColumnSettings open={openCol} onOpenChange={setOpenCol} columnDefs={columnDefs} visibleColumns={visibleColumns} setVisibleColumns={setVisibleColumns} presets={presets} savePreset={savePreset} loadPreset={loadPreset} resetRecommended={resetRecommended} />
     </div>
   )
 }

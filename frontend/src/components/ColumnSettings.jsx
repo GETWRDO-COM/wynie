@@ -4,19 +4,18 @@ import { Input } from "./ui/input"
 import { Checkbox } from "./ui/checkbox"
 import { Button } from "./ui/button"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion"
-import { COLUMN_REGISTRY } from "./DataTable"
 
-export default function ColumnSettings({ open, onOpenChange, visibleColumns, setVisibleColumns, presets, savePreset, loadPreset, resetRecommended }) {
+export default function ColumnSettings({ open, onOpenChange, columnDefs, visibleColumns, setVisibleColumns, presets, savePreset, loadPreset, resetRecommended }) {
   const [search, setSearch] = useState("")
   const grouped = useMemo(()=>{
     const groups = {}
-    for (const c of COLUMN_REGISTRY) {
+    for (const c of columnDefs || []) {
       if (search && !c.label.toLowerCase().includes(search.toLowerCase())) continue
       groups[c.category] ||= []
       groups[c.category].push(c)
     }
     return groups
-  }, [search])
+  }, [search, columnDefs])
 
   const toggle = (id) => {
     setVisibleColumns(prev => prev.includes(id) ? prev.filter(x=> x!==id) : [...prev, id])
@@ -74,7 +73,7 @@ export default function ColumnSettings({ open, onOpenChange, visibleColumns, set
             <h4 className="font-medium mb-2">Visible Order</h4>
             <div className="border rounded p-2 space-y-2 max-h-[50vh] overflow-auto">
               {visibleColumns.map(id=> {
-                const c = COLUMN_REGISTRY.find(x=> x.id===id)
+                const c = (columnDefs||[]).find(x=> x.id===id)
                 if (!c) return null
                 return (
                   <div key={id} className="flex items-center justify-between bg-muted/50 px-2 py-1 rounded">

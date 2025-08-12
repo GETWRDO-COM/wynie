@@ -5,37 +5,6 @@ import { Button } from "./ui/button"
 import { ArrowUpDown, Settings } from "lucide-react"
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar"
 
-// Column registry with categories. Easy to extend.
-export const COLUMN_REGISTRY = [
-  { id: "logo", label: "", category: "General", width: 36 },
-  { id: "symbol", label: "Symbol", category: "General", width: 90 },
-  { id: "description", label: "Description", category: "General", width: 180 },
-  { id: "sector", label: "Sector", category: "Sector & Industry", width: 140 },
-  { id: "industry", label: "Industry", category: "Sector & Industry", width: 160 },
-  { id: "marketCap", label: "Mkt Cap", category: "General", formatter: (v) => Intl.NumberFormat().format(v) },
-  { id: "last", label: "Last", category: "Price & Volume" },
-  { id: "changePct", label: "% Chg", category: "Price & Volume", formatter: (v)=> (v==null?'-':`${v.toFixed(2)}%`) },
-  { id: "volume", label: "Vol", category: "Price & Volume", formatter: (v)=> Intl.NumberFormat().format(v) },
-  { id: "avgVol20d", label: "AvgVol20d", category: "Price & Volume", formatter: (v)=> Intl.NumberFormat().format(v) },
-  { id: "runRate20d", label: "RunRate20d", category: "Price & Volume" },
-  { id: "relVol", label: "RelVol", category: "Price & Volume" },
-  { id: "high52w", label: "52w High", category: "Price & Volume" },
-  { id: "low52w", label: "52w Low", category: "Price & Volume" },
-  { id: "gapPct", label: "Gap %", category: "Price & Volume" },
-  { id: "nextEarnings", label: "Next Earnings", category: "Earnings", formatter: (v)=> new Date(v).toLocaleDateString() },
-  { id: "latestEarnings", label: "Latest Earnings", category: "Earnings", formatter: (v)=> new Date(v).toLocaleDateString() },
-  { id: "sma20", label: "SMA20", category: "Technicals" },
-  { id: "sma50", label: "SMA50", category: "Technicals" },
-  { id: "sma200", label: "SMA200", category: "Technicals" },
-  { id: "rsi14", label: "RSI(14)", category: "Technicals" },
-  { id: "atr", label: "ATR", category: "Technicals" },
-  { id: "prePct", label: "Pre %", category: "Pre/Post Market" },
-  { id: "postPct", label: "Post %", category: "Pre/Post Market" },
-  { id: "RS", label: "RS", category: "Proprietary Ratings" },
-  { id: "AS", label: "AS", category: "Proprietary Ratings" },
-  { id: "notes", label: "Notes", category: "General", editable: true },
-]
-
 function SymbolCell({row, logoUrl}){
   return (
     <div className="flex items-center gap-2">
@@ -48,8 +17,24 @@ function SymbolCell({row, logoUrl}){
   )
 }
 
-export default function DataTable({ rows, visibleColumns, onColumnsClick, sort, setSort, onRowClick, onEdit, logos }) {
-  const cols = useMemo(() => COLUMN_REGISTRY.filter(c => visibleColumns.includes(c.id)), [visibleColumns])
+function formatValue(col, v){
+  if (v == null) return '-'
+  if (col.type === 'number' && typeof v === 'number'){
+    if (col.id.toLowerCase().includes('pct')) return `${v.toFixed(2)}%`
+    if (['volume','avgVol20d'].includes(col.id)) return Intl.NumberFormat().format(v)
+    return typeof v === 'number' ? +(+v).toFixed(2) : v
+  }
+  return v
+}
+
+export default function DataTable({ rows, columnDefs, visibleColumns, onColumnsClick, sort, setSort, onRowClick, onEdit, logos }) {
+  const colMap = useMemo(()=>{
+    const map = {}
+    ;(columnDefs||[]).forEach(c => map[c.id] = c)
+    return map
+  }, [columnDefs])
+
+  const cols = useMemo(() => (visibleColumns||[]).map(id => colMap[id]).filter(Boolean), [visibleColumns, colMap])
 
   const sortedRows = useMemo(() => {
     if (!sort || !sort.key) return rows
@@ -98,7 +83,7 @@ export default function DataTable({ rows, visibleColumns, onColumnsClick, sort, 
                   ) : col.editable ? (
                     <Input value={r[col.id] || ''} onClick={(e)=> e.stopPropagation()} onChange={(e)=> onEdit && onEdit(r.symbol, col.id, e.target.value)} />
                   ) : (
-                    col.formatter ? col.formatter(r[col.id]) : (r[col.id] ?? '-')
+                    formatValue(col, r[col.id])
                   )}
                 </TableCell>
               ))}
