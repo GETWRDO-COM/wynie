@@ -2475,6 +2475,9 @@ async def ndx_refresh_prices(interval: str = Query("1d", pattern="^(1d|15m)$")):
     return {"requested": requested, "succeeded": succeeded, "failed": failed}
 
 
+# Mount the router
+app.include_router(api_router)
+
 # Add this to enable the app to be run directly
 if __name__ == "__main__":
     import uvicorn
