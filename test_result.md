@@ -366,6 +366,21 @@ backend:
     priority: "medium"
     needs_retesting: false
     status_history:
+  - task: "Login page polish (remove lock icon) and ESLint hooks config"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "Login failed with 404 Not Found and compile error for react-hooks/exhaustive-deps rule."
+      - working: true
+        agent: "main"
+        comment: "Removed lock icon from login UI, added eslint-plugin-react-hooks and CRA-compatible .eslintrc.json (react-app extends), fixed HTML entity issues in App.js causing babel parser errors."
+
       - working: true
         agent: "testing"
         comment: "✅ TESTED: Historical data pruning working: configurable retention periods, multiple data types, deletion counts. All admin endpoints functional."
