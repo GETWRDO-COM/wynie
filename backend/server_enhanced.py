@@ -141,12 +141,20 @@ NEWS_FEEDS = {
 }
 
 @api_router.get("/news")
-async def news_proxy(category: str = Query("All")):
-    cache_key = f"news:{category}"
-    cached = cache_get(cache_key)
-    if cached:
-        return {"category": category, "items": cached, "cached": True}
-    url = NEWS_FEEDS.get(category, NEWS_FEEDS["All"])
+async def news_proxy(category: str = Query("All"), q: Optional[str] = Query(None)):
+    # Support dynamic search via Google News RSS when q is provided
+    if q:
+        cache_key = f"newsq:{q}"
+        cached = cache_get(cache_key)
+        if cached:
+            return {"category": f"search:{q}", "items": cached, "cached": True}
+        url = f"https://news.google.com/rss/search?q={quote(q)}&hl=en-US&gl=US&ceid=US:en"
+    else:
+        cache_key = f"news:{category}"
+        cached = cache_get(cache_key)
+        if cached:
+            return {"category": category, "items": cached, "cached": True}
+        url = NEWS_FEEDS.get(category, NEWS_FEEDS["All"])
     try:
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0 Safari/537.36",
