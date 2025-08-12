@@ -33,32 +33,32 @@ const LoginForm = ({ onLogin }) =&gt; {
   const handleLogin = async (e) =&gt; { e.preventDefault(); setLoading(true); setError(''); try { const r = await api.post('/api/auth/login', credentials); const { access_token, user } = r.data; localStorage.setItem('authToken', access_token); localStorage.setItem('user', JSON.stringify(user)); onLogin(user); } catch (err) { setError(err.response?.data?.detail || 'Login failed. Please check your credentials.'); } finally { setLoading(false); } };
   const handleForgotPassword = async () =&gt; { if (!credentials.email) { setError('Please enter your email address first.'); return; } try { const r = await api.post('/api/auth/forgot-password', { email: credentials.email }); alert(r.data.message + '\n\n' + (r.data.temp_instructions || '')); } catch { setError('Failed to send password reset instructions.'); } };
   return (
-    &lt;ThemeWrapper&gt;
-      &lt;div className="min-h-screen flex items-center justify-center px-4"&gt;
-        &lt;div className="glass-panel glow-ring p-8 w-full max-w-md animate-fade-in"&gt;
-          &lt;div className="text-center mb-8"&gt;
-            &lt;h1 className="text-3xl font-bold text-white mb-2 neon-text"&gt;HUNT by WRDO&lt;/h1&gt;
-            &lt;p className="text-gray-300"&gt;Secure Access Portal&lt;/p&gt;
-          &lt;/div&gt;
-          &lt;form onSubmit={handleLogin} className="space-y-6"&gt;
-            &lt;div&gt;
-              &lt;label className="block text-sm font-medium text-gray-300 mb-2"&gt;&lt;FaUser className="inline mr-2" /&gt;Email Address&lt;/label&gt;
-              &lt;input type="email" value={credentials.email} onChange={(e) =&gt; setCredentials({ ...credentials, email: e.target.value })} className="w-full form-input text-base" placeholder="Enter your email" required /&gt;
-            &lt;/div&gt;
-            &lt;div&gt;
-              &lt;label className="block text-sm font-medium text-gray-300 mb-2"&gt;Password&lt;/label&gt;
-              &lt;div className="relative"&gt;
-                &lt;input type={showPassword ? 'text' : 'password'} value={credentials.password} onChange={(e) =&gt; setCredentials({ ...credentials, password: e.target.value })} className="w-full form-input pr-12 text-base" placeholder="Enter your password" required /&gt;
-                &lt;button type="button" onClick={() =&gt; setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-200 hover:text-white"&gt;{showPassword ? 'Hide' : 'Show'}&lt;/button&gt;
-              &lt;/div&gt;
-            &lt;/div&gt;
-            {error &amp;&amp; (&lt;div className="bg-red-900/60 border border-red-700 rounded-lg p-3 text-red-300 text-sm"&gt;{error}&lt;/div&gt;)}
-            &lt;button type="submit" disabled={loading} className="w-full btn btn-primary-strong disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-base py-3"&gt;{loading ? (&lt;&gt;&lt;FaSpinner className="animate-spin mr-2" /&gt;Signing In...&lt;/&gt;) : ('Sign In')}&lt;/button&gt;
-            &lt;div className="text-center"&gt;&lt;button type="button" onClick={handleForgotPassword} className="text-blue-400 hover:text-blue-300 text-sm underline"&gt;Forgot Password?&lt;/button&gt;&lt;/div&gt;
-          &lt;/form&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
-    &lt;/ThemeWrapper&gt;
+    <ThemeWrapper>
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="glass-panel glow-ring p-8 w-full max-w-md animate-fade-in">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-white mb-2 neon-text">HUNT by WRDO</h1>
+            <p className="text-gray-300">Secure Access Portal</p>
+          </div>
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2"><FaUser className="inline mr-2" />Email Address</label>
+              <input type="email" value={credentials.email} onChange={(e) => setCredentials({ ...credentials, email: e.target.value })} className="w-full form-input text-base" placeholder="Enter your email" required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
+              <div className="relative">
+                <input type={showPassword ? 'text' : 'password'} value={credentials.password} onChange={(e) => setCredentials({ ...credentials, password: e.target.value })} className="w-full form-input pr-12 text-base" placeholder="Enter your password" required />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-200 hover:text-white">{showPassword ? 'Hide' : 'Show'}</button>
+              </div>
+            </div>
+            {error && (<div className="bg-red-900/60 border border-red-700 rounded-lg p-3 text-red-300 text-sm">{error}</div>)}
+            <button type="submit" disabled={loading} className="w-full btn btn-primary-strong disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-base py-3">{loading ? (<><FaSpinner className="animate-spin mr-2" />Signing In...</>) : ('Sign In')}</button>
+            <div className="text-center"><button type="button" onClick={handleForgotPassword} className="text-blue-400 hover:text-blue-300 text-sm underline">Forgot Password?</button></div>
+          </form>
+        </div>
+      </div>
+    </ThemeWrapper>
   );
 };
 
