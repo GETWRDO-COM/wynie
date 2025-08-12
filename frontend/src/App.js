@@ -25,13 +25,13 @@ const api = axios.create({ baseURL: BACKEND_URL });
 api.interceptors.request.use((config) => { const token = localStorage.getItem('authToken'); if (token) config.headers.Authorization = `Bearer ${token}`; return config; }, (e) => Promise.reject(e));
 api.interceptors.response.use((r) => r, (e) => { if (e.response?.status === 401) { localStorage.removeItem('authToken'); localStorage.removeItem('user'); window.location.reload(); } return Promise.reject(e); });
 
-const LoginForm = ({ onLogin }) =&gt; {
+const LoginForm = ({ onLogin }) => {
   const [credentials, setCredentials] = useState({ email: 'beetge@mwebbiz.co.za', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const handleLogin = async (e) =&gt; { e.preventDefault(); setLoading(true); setError(''); try { const r = await api.post('/api/auth/login', credentials); const { access_token, user } = r.data; localStorage.setItem('authToken', access_token); localStorage.setItem('user', JSON.stringify(user)); onLogin(user); } catch (err) { setError(err.response?.data?.detail || 'Login failed. Please check your credentials.'); } finally { setLoading(false); } };
-  const handleForgotPassword = async () =&gt; { if (!credentials.email) { setError('Please enter your email address first.'); return; } try { const r = await api.post('/api/auth/forgot-password', { email: credentials.email }); alert(r.data.message + '\n\n' + (r.data.temp_instructions || '')); } catch { setError('Failed to send password reset instructions.'); } };
+  const handleLogin = async (e) => { e.preventDefault(); setLoading(true); setError(''); try { const r = await api.post('/api/auth/login', credentials); const { access_token, user } = r.data; localStorage.setItem('authToken', access_token); localStorage.setItem('user', JSON.stringify(user)); onLogin(user); } catch (err) { setError(err.response?.data?.detail || 'Login failed. Please check your credentials.'); } finally { setLoading(false); } };
+  const handleForgotPassword = async () => { if (!credentials.email) { setError('Please enter your email address first.'); return; } try { const r = await api.post('/api/auth/forgot-password', { email: credentials.email }); alert(r.data.message + '\n\n' + (r.data.temp_instructions || '')); } catch { setError('Failed to send password reset instructions.'); } };
   return (
     <ThemeWrapper>
       <div className="min-h-screen flex items-center justify-center px-4">
