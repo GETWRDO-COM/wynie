@@ -288,9 +288,10 @@
 
 ## test_plan:
   current_focus:
-    - "Screener engine computed fields expansion"
-    - "Watchlists v2 (sections/colors) endpoints and UI"
-  stuck_tasks: []
+    - "Frontend wired to backend (Polygon quotes/bars/logos)"
+    - "Backend API endpoints connectivity"
+  stuck_tasks: 
+    - "Frontend wired to backend (Polygon quotes/bars/logos)"
   test_all: false
   test_priority: "high_first"
 
