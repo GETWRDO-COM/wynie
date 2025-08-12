@@ -26,7 +26,7 @@ const NewsTicker = () => {
         <div className="rounded-2xl flex items-center gap-4 px-4 py-2.5 mb-3" style={{ background: 'rgba(10,10,12,0.97)', border: '1px solid rgba(255,255,255,0.14)' }}>
           <div className="flex items-center gap-2 min-w-[280px] text-sm text-white">
             Breaking News
-            <select value={category} onChange={(e) => setCategory(e.target.value)} className="text-white text-xs py-0.5 px-2 rounded bg黑/80 border border-white/20">
+            <select value={category} onChange={(e) => setCategory(e.target.value)} className="text-white text-xs py-0.5 px-2 rounded bg-black/80 border border-white/20">
               {Object.keys(FEEDS).map((k) => (<option key={k} value={k} className="bg-black text-white">{k}</option>))}
             </select>
             <button onClick={()=>fetchFeed(category)} className="btn btn-outline text-[10px] py-0.5 px-2">Reload</button>
