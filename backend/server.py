@@ -1911,18 +1911,34 @@ def _compute_adx(df: pd.DataFrame, period: int = 14) -> pd.Series:
     return adx
 
 async def _fetch_hist(symbol: str, period: str = "6mo", interval: str = "1d") -> pd.DataFrame:
-    try:
-        df = yf.download(symbol, period=period, interval=interval, progress=False, auto_adjust=False)
-        if isinstance(df, pd.DataFrame) and not df.empty:
-            # yfinance returns multi-index columns sometimes for multiple tickers; ensure single
-            if isinstance(df.columns, pd.MultiIndex):
-                # take the first level
-                df = df.xs(symbol, axis=1, level=0)
-            return df
-        return pd.DataFrame()
-    except Exception as e:
-        logging.error(f"History fetch failed for {symbol}: {e}")
-        return pd.DataFrame()
+    """Fetch historical data with retry logic for yfinance rate limiting"""
+    import asyncio
+    
+    for attempt in range(3):  # Try up to 3 times
+        try:
+            # Add small delay between attempts to avoid rate limiting
+            if attempt > 0:
+                await asyncio.sleep(1 + attempt)  # 1s, 2s delays
+            
+            df = yf.download(symbol, period=period, interval=interval, progress=False, auto_adjust=False)
+            if isinstance(df, pd.DataFrame) and not df.empty:
+                # yfinance returns multi-index columns sometimes for multiple tickers; ensure single
+                if isinstance(df.columns, pd.MultiIndex):
+                    # take the first level
+                    df = df.xs(symbol, axis=1, level=0)
+                return df
+            
+            # If empty, try again unless it's the last attempt
+            if attempt < 2:
+                logging.warning(f"Empty data for {symbol} on attempt {attempt + 1}, retrying...")
+                continue
+            return pd.DataFrame()
+            
+        except Exception as e:
+            logging.error(f"History fetch failed for {symbol} on attempt {attempt + 1}: {e}")
+            if attempt < 2:  # Not the last attempt
+                continue
+            return pd.DataFrame()
 
 async def _compute_components(params: Dict[str, Any]) -> Dict[str, Any]:
     # QQQ core
