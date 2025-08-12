@@ -288,10 +288,9 @@
 
 ## test_plan:
   current_focus:
-    - "Frontend wired to backend (Polygon quotes/bars/logos)"
-    - "Backend API endpoints connectivity"
-  stuck_tasks: 
-    - "Frontend wired to backend (Polygon quotes/bars/logos)"
+    - "Restore missing backend endpoints (columns, marketdata bars/logo/fundamentals, ratings)"
+    - "Frontend wired to backend (re-test)"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
