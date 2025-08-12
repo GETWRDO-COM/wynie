@@ -105,6 +105,39 @@
 ## user_problem_statement: Build Deepvue-like internal workstation with Dashboard, Screener, Watchlists, TradingView chart, column settings; integrate Polygon.io for US stocks; user-configurable RS(3M) and AS(1M) ratings.
 
 ## backend:
+  - task: "Settings endpoints (GET/POST) with .env persistence"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Added /api/settings GET (redacted) and POST to hot-swap clients and persist POLYGON_API_KEY and FINNHUB_API_KEY to backend/.env."
+  - task: "Finnhub fundamentals integration"
+    implemented: true
+    working: false
+    file: "/app/backend/finnhub_client.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Company profile and metrics wired with TTL cache and backoff."
+  - task: "Screener registry expansion"
+    implemented: true
+    working: false
+    file: "/app/backend/screener_registry.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Added fundamentals and more technical fields in registry."
   - task: "Polygon adapter + marketdata endpoints"
     implemented: true
     working: true
