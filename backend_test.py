@@ -627,18 +627,164 @@ class BackendTester:
         except Exception as e:
             self.log_result('ratings', 'Custom Window Parameters', False, str(e))
     
+    def test_screener_expansion(self):
+        print("\n=== Testing Screener Expansion (New Fields) ===")
+        
+        # Test 1: Verify new fields in registry
+        try:
+            response = self.session.get(f"{self.base_url}/api/screeners/filters")
+            if response.status_code == 200:
+                data = response.json()
+                categories = data.get('categories', [])
+                
+                # Check for new fields
+                new_fields = ['macd_line', 'macd_signal', 'macd_hist', 'stoch_k', 'stoch_d', 'gapPct', 'liquidity', 'hi52', 'lo52']
+                found_fields = []
+                
+                for category in categories:
+                    fields = category.get('fields', [])
+                    for field in fields:
+                        field_id = field.get('id')
+                        if field_id in new_fields:
+                            found_fields.append(field_id)
+                
+                missing_fields = [f for f in new_fields if f not in found_fields]
+                if not missing_fields:
+                    self.log_result('screener_registry', 'New fields present in registry (MACD, Stoch, Gap%, Liquidity, 52w H/L)', True)
+                else:
+                    self.log_result('screener_registry', 'New fields present in registry (MACD, Stoch, Gap%, Liquidity, 52w H/L)', False, f"Missing fields: {missing_fields}")
+            else:
+                self.log_result('screener_registry', 'New fields present in registry (MACD, Stoch, Gap%, Liquidity, 52w H/L)', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('screener_registry', 'New fields present in registry (MACD, Stoch, Gap%, Liquidity, 52w H/L)', False, str(e))
+        
+        # Test universe for screener tests
+        universe = ["AAPL", "MSFT", "TSLA", "NVDA", "AMZN", "GOOGL", "META", "AMD", "NFLX", "AVGO"]
+        
+        # Test 2a: pct_to_hi52 <= 2 sorted by last desc
+        try:
+            payload = {
+                "symbols": universe,
+                "filters": [
+                    {"field": "pct_to_hi52", "op": "<=", "value": 2}
+                ],
+                "sort": {"key": "last", "dir": "desc"}
+            }
+            response = self.session.post(f"{self.base_url}/api/screeners/run", json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                if 'rows' in data and 'nextCursor' in data:
+                    self.log_result('screener', 'Screener: pct_to_hi52 <= 2 sorted by last desc', True)
+                else:
+                    self.log_result('screener', 'Screener: pct_to_hi52 <= 2 sorted by last desc', False, f"Missing rows or nextCursor: {data}")
+            else:
+                self.log_result('screener', 'Screener: pct_to_hi52 <= 2 sorted by last desc', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('screener', 'Screener: pct_to_hi52 <= 2 sorted by last desc', False, str(e))
+        
+        # Test 2b: relVol >= 1.2
+        try:
+            payload = {
+                "symbols": universe,
+                "filters": [
+                    {"field": "relVol", "op": ">=", "value": 1.2}
+                ]
+            }
+            response = self.session.post(f"{self.base_url}/api/screeners/run", json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                if 'rows' in data and 'nextCursor' in data:
+                    self.log_result('screener', 'Screener: relVol >= 1.2', True)
+                else:
+                    self.log_result('screener', 'Screener: relVol >= 1.2', False, f"Missing rows or nextCursor: {data}")
+            else:
+                self.log_result('screener', 'Screener: relVol >= 1.2', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('screener', 'Screener: relVol >= 1.2', False, str(e))
+        
+        # Test 2c: macd_cross_up == true
+        try:
+            payload = {
+                "symbols": universe,
+                "filters": [
+                    {"field": "macd_cross_up", "op": "==", "value": True}
+                ]
+            }
+            response = self.session.post(f"{self.base_url}/api/screeners/run", json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                if 'rows' in data and 'nextCursor' in data:
+                    self.log_result('screener', 'Screener: macd_cross_up == true', True)
+                else:
+                    self.log_result('screener', 'Screener: macd_cross_up == true', False, f"Missing rows or nextCursor: {data}")
+            else:
+                self.log_result('screener', 'Screener: macd_cross_up == true', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('screener', 'Screener: macd_cross_up == true', False, str(e))
+        
+        # Test 2d: Group AND of marketCap >= 1B and rsi14 between [30,70]
+        try:
+            payload = {
+                "symbols": universe,
+                "filters": [
+                    {
+                        "logic": "AND",
+                        "filters": [
+                            {"field": "marketCap", "op": ">=", "value": 1000000000},
+                            {"field": "rsi14", "op": "between", "value": [30, 70]}
+                        ]
+                    }
+                ]
+            }
+            response = self.session.post(f"{self.base_url}/api/screeners/run", json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                if 'rows' in data and 'nextCursor' in data:
+                    self.log_result('screener', 'Screener: AND group (marketCap >= 1B AND rsi14 between [30,70])', True)
+                else:
+                    self.log_result('screener', 'Screener: AND group (marketCap >= 1B AND rsi14 between [30,70])', False, f"Missing rows or nextCursor: {data}")
+            else:
+                self.log_result('screener', 'Screener: AND group (marketCap >= 1B AND rsi14 between [30,70])', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('screener', 'Screener: AND group (marketCap >= 1B AND rsi14 between [30,70])', False, str(e))
+        
+        # Test 3: Rate limit handling - multiple rapid requests
+        try:
+            success_count = 0
+            for i in range(3):
+                payload = {
+                    "symbols": ["AAPL", "MSFT"],
+                    "filters": []
+                }
+                response = self.session.post(f"{self.base_url}/api/screeners/run", json=payload)
+                if response.status_code == 200:
+                    success_count += 1
+                time.sleep(0.1)  # Small delay between requests
+            
+            if success_count >= 2:  # At least 2 out of 3 should succeed
+                self.log_result('screener', 'Rate limit handling (multiple rapid requests)', True)
+            else:
+                self.log_result('screener', 'Rate limit handling (multiple rapid requests)', False, f"Only {success_count}/3 requests succeeded")
+        except Exception as e:
+            self.log_result('screener', 'Rate limit handling (multiple rapid requests)', False, str(e))
+
     def run_all_tests(self):
         print(f"Starting Backend API Tests at {datetime.now()}")
         print(f"Base URL: {self.base_url}")
         
-        # Test the new features first as requested
+        # Test settings first to confirm API keys
         self.test_settings_endpoints()
+        
+        # Test the screener expansion as requested
+        self.test_screener_expansion()
+        
+        # Test other screener functionality
         self.test_screener_registry()
         self.test_screener_with_fundamentals()
+        self.test_screener_endpoint()
         
         # Then test other endpoints
         self.test_marketdata_endpoints()
-        self.test_screener_endpoint()
         self.test_websocket_quotes()
         self.test_watchlists_crud()
         self.test_columns_endpoints()
