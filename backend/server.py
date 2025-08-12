@@ -2324,9 +2324,6 @@ async def get_etf_regime_signal():
 
 # ==================== END MSAE + ETF ENGINE ====================
 
-# Mount the router
-app.include_router(api_router)
-
 @api_router.get("/formulas/config/all")
 async def get_all_formula_configs():
     """Return all formula configs including etf_regime"""
