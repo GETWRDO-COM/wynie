@@ -67,7 +67,7 @@ const AIChat = ({ api, user }) => {
   };
 
   const primaryModels = [
-    { key: 'latest', label: 'Auto (Latest GPT‑5)' },
+    { key: 'latest', label: 'Auto (Latest – chooses newest automatically)' },
     { key: 'gpt-5-think', label: 'GPT‑5 Think' },
   ];
 
