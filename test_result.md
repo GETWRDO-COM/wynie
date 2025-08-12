@@ -278,7 +278,8 @@
   run_ui: false
 
 ## test_plan:
-  current_focus: []
+  current_focus:
+    - "Screener engine computed fields expansion"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
