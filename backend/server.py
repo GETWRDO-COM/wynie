@@ -8,7 +8,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any, Tuple
 import uuid
-from datetime import datetime, date, time
+from datetime import datetime, date
 import pytz
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -41,6 +41,7 @@ class Account(BaseModel):
     currency: str = 'USD'
     ingest_window_local: str = '22:30'  # HH:MM in SAST
     timezone: str = 'Africa/Johannesburg'
+    portfolio_list: str = 'BOTH'  # PF1 | PF2 | BOTH
     enabled: bool = True
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
@@ -50,6 +51,7 @@ class AccountUpdate(BaseModel):
     ingest_window_local: Optional[str] = None
     currency: Optional[str] = None
     enabled: Optional[bool] = None
+    portfolio_list: Optional[str] = None
 
 class IngestJob(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -94,20 +96,20 @@ async def ensure_indexes_and_seed():
     await db.accounts.create_index('enabled')
     await db.ingest_jobs.create_index('idempotency_key', unique=True)
     await db.ingest_jobs.create_index('account_id')
-    # Partial unique compound index when artifact_hash exists
     await db.ingest_jobs.create_index(
         [('account_id', 1), ('as_of_date', 1), ('artifact_hash', 1)],
         unique=True,
         partialFilterExpression={"artifact_hash": {"$exists": True}}
     )
-    # trades_net indexes
-    await db.trades_net.create_index('account_id')
-    await db.trades_net.create_index([('account_id', 1), ('exit_time', -1)])
-    # balances_eod and journal_entries
+    # Domain collection indexes (compound uniques for idempotency)
+    await db.orders.create_index([('account_id', 1), ('external_order_id', 1)], unique=True)
+    await db.executions.create_index([('account_id', 1), ('external_execution_id', 1)], unique=True)
+    await db.positions_eod.create_index([('account_id', 1), ('as_of', 1), ('instrument_id', 1)], unique=True)
     await db.balances_eod.create_index([('account_id', 1), ('as_of', 1)], unique=True)
-    await db.journal_entries.create_index([('account_id', 1), ('date', 1)], unique=True, sparse=True)
+    await db.cash_events.create_index([('account_id', 1), ('posted_at', 1), ('amount', 1), ('description', 1)], unique=True)
     await db.tags.create_index('name', unique=True)
     await db.execution_tags.create_index([('execution_id', 1), ('tag_id', 1)], unique=True)
+    await db.trades_net.create_index([('account_id', 1), ('exit_time', -1)])
 
     # Seed two accounts if not present
     existing = await db.accounts.count_documents({})
@@ -180,7 +182,7 @@ async def update_account(external_account_id: str, payload: AccountUpdate):
     if not acc:
         raise HTTPException(status_code=404, detail='Account not found')
     update: Dict[str, Any] = {}
-    for field in ['name', 'ingest_window_local', 'currency', 'enabled']:
+    for field in ['name', 'ingest_window_local', 'currency', 'enabled', 'portfolio_list']:
         val = getattr(payload, field)
         if val is not None:
             update[field] = val
@@ -316,7 +318,6 @@ async def list_trades(
         if to: q['exit_time']['$lte'] = to
     if symbol:
         q['symbol'] = symbol
-    # TODO: tag/strategy filter joins when schema added
     sort_spec = ('exit_time', -1) if sort.endswith('desc') else ('exit_time', 1)
     docs = await db.trades_net.find(q).sort([sort_spec]).limit(limit).to_list(limit)
     items: List[TradeItem] = []
@@ -331,11 +332,11 @@ async def list_trades(
             entered_at=d.get('entry_time'),
             exited_at=d.get('exit_time')
         ))
-    next_cursor = None  # will add real cursoring with persisted sort keys
+    next_cursor = None
     total = len(items)
     return TradesListResponse(items=items, total=total, nextCursor=next_cursor)
 
-# Changes (diff) endpoint
+# Changes (diff)
 class ChangesResponse(BaseModel):
     openedPositions: List[Dict[str, Any]] = Field(default_factory=list)
     closedPositions: List[Dict[str, Any]] = Field(default_factory=list)
@@ -345,7 +346,6 @@ class ChangesResponse(BaseModel):
 @api_router.get('/changes', response_model=ChangesResponse)
 async def changes(accountId: str, date_param: str = Query(alias='date')):
     await verify_feature_enabled()
-    # Placeholder diff until ETL fills positions_eod/cash_events
     return ChangesResponse()
 
 # Calendar
@@ -467,30 +467,30 @@ def _parse_hhmm(val: str) -> Tuple[int, int]:
     except Exception:
         return (22, 30)
 
-def _schedule_account_jobs():
-    global scheduler
-    if scheduler is None:
-        scheduler = BackgroundScheduler(timezone=SAST_TZ)
-        scheduler.start()
-    async def schedule_all():
-        docs = await db.accounts.find({'enabled': True}).to_list(100)
-        for d in docs:
-            acc_id = d.get('_id')
-            hh, mm = _parse_hhmm(d.get('ingest_window_local', '22:30'))
-            job_id = f"eod_{acc_id}"
-            try:
-                scheduler.remove_job(job_id)
-            except Exception:
-                pass
-            trigger = CronTrigger(hour=hh, minute=mm, timezone=SAST_TZ)
-            scheduler.add_job(lambda aid=d['external_account_id']: None, trigger=trigger, id=job_id, name=f"EOD Ingest {d['name']}")
-    import asyncio
-    asyncio.create_task(schedule_all())
+async def _schedule_all_accounts():
+    docs = await db.accounts.find({'enabled': True}).to_list(100)
+    for d in docs:
+        acc_id = d.get('_id')
+        hh, mm = _parse_hhmm(d.get('ingest_window_local', '22:30'))
+        job_id = f"eod_{acc_id}"
+        try:
+            scheduler.remove_job(job_id)
+        except Exception:
+            pass
+        trigger = CronTrigger(hour=hh, minute=mm, timezone=SAST_TZ)
+        # NOTE: we will wire this to real ETL later; keep a stub
+        scheduler.add_job(lambda: None, trigger=trigger, id=job_id, name=f"EOD Ingest {d['name']}")
 
 @app.on_event("startup")
 async def on_startup():
     await ensure_indexes_and_seed()
-    _schedule_account_jobs()
+    global scheduler
+    if scheduler is None:
+        scheduler = BackgroundScheduler(timezone=SAST_TZ)
+        scheduler.start()
+    # schedule in background
+    import asyncio
+    asyncio.create_task(_schedule_all_accounts())
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
