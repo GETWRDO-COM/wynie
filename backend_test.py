@@ -2593,6 +2593,10 @@ class ETFBackendTester:
             # Legacy Compatibility Tests
             ("Legacy: Formulas Config", self.test_legacy_formulas_config),
             ("Sanity: Dashboard", self.test_sanity_dashboard),
+            # Phase 2 Tests - New endpoints from review request
+            ("Phase 2: ETF Regime Simulate", self.test_phase2_etf_regime_simulate),
+            ("Phase 2: Universe Management", self.test_phase2_universe_management),
+            ("Phase 2: Stock Screens", self.test_phase2_stock_screens),
             # Existing Tests
             ("Enhanced Dashboard API", self.test_enhanced_dashboard_api),
             ("Live Market Data APIs", self.test_live_market_data_apis),
