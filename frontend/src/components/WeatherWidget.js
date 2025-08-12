@@ -65,7 +65,7 @@ const WeatherWidget = () => {
       <div className="text-3xl leading-none">{codeToEmoji(data.code)}</div>
       <div className="flex-1">
         <div className="text-xs text-gray-400">Current Location</div>
-        <div className="text-white text-sm font-semibold mb-1">{place}</div>
+        <div className="text-white text-sm font-semibold mb-1">{place === 'Unknown' ? 'Nearby' : place}</div>
         <div className="text-white text-2xl font-bold">{data.tempC}°C</div>
         <div className="mt-2 flex flex-wrap gap-2">
           <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-xs text-white/90">H {data.high}°</span>
