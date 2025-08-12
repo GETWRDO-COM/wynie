@@ -96,51 +96,51 @@ function App() {
   if (!user) return <LoginForm onLogin={handleLogin} />;
 
   return (
-    &lt;ThemeWrapper&gt;
-      &lt;NavBar activeTab={activeTab} setActiveTab={setActiveTab} user={user} onSettings={() =&gt; setShowSettings(true)} onLogout={handleLogout} /&gt;
-      &lt;div className="animate-fade-in"&gt;
-        &lt;main className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto"&gt;
-          {showSettings &amp;&amp; (
-            &lt;div className="glass-panel p-4"&gt;
-              &lt;h2 className="text-white/90 font-semibold mb-3"&gt;Settings&lt;/h2&gt;
-              &lt;div className="space-y-4"&gt;
-                &lt;div&gt;
-                  &lt;h3 className="text-white/80 font-semibold mb-2"&gt;Integrations&lt;/h3&gt;
-                  &lt;div className="space-y-3"&gt;
-                    &lt;div className="text-xs text-gray-400"&gt;Polygon.io&lt;/div&gt;
-                    &lt;div&gt;
-                      &lt;PolygonKeySettings /&gt;
-                    &lt;/div&gt;
-                    &lt;BackendStatus /&gt;
-                  &lt;/div&gt;
-                &lt;/div&gt;
-              &lt;/div&gt;
-              &lt;div className="mt-3"&gt;
-                &lt;button onClick={() =&gt; setShowSettings(false)} className="btn"&gt;Close&lt;/button&gt;
-              &lt;/div&gt;
-            &lt;/div&gt;
+    <ThemeWrapper>
+      <NavBar activeTab={activeTab} setActiveTab={setActiveTab} user={user} onSettings={() => setShowSettings(true)} onLogout={handleLogout} />
+      <div className="animate-fade-in">
+        <main className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
+          {showSettings && (
+            <div className="glass-panel p-4">
+              <h2 className="text-white/90 font-semibold mb-3">Settings</h2>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-white/80 font-semibold mb-2">Integrations</h3>
+                  <div className="space-y-3">
+                    <div className="text-xs text-gray-400">Polygon.io</div>
+                    <div>
+                      <PolygonKeySettings />
+                    </div>
+                    <BackendStatus />
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3">
+                <button onClick={() => setShowSettings(false)} className="btn">Close</button>
+              </div>
+            </div>
           )}
-          {activeTab === 'dashboard' &amp;&amp; (
-            &lt;div className="space-y-6"&gt;
-              &lt;HeroBanner user={user} /&gt;
-              &lt;MyPerformance api={api} /&gt;
-              &lt;div className="grid grid-cols-1 lg:grid-cols-2 gap-3"&gt;
-                &lt;GreedFearCard /&gt;
-                &lt;MarketScoreCard marketScore={marketScore} /&gt;
-              &lt;/div&gt;
-              &lt;MarketCharts /&gt;
-              &lt;DashboardQuickSections swingLeaders={swingLeaders} watchlists={watchlists} marketScore={marketScore} /&gt;
-            &lt;/div&gt;
+          {activeTab === 'dashboard' && (
+            <div className="space-y-6">
+              <HeroBanner user={user} />
+              <MyPerformance api={api} />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <GreedFearCard />
+                <MarketScoreCard marketScore={marketScore} />
+              </div>
+              <MarketCharts />
+              <DashboardQuickSections swingLeaders={swingLeaders} watchlists={watchlists} marketScore={marketScore} />
+            </div>
           )}
-          {activeTab === 'swing-grid' &amp;&amp; (&lt;div className="glass-panel p-6 animate-fade-in"&gt;&lt;SwingAnalysisGrid api={api} etfs={selectedSector ? etfs.filter(e =&gt; e.sector === selectedSector) : etfs} sectors={sectors} selectedSector={selectedSector} setSelectedSector={setSelectedSector} analyzeChart={() =&gt; {}} addToWatchlist={() =&gt; {}} /&gt;&lt;/div&gt;)}
-          {activeTab === 'ai-analysis' &amp;&amp; (&lt;div className="space-y-6 animate-fade-in"&gt;&lt;AIAnalysisTab api={api} addToWatchlist={() =&gt; {}} /&gt;&lt;/div&gt;)}
-          {activeTab === 'spreadsheet' &amp;&amp; (&lt;div className="glass-panel p-6 animate-fade-in"&gt;&lt;SpreadsheetTab api={api} etfs={etfs} sectors={sectors} selectedSector={selectedSector} setSelectedSector={setSelectedSector} exportLoading={false} setExportLoading={() =&gt; {}} /&gt;&lt;/div&gt;)}
-          {activeTab === 'ai-chat' &amp;&amp; (&lt;div className="animate-fade-in"&gt;&lt;AIChat api={api} user={user} /&gt;&lt;/div&gt;)}
-        &lt;/main&gt;
-      &lt;/div&gt;
-      &lt;NewsTicker /&gt;
-      &lt;FloatingChat api={api} user={user} /&gt;
-    &lt;/ThemeWrapper&gt;
+          {activeTab === 'swing-grid' && (<div className="glass-panel p-6 animate-fade-in"><SwingAnalysisGrid api={api} etfs={selectedSector ? etfs.filter(e => e.sector === selectedSector) : etfs} sectors={sectors} selectedSector={selectedSector} setSelectedSector={setSelectedSector} analyzeChart={() => {}} addToWatchlist={() => {}} /></div>)}
+          {activeTab === 'ai-analysis' && (<div className="space-y-6 animate-fade-in"><AIAnalysisTab api={api} addToWatchlist={() => {}} /></div>)}
+          {activeTab === 'spreadsheet' && (<div className="glass-panel p-6 animate-fade-in"><SpreadsheetTab api={api} etfs={etfs} sectors={sectors} selectedSector={selectedSector} setSelectedSector={setSelectedSector} exportLoading={false} setExportLoading={() => {}} /></div>)}
+          {activeTab === 'ai-chat' && (<div className="animate-fade-in"><AIChat api={api} user={user} /></div>)}
+        </main>
+      </div>
+      <NewsTicker />
+      <FloatingChat api={api} user={user} />
+    </ThemeWrapper>
   );
 }
 
