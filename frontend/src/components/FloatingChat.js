@@ -21,7 +21,7 @@ const FloatingChat = ({ api, user }) => {
   return (
     <>
       {open && (
-        <div className="fixed z-[70] w-[380px] max-w-[90vw]" style={{ right: 16 - pos.x, bottom: 88 - pos.y }} onMouseMove={onMouseMove} onMouseUp={onMouseUp}>
+        <div className="fixed z-[10050] w-[380px] max-w-[90vw]" style={{ right: 16 - pos.x, bottom: 120 - pos.y }} onMouseMove={onMouseMove} onMouseUp={onMouseUp}>
           <div className="glass-panel p-3">
             <div className="flex items-center justify-between mb-2 cursor-move select-none" onMouseDown={onMouseDown}>
               <div className="text-white/90 font-semibold">AI Assistant</div>
@@ -33,7 +33,7 @@ const FloatingChat = ({ api, user }) => {
           </div>
         </div>
       )}
-      <button title="AI (Ctrl+K)" onClick={() => setOpen(!open)} className="fixed bottom-6 right-6 z-[70] w-12 h-12 rounded-full flex items-center justify-center btn-primary shadow-lg">
+      <button title="AI (Ctrl+K)" onClick={() => setOpen(!open)} className="fixed bottom-24 right-6 z-[10050] w-12 h-12 rounded-full flex items-center justify-center btn-primary shadow-lg">
         <FaComments />
       </button>
     </>
