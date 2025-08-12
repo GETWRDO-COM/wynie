@@ -298,8 +298,12 @@ async def get_quotes(symbols: str):
 async def symbols_search(q: str, limit: int = 25):
     if not poly_client:
         return {"results": []}
-    items = poly_client.search_symbols(q, limit)
-    return {"results": items}
+    try:
+        items = poly_client.search_symbols(q, limit)
+        return {"results": items}
+    except Exception as e:
+        logging.warning('symbol search failed: %s', e)
+        return {"results": []}
 
 @api_router.get('/marketdata/bars')
 async def market_bars(symbol: str, interval: str = '1D', fr: Optional[str] = None, to: Optional[str] = None):
