@@ -13,6 +13,8 @@ import NewsTicker from './components/NewsTicker';
 import DashboardQuickSections from './components/DashboardQuickSections';
 import MarketCharts from './components/MarketCharts';
 import PolygonKeySettings from './components/PolygonKeySettings';
+import GreedFearCard from './components/GreedFearCard';
+import FloatingChat from './components/FloatingChat';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
