@@ -1,112 +1,83 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import WeatherWidget from './WeatherWidget';
-import CurrencyTicker from './CurrencyTicker';
-import NewsSection from './NewsSection';
 
-function parseInTZ(now, timeZone) {
-  const fmt = new Intl.DateTimeFormat('en-GB', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(now);
-  const [datePart, timePart] = fmt.split(', ');
-  const [d, m, y] = datePart.split('/').map(s => parseInt(s, 10));
-  const [hh, mm, ss] = timePart.split(':').map(s => parseInt(s, 10));
-  return { y, m, d, hh, mm, ss };
-}
-function secondsUntil(now, timeZone, targetH, targetM) {
-  const t = parseInTZ(now, timeZone);
-  const nowSec = t.hh * 3600 + t.mm * 60 + t.ss;
-  const targetSec = targetH * 3600 + targetM * 60;
-  return targetSec - nowSec;
-}
-function formatHMS(totalSec) {
-  const s = Math.max(0, Math.floor(totalSec));
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const sec = Math.floor(s % 60);
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
-}
-function nextNYSEOpenClose(now) {
-  const tz = 'America/New_York';
-  const wd = new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday:'short'}).format(now);
-  const isWeekend = wd==='Sat'||wd==='Sun';
-  const toOpen = secondsUntil(now, tz, 9, 30);
-  const toClose = secondsUntil(now, tz, 16, 0);
-  if (!isWeekend && toOpen <= 0 && toClose > 0) {
-    return { status:'Market Open', countdownLabel:'Closes in', seconds:toClose };
-  }
-  if (!isWeekend && toOpen > 0) {
-    return { status:'Market Closed', countdownLabel:'Opens in', seconds:toOpen };
-  }
-  // Weekend: show time to Monday 9:30
-  const t = parseInTZ(now, tz);
-  const secondsToMidnight = (24*3600) - (t.hh*3600+t.mm*60+t.ss);
-  const daysAhead = (wd==='Sat') ? 2 : 1; // Sat -> Mon, Sun -> Mon
-  const total = secondsToMidnight + (daysAhead-1)*24*3600 + (9*3600+30*60);
-  return { status:'Market Closed', countdownLabel:'Opens in', seconds: total };
-}
+function pad(n){ return n.toString().padStart(2,'0'); }
+function formatHMS(s){ if(s==null) return '--:--:--'; const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60; return `${pad(h)}:${pad(m)}:${pad(sec)}`; }
 
 const HeroBanner = ({ user }) => {
-  const [now, setNow] = useState(new Date());
-  const [status, setStatus] = useState({ status: 'Calculating...', countdownLabel: '', seconds: 0 });
+  const [saTime, setSaTime] = useState('');
+  const [usTime, setUsTime] = useState('');
+  const [status, setStatus] = useState({ status: 'Loading…', seconds: 0, countdownLabel: 'Opens in' });
 
-  useEffect(() => { const timer=setInterval(()=>setNow(new Date()),1000); return () => clearInterval(timer); }, []);
-  useEffect(() => { setStatus(nextNYSEOpenClose(now)); }, [now]);
+  const todayLocal = useMemo(() => new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }), []);
 
-  const localTZ = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Africa/Johannesburg';
-  const saTime = new Intl.DateTimeFormat('en-US', { timeZone: 'Africa/Johannesburg', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }).format(now).toUpperCase();
-  const usTime = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }).format(now).toUpperCase();
-  const todayLocal = new Intl.DateTimeFormat('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: '2-digit', timeZone: localTZ }).format(now);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      setSaTime(now.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      const us = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(now);
+      setUsTime(us);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const hourLocal = parseInTZ(now, localTZ).hh;
-  let greetIcon = '🌙'; if (hourLocal < 12) greetIcon = '☀️'; else if (hourLocal < 18) greetIcon = '🌤️';
-  const greet = hourLocal < 12 ? 'Goeie môre' : hourLocal < 18 ? 'Goeie middag' : 'Goeie naand';
-  const name = user?.name || 'Alwyn';
+  useEffect(() => {
+    const computeMarket = () => {
+      const now = new Date();
+      const etNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+      const open = new Date(etNow); open.setHours(9, 30, 0, 0);
+      const close = new Date(etNow); close.setHours(16, 0, 0, 0);
+      let st = 'Closed'; let seconds = 0; let label = 'Opens in';
+      if (etNow >= open && etNow <= close) { st = 'Open'; seconds = Math.max(0, Math.floor((close - etNow) / 1000)); label = 'Closes in'; }
+      else if (etNow < open) { seconds = Math.max(0, Math.floor((open - etNow) / 1000)); }
+      else { const tomorrow = new Date(etNow); tomorrow.setDate(tomorrow.getDate() + 1); tomorrow.setHours(9, 30, 0, 0); seconds = Math.max(0, Math.floor((tomorrow - etNow) / 1000)); }
+      setStatus({ status: st, seconds, countdownLabel: label });
+    };
+    computeMarket();
+    const id = setInterval(computeMarket, 1000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
-    <div className="relative">
-      <div className="relative rounded-2xl border border-white/10 bg-black/40 backdrop-blur-2xl p-6 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
-        <div className="pointer-events-none absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full opacity-[0.12] blur-3xl" style={{ background: 'radial-gradient(circle, var(--brand-start), transparent 60%)' }} />
-        <div className="pointer-events-none absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full opacity-[0.10] blur-3xl" style={{ background: 'radial-gradient(circle, var(--brand-end), transparent 60%)' }} />
+    <div className="glass-panel p-4">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <div className="text-xs text-gray-400">Welcome back</div>
+          <div className="text-white font-extrabold text-2xl">HUNT by WRDO</div>
+        </div>
+        <div className="text-white/80 text-sm">{todayLocal}</div>
+      </div>
 
-        {/* Brand at top */}
-        <h1 className="mt-1 text-3xl md:text-4xl font-bold">HUNT by WRDO</h1>
-        <p className="text-gray-300 mt-1 mb-4">{greet} {name} {greetIcon}</p>
-
-        {/* Clocks + Market */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4 items-stretch">
-          <div className="glass-panel p-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="flex items-center gap-2 text-xs text-gray-400"><img src="https://flagcdn.com/za.svg" alt="ZA" className="w-4 h-3 rounded-sm" /><span>South Africa</span></div>
-                <div className="text-xl font-bold">{saTime}</div>
-              </div>
-              <div>
-                <div className="flex items-center gap-2 text-xs text-gray-400"><img src="https://flagcdn.com/us.svg" alt="US" className="w-4 h-3 rounded-sm" /><span>USA (ET)</span></div>
-                <div className="text-xl font-bold">{usTime}</div>
-              </div>
-            </div>
-          </div>
-          <div className="glass-panel p-4 flex items-center justify-between">
+      {/* Clocks + Market */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4 items-stretch">
+        <div className="glass-panel p-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <div className="text-xs text-gray-400">Market Status</div>
-              <div className={`${String(status.status).toLowerCase().includes('open') ? 'text-green-400' : 'text-red-400'} font-semibold`}>{status.status}</div>
+              <div className="flex items-center gap-2 text-xs text-gray-400"><img src="https://flagcdn.com/za.svg" alt="ZA" className="w-4 h-3 rounded-sm" /><span>South Africa</span></div>
+              <div className="text-xl font-bold">{saTime}</div>
             </div>
-            <div className={`px-4 py-2 rounded-lg border text-white font-bold text-base sm:text-lg ${String(status.status).toLowerCase().includes('open') ? 'bg-green-500/20 border-green-500/40 text-green-300' : 'bg-red-500/20 border-red-500/40 text-red-300'}`}>{status.countdownLabel} {formatHMS(status.seconds)}</div>
+            <div>
+              <div className="flex items-center gap-2 text-xs text-gray-400"><img src="https://flagcdn.com/us.svg" alt="US" className="w-4 h-3 rounded-sm" /><span>USA (ET)</span></div>
+              <div className="text-xl font-bold">{usTime}</div>
+            </div>
           </div>
         </div>
-
-        {/* Date + Weather (same height cards) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-          <div className="glass-panel p-4 h-full flex items-center justify-between">
-            <div className="text-white/90 font-semibold text-base sm:text-lg">{todayLocal}</div>
-            {/* remove explicit timezone text */}
+        <div className="glass-panel p-4 flex items-center justify-between">
+          <div>
+            <div className="text-xs text-gray-400">Market Status</div>
+            <div className={`${String(status.status).toLowerCase().includes('open') ? 'text-green-400' : 'text-red-400'} font-semibold`}>{status.status}</div>
           </div>
-          <div className="h-full"><WeatherWidget /></div>
+          <div className={`px-4 py-2 rounded-lg border text-white font-bold text-base sm:text-lg ${String(status.status).toLowerCase().includes('open') ? 'bg-green-500/20 border-green-500/40 text-green-300' : 'bg-red-500/20 border-red-500/40 text-red-300'}`}>{status.countdownLabel} {formatHMS(status.seconds)}</div>
         </div>
+      </div>
 
-        {/* FX + Top Headlines */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
-          <CurrencyTicker />
-          <NewsSection api={{ get: async (url) => fetch((process.env.REACT_APP_BACKEND_URL||'')+url).then(r=>r.json()).then(data => ({ data })) }} />
+      {/* Date + Weather (same height cards) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+        <div className="glass-panel p-4 h-full flex items-center justify-between">
+          <div className="text-white/90 font-semibold text-base sm:text-lg">{todayLocal}</div>
+          {/* remove explicit timezone text */}
         </div>
+        <div className="h-full"><WeatherWidget /></div>
       </div>
     </div>
   );
