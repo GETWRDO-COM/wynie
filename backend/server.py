@@ -8,12 +8,12 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional, Any
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 import asyncio
 
 from polygon_client import PolygonClient
 from finnhub_client import FinnhubClient
-from screener_engine import run_screener
+from screener_engine import run_screener, get_fundamentals
 from screener_registry import REGISTRY as SCREENER_REGISTRY
 from alerts import Alert, AlertCreate, Notification
 
@@ -215,7 +215,7 @@ async def create_watchlist(body: WatchlistCreate):
         wl.sections = body.sections
     elif body.symbols:
         # Create default section if only symbols provided
-        wl.sections = [Section(name='Main', color=body.color, symbols=[s.upper() for s in body.symbols])]
+        wl.sections = [Section(name='Core', color=body.color, symbols=[s.upper() for s in body.symbols])]
     # union symbols
     wl.symbols = [s for sec in wl.sections for s in (sec.symbols or [])]
     await db.watchlists.insert_one(wl.dict())
@@ -251,7 +251,7 @@ async def delete_watchlist(id: str):
     await db.watchlists.delete_one({"id": id})
     return {"ok": True}
 
-# ---------------- Screener metadata/run (same as before) ----------------
+# ---------------- Screener metadata/run ----------------
 @api_router.get("/screeners/filters")
 async def screener_filters():
     cats: Dict[str, List[Dict[str, Any]]] = {}
@@ -293,6 +293,166 @@ async def get_quotes(symbols: str):
     syms = [s.strip().upper() for s in symbols.split(',') if s.strip()]
     data = poly_client.get_quotes_snapshot(syms)
     return {"quotes": data}
+
+@api_router.get('/marketdata/symbols/search')
+async def symbols_search(q: str, limit: int = 25):
+    if not poly_client:
+        return {"results": []}
+    items = poly_client.search_symbols(q, limit)
+    return {"results": items}
+
+@api_router.get('/marketdata/bars')
+async def market_bars(symbol: str, interval: str = '1D', fr: Optional[str] = None, to: Optional[str] = None):
+    if not poly_client:
+        return {"bars": []}
+    try:
+        # map simple intervals
+        mult, span = 1, 'day'
+        if interval in ('1W', '1w'):
+            mult, span = 1, 'week'
+        elif interval in ('1M', '1m'):
+            mult, span = 1, 'month'
+        _to = to or datetime.utcnow().date().isoformat()
+        if fr:
+            _from = fr
+        else:
+            days = 365
+            if span == 'week':
+                days = 7 * 78
+            elif span == 'month':
+                days = 30 * 24
+            _from = (datetime.utcnow().date() - timedelta(days=days)).isoformat()
+        bars = poly_client.get_bars(symbol.upper(), mult, span, _from, _to)
+        return {"bars": bars}
+    except Exception as e:
+        logging.warning('bars fetch failed: %s', e)
+        return {"bars": []}
+
+@api_router.get('/marketdata/logo')
+async def market_logo(symbol: str):
+    if not poly_client:
+        return {"logoUrl": None}
+    url = poly_client.get_logo(symbol.upper())
+    return {"logoUrl": url}
+
+@api_router.get('/marketdata/fundamentals')
+async def market_fundamentals(symbols: str):
+    syms = [s.strip().upper() for s in symbols.split(',') if s.strip()]
+    out: Dict[str, Any] = {}
+    for s in syms:
+        try:
+            data = get_fundamentals(finn_client, s) if finn_client else {"profile": {}, "metrics": {}}
+            prof = data.get('profile', {}) or {}
+            met = data.get('metrics', {}) or {}
+            out[s] = {
+                "marketCap": prof.get('marketCapitalization'),
+                "sharesOutstanding": met.get('sharesoutstanding'),
+                "float": met.get('floatShares'),
+                "peTTM": met.get('peBasicExclExtraTTM'),
+                "psTTM": met.get('psTTM'),
+                "pb": met.get('pbAnnual'),
+                "roe": met.get('roeTTM'),
+                "roa": met.get('roaTTM'),
+                "grossMarginTTM": met.get('grossMarginTTM'),
+                "operatingMarginTTM": met.get('operatingMarginTTM'),
+                "netMarginTTM": met.get('netMarginTTM'),
+            }
+        except Exception as e:
+            logging.warning('fundamentals fetch failed for %s: %s', s, e)
+            out[s] = {}
+    return {"data": out}
+
+# ---------------- Columns schema + presets ----------------
+@api_router.get('/columns/schema')
+async def columns_schema():
+    # Build columns from registry and add 'logo'
+    cats: Dict[str, Dict[str, Any]] = {}
+    def add(cat: str, col: Dict[str, Any]):
+        cats.setdefault(cat, {"name": cat, "columns": []})
+        cats[cat]["columns"].append(col)
+    # General with logo + symbol
+    add('General', {"id": "logo", "label": "Logo", "type": "string", "width": 60})
+    # Add registry fields as columns
+    for f in SCREENER_REGISTRY:
+        add(f.get('category') or 'Other', {"id": f['id'], "label": f.get('label') or f['id'], "type": f.get('type') or 'number'})
+    categories = list(cats.values())
+    return {"categories": categories}
+
+@api_router.get('/columns/presets')
+async def columns_presets_get():
+    docs = await db.column_presets.find().to_list(1000)
+    res: Dict[str, List[str]] = {}
+    for d in docs:
+        name = d.get('name')
+        cols = d.get('columns') or []
+        if name:
+            res[name] = cols
+    return res
+
+class ColumnsPresetBody(BaseModel):
+    name: str
+    columns: List[str]
+
+@api_router.post('/columns/presets')
+async def columns_presets_save(body: ColumnsPresetBody):
+    await db.column_presets.update_one({"name": body.name}, {"$set": {"name": body.name, "columns": body.columns, "updatedAt": datetime.utcnow()}}, upsert=True)
+    return {"ok": True}
+
+@api_router.delete('/columns/presets/{name}')
+async def columns_presets_delete(name: str):
+    await db.column_presets.delete_one({"name": name})
+    return {"ok": True}
+
+# ---------------- Ratings compute RS/AS ----------------
+class RatingsBody(BaseModel):
+    symbols: List[str]
+    rsWindowDays: int = 63
+    asShortDays: int = 21
+    asLongDays: int = 63
+
+@api_router.post('/ratings/compute')
+async def ratings_compute(body: RatingsBody):
+    if not poly_client:
+        return {"RS": {}, "AS": {}}
+    syms = [s.strip().upper() for s in body.symbols if s.strip()]
+    # determine lookback window
+    lookback = max(body.rsWindowDays, body.asLongDays) + 10
+    fr = (datetime.utcnow().date() - timedelta(days=lookback * 2)).isoformat()
+    to = datetime.utcnow().date().isoformat()
+    # compute returns
+    rs_vals: Dict[str, Optional[float]] = {}
+    as_vals: Dict[str, Optional[float]] = {}
+    for s in syms:
+        try:
+            bars = poly_client.get_bars(s, 1, 'day', fr, to)
+            closes = [b['c'] for b in bars]
+            if len(closes) < max(body.rsWindowDays, body.asLongDays) + 2:
+                rs_vals[s] = None; as_vals[s] = None; continue
+            last = closes[-1]
+            def ret(days: int):
+                prev = closes[-(days+1)]
+                return (last - prev) / prev if prev else None
+            r_rs = ret(body.rsWindowDays)
+            r_short = ret(body.asShortDays)
+            r_long = ret(body.asLongDays)
+            rs_vals[s] = r_rs
+            as_vals[s] = (r_short / r_long) if (r_short is not None and r_long not in (None, 0)) else None
+        except Exception as e:
+            logging.warning('ratings compute failed for %s: %s', s, e)
+            rs_vals[s] = None; as_vals[s] = None
+    # percentiles
+    def to_percentiles(d: Dict[str, Optional[float]]):
+        items = [(k, v) for k, v in d.items() if v is not None]
+        if not items:
+            return {}
+        vals = sorted(x[1] for x in items)
+        out: Dict[str, int] = {}
+        for k, v in items:
+            # percentile rank 0..100
+            rank = int(round(100 * (vals.index(v) / max(1, len(vals) - 1)))) if len(vals) > 1 else 100
+            out[k] = rank
+        return out
+    return {"RS": to_percentiles(rs_vals), "AS": to_percentiles(as_vals)}
 
 @api_router.get("/")
 async def root():
