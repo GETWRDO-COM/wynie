@@ -1924,8 +1924,8 @@ async def _fetch_hist(symbol: str, period: str = "6mo", interval: str = "1d") ->
             if isinstance(df, pd.DataFrame) and not df.empty:
                 # yfinance returns multi-index columns sometimes for multiple tickers; ensure single
                 if isinstance(df.columns, pd.MultiIndex):
-                    # take the first level
-                    df = df.xs(symbol, axis=1, level=0)
+                    # take the ticker level (level 1)
+                    df = df.xs(symbol, axis=1, level=1)
                 return df
             
             # If empty, try again unless it's the last attempt
