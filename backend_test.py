@@ -1259,6 +1259,182 @@ class ETFBackendTester:
         except Exception as e:
             self.log_test("Sanity: Dashboard", False, f"Error: {str(e)}")
             return False
+
+    def test_phase2_etf_regime_simulate(self):
+        """Test Phase 2: POST /api/signals/etf-regime/simulate"""
+        try:
+            simulate_data = {
+                "start": "2020-01-01",
+                "end": "2024-12-31"
+            }
+            
+            response = self.session.post(f"{API_BASE}/signals/etf-regime/simulate", json=simulate_data)
+            if response.status_code == 404:
+                self.log_test("Phase 2: ETF Regime Simulate", False, "❌ NOT IMPLEMENTED: POST /api/signals/etf-regime/simulate endpoint does not exist")
+                return False
+            elif response.status_code != 200:
+                self.log_test("Phase 2: ETF Regime Simulate", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            result = response.json()
+            
+            # Validate expected response structure
+            required_fields = ['equity_curve', 'total_return', 'max_drawdown', 'sharpe', 'flips', 'pl_by_regime', 'decisions', 'params_version']
+            missing_fields = [field for field in required_fields if field not in result]
+            if missing_fields:
+                self.log_test("Phase 2: ETF Regime Simulate", False, f"Missing fields: {missing_fields}")
+                return False
+            
+            # Validate equity_curve has length > 0
+            equity_curve = result.get('equity_curve', [])
+            if len(equity_curve) == 0:
+                self.log_test("Phase 2: ETF Regime Simulate", False, "equity_curve length is 0")
+                return False
+            
+            # Validate numeric metrics
+            numeric_fields = ['total_return', 'max_drawdown', 'sharpe']
+            for field in numeric_fields:
+                value = result.get(field)
+                if not isinstance(value, (int, float)):
+                    self.log_test("Phase 2: ETF Regime Simulate", False, f"{field} is not numeric: {value}")
+                    return False
+            
+            # Validate decisions array is present
+            decisions = result.get('decisions', [])
+            if not isinstance(decisions, list):
+                self.log_test("Phase 2: ETF Regime Simulate", False, f"decisions should be array, got {type(decisions)}")
+                return False
+            
+            self.log_test("Phase 2: ETF Regime Simulate", True, f"Simulation returned: equity_curve length={len(equity_curve)}, total_return={result['total_return']}, decisions={len(decisions)}")
+            return True
+            
+        except Exception as e:
+            self.log_test("Phase 2: ETF Regime Simulate", False, f"Error: {str(e)}")
+            return False
+
+    def test_phase2_universe_management(self):
+        """Test Phase 2: Universe Management APIs"""
+        try:
+            # Test GET /api/universe (initially empty or fallback)
+            universe_response = self.session.get(f"{API_BASE}/universe")
+            if universe_response.status_code == 404:
+                self.log_test("Phase 2: Universe Management", False, "❌ NOT IMPLEMENTED: GET /api/universe endpoint does not exist")
+                return False
+            elif universe_response.status_code != 200:
+                self.log_test("Phase 2: Universe Management", False, f"GET universe failed: HTTP {universe_response.status_code}")
+                return False
+            
+            initial_universe = universe_response.json()
+            
+            # Login for authenticated operations
+            if not self.auth_token:
+                login_success = self.test_authentication_system()
+                if not login_success:
+                    self.log_test("Phase 2: Universe Management", False, "Authentication required for universe import")
+                    return False
+            
+            auth_headers = {"Authorization": f"Bearer {self.auth_token}"}
+            
+            # Test POST /api/universe/import with 3 symbols
+            import_data = [
+                {"symbol": "AAPL"},
+                {"symbol": "MSFT"},
+                {"symbol": "NVDA"}
+            ]
+            
+            import_response = self.session.post(f"{API_BASE}/universe/import", json=import_data, headers=auth_headers)
+            if import_response.status_code == 404:
+                self.log_test("Phase 2: Universe Management", False, "❌ NOT IMPLEMENTED: POST /api/universe/import endpoint does not exist")
+                return False
+            elif import_response.status_code != 200:
+                self.log_test("Phase 2: Universe Management", False, f"Import failed: HTTP {import_response.status_code}")
+                return False
+            
+            # Test GET /api/universe again to verify import
+            verify_response = self.session.get(f"{API_BASE}/universe")
+            if verify_response.status_code != 200:
+                self.log_test("Phase 2: Universe Management", False, f"Verify universe failed: HTTP {verify_response.status_code}")
+                return False
+            
+            final_universe = verify_response.json()
+            
+            # Validate that imported symbols are present
+            if isinstance(final_universe, list):
+                symbols = [item.get('symbol') for item in final_universe if isinstance(item, dict)]
+            else:
+                symbols = final_universe.get('symbols', []) if isinstance(final_universe, dict) else []
+            
+            expected_symbols = ['AAPL', 'MSFT', 'NVDA']
+            missing_symbols = [symbol for symbol in expected_symbols if symbol not in symbols]
+            if missing_symbols:
+                self.log_test("Phase 2: Universe Management", False, f"Missing imported symbols: {missing_symbols}")
+                return False
+            
+            self.log_test("Phase 2: Universe Management", True, f"Universe management working: imported {len(expected_symbols)} symbols, verified in universe")
+            return True
+            
+        except Exception as e:
+            self.log_test("Phase 2: Universe Management", False, f"Error: {str(e)}")
+            return False
+
+    def test_phase2_stock_screens(self):
+        """Test Phase 2: Stock Screening APIs"""
+        try:
+            # Test GET /api/screens/leaders?top=5
+            leaders_response = self.session.get(f"{API_BASE}/screens/leaders?top=5")
+            if leaders_response.status_code == 404:
+                self.log_test("Phase 2: Stock Screens", False, "❌ NOT IMPLEMENTED: GET /api/screens/leaders endpoint does not exist")
+                return False
+            elif leaders_response.status_code != 200:
+                self.log_test("Phase 2: Stock Screens", False, f"Leaders screen failed: HTTP {leaders_response.status_code}")
+                return False
+            
+            leaders = leaders_response.json()
+            
+            # Validate leaders response
+            if not isinstance(leaders, list):
+                self.log_test("Phase 2: Stock Screens", False, f"Leaders should be array, got {type(leaders)}")
+                return False
+            
+            # Should return 5 or fewer entries
+            if len(leaders) > 5:
+                self.log_test("Phase 2: Stock Screens", False, f"Leaders returned {len(leaders)} entries, expected <= 5")
+                return False
+            
+            # Test GET /api/screens/neglected-pre-earnings
+            neglected_response = self.session.get(f"{API_BASE}/screens/neglected-pre-earnings")
+            if neglected_response.status_code == 404:
+                self.log_test("Phase 2: Stock Screens", False, "❌ NOT IMPLEMENTED: GET /api/screens/neglected-pre-earnings endpoint does not exist")
+                return False
+            elif neglected_response.status_code != 200:
+                self.log_test("Phase 2: Stock Screens", False, f"Neglected screen failed: HTTP {neglected_response.status_code}")
+                return False
+            
+            neglected = neglected_response.json()
+            
+            # Validate neglected response
+            if not isinstance(neglected, list):
+                self.log_test("Phase 2: Stock Screens", False, f"Neglected should be array, got {type(neglected)}")
+                return False
+            
+            # Validate entries have WATCH or READY fields
+            if neglected:
+                sample_entry = neglected[0]
+                if 'label' not in sample_entry:
+                    self.log_test("Phase 2: Stock Screens", False, "Neglected entries missing 'label' field")
+                    return False
+                
+                label = sample_entry.get('label')
+                if label not in ['WATCH', 'READY']:
+                    self.log_test("Phase 2: Stock Screens", False, f"Invalid label: {label}, expected WATCH or READY")
+                    return False
+            
+            self.log_test("Phase 2: Stock Screens", True, f"Stock screens working: leaders={len(leaders)} entries, neglected={len(neglected)} entries with proper labels")
+            return True
+            
+        except Exception as e:
+            self.log_test("Phase 2: Stock Screens", False, f"Error: {str(e)}")
+            return False
         """Test root API endpoint"""
         try:
             response = self.session.get(f"{API_BASE}/")
