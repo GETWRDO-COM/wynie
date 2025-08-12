@@ -2916,9 +2916,17 @@ if __name__ == "__main__":
     import sys
     tester = ETFBackendTester()
     
-    # Check if we should run only Phase 1 tests
-    if len(sys.argv) > 1 and sys.argv[1] == "phase1":
-        passed, failed, results = tester.run_phase1_tests()
+    # Check command line arguments for specific test suites
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "phase1":
+            passed, failed, results = tester.run_phase1_tests()
+        elif sys.argv[1] == "phase2":
+            passed, failed = tester.run_phase2_targeted_tests()
+            results = tester.test_results
+        else:
+            print(f"Unknown test suite: {sys.argv[1]}")
+            print("Available options: phase1, phase2")
+            sys.exit(1)
     else:
         passed, failed, results = tester.run_all_tests()
     
