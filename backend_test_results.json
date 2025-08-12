@@ -8,93 +8,93 @@
       "test": "API Root",
       "success": true,
       "details": "Root endpoint accessible: ETF Intelligence System API - Enhanced Version",
-      "timestamp": "2025-08-12T09:34:07.372054",
+      "timestamp": "2025-08-12T09:43:31.768621",
       "response_data": null
     },
     {
       "test": "Authentication System",
       "success": true,
       "details": "Complete authentication system working: login, JWT tokens, user info, password updates, forgot password",
-      "timestamp": "2025-08-12T09:34:08.652790",
+      "timestamp": "2025-08-12T09:43:33.070383",
       "response_data": null
     },
     {
       "test": "Phase 1: ETF Regime Config",
       "success": true,
       "details": "ETF regime config returned with correct kind and default params",
-      "timestamp": "2025-08-12T09:34:08.704619",
+      "timestamp": "2025-08-12T09:43:33.079152",
       "response_data": null
     },
     {
       "test": "Phase 1: All Formula Configs",
       "success": true,
       "details": "All configs returned (2 configs) including etf_regime",
-      "timestamp": "2025-08-12T09:34:08.716844",
+      "timestamp": "2025-08-12T09:43:33.129135",
       "response_data": null
     },
     {
       "test": "Phase 1: Market State",
       "success": true,
-      "details": "Market state returned with regime=UPTREND, msae_score=83.81, stale=True",
-      "timestamp": "2025-08-12T09:34:09.414554",
+      "details": "Market state returned with regime=UPTREND, msae_score=83.82, stale=True",
+      "timestamp": "2025-08-12T09:43:33.883021",
       "response_data": null
     },
     {
       "test": "Phase 1: Market History",
       "success": true,
-      "details": "Market history returned 3 snapshots with valid structure",
-      "timestamp": "2025-08-12T09:34:09.979838",
+      "details": "Market history returned 5 snapshots with valid structure",
+      "timestamp": "2025-08-12T09:43:34.493152",
       "response_data": null
     },
     {
       "test": "Phase 1: ETF Regime Signal",
       "success": false,
-      "details": "Reason missing ema or adx fields",
-      "timestamp": "2025-08-12T09:34:10.045039",
+      "details": "HTTP 500: Internal Server Error",
+      "timestamp": "2025-08-12T09:43:34.506838",
       "response_data": null
     },
     {
       "test": "NDX: Get Constituents",
       "success": true,
       "details": "NDX constituents: 4 active, 5 total",
-      "timestamp": "2025-08-12T09:34:10.130240",
+      "timestamp": "2025-08-12T09:43:34.523299",
       "response_data": null
     },
     {
       "test": "NDX: Post Constituents",
       "success": true,
-      "details": "NDX constituents updated: version 1 -> 2",
-      "timestamp": "2025-08-12T09:34:10.268562",
+      "details": "NDX constituents updated: version 2 -> 3",
+      "timestamp": "2025-08-12T09:43:34.631990",
       "response_data": null
     },
     {
       "test": "NDX: Constituents Diff",
       "success": true,
-      "details": "Constituents diff working: v2 to v2 (empty diff)",
-      "timestamp": "2025-08-12T09:34:10.340701",
+      "details": "Constituents diff working: v3 to v3 (empty diff)",
+      "timestamp": "2025-08-12T09:43:34.738799",
       "response_data": null
     },
     {
       "test": "NDX: Refresh Prices",
       "success": true,
       "details": "Price refresh: 4/4 succeeded (100.0%), 0 failed",
-      "timestamp": "2025-08-12T09:34:10.957026",
+      "timestamp": "2025-08-12T09:43:35.232250",
       "response_data": null
     },
     {
       "test": "Legacy: Formulas Config",
       "success": true,
       "details": "Legacy config returned with 3 traditional fields",
-      "timestamp": "2025-08-12T09:34:10.967585",
+      "timestamp": "2025-08-12T09:43:35.283579",
       "response_data": null
     },
     {
       "test": "Sanity: Dashboard",
       "success": true,
       "details": "Dashboard endpoint responding correctly",
-      "timestamp": "2025-08-12T09:34:12.978245",
+      "timestamp": "2025-08-12T09:43:36.724249",
       "response_data": null
     }
   ],
-  "timestamp": "2025-08-12T09:34:12.978452"
+  "timestamp": "2025-08-12T09:43:36.724481"
 }
