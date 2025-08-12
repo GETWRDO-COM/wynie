@@ -107,15 +107,18 @@
 ## backend:
   - task: "Settings endpoints (GET/POST) with .env persistence"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "Added /api/settings GET (redacted) and POST to hot-swap clients and persist POLYGON_API_KEY and FINNHUB_API_KEY to backend/.env."
+      - working: true
+        agent: "testing"
+        comment: "✅ Settings endpoints working perfectly. GET /api/settings returns booleans for polygon and finnhub keys. POST /api/settings successfully updates in-memory clients and persists keys to backend/.env. Subsequent GET shows finnhub: true after key update."
   - task: "Finnhub fundamentals integration"
     implemented: true
     working: false
