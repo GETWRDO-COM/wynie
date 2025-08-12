@@ -170,6 +170,9 @@
       - working: true
         agent: "testing"
         comment: "✅ All marketdata endpoints working correctly. /api/marketdata/bars gracefully returns empty bars array on API failures (no 500 errors). Symbol search, quotes, and logo endpoints all functioning properly. Error handling validated for missing parameters."
+      - working: true
+        agent: "testing"
+        comment: "✅ NEWLY RESTORED ENDPOINTS FULLY VALIDATED (Aug 12, 2025): All 7 requested endpoints working perfectly: 1) GET /api/columns/schema returns categories with 'General' including 'logo' column and registry-based fields, 2) GET/POST/DELETE /api/columns/presets lifecycle working correctly, 3) GET /api/marketdata/symbols/search?q=AAPL&limit=5 returns results array (gracefully handles invalid API key with empty results, no 500 errors), 4) GET /api/marketdata/bars for AAPL 1D with fr/to returns bars array, 5) GET /api/marketdata/logo returns logoUrl (null acceptable), 6) GET /api/marketdata/fundamentals for AAPL,MSFT returns data map with both symbols, 7) POST /api/ratings/compute returns RS and AS dictionaries. Fixed minor error handling issue in symbol search endpoint. All endpoints verified with correct response shapes and no 500 errors."
   - task: "Screener endpoint"
     implemented: true
     working: true
