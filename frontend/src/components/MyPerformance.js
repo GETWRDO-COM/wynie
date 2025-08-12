@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 const RANGES = [
   { id: '1D', label: '1 Day' },
   { id: '5D', label: '5 Days' },
-  { id: '2W', label: '2 Weeks' },
+  { id: 'YTD', label: 'YTD' },
   { id: '1M', label: '1 Month' },
   { id: '6M', label: '6 Months' },
   { id: '12M', label: '12 Months' },
