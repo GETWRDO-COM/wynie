@@ -89,11 +89,11 @@ function App() {
   const fetchWatchlists = async () => { try { const r = await api.get('/api/watchlists/custom'); setWatchlists(r.data); } catch (e) { console.error('Failed to fetch watchlists:', e); } };
   const fetchChartData = async (timeframe = '1m') => { try { const r = await api.get(`/api/charts/indices?timeframe=${timeframe}`); setChartData(r.data.data); } catch (e) { console.error('Failed to fetch chart data:', e); } };
 
-  const handleLogin = (u) =&gt; setUser(u);
-  const handleLogout = () =&gt; { localStorage.removeItem('authToken'); localStorage.removeItem('user'); setUser(null); setActiveTab('dashboard'); };
+  const handleLogin = (u) => setUser(u);
+  const handleLogout = () => { localStorage.removeItem('authToken'); localStorage.removeItem('user'); setUser(null); setActiveTab('dashboard'); };
 
-  if (loading) return (&lt;ThemeWrapper&gt;&lt;div className="min-h-screen flex items-center justify-center"&gt;&lt;div className="text-center"&gt;&lt;FaSpinner className="animate-spin text-4xl text-blue-400 mx-auto mb-4" /&gt;&lt;p className="text-gray-300"&gt;Loading HUNT by WRDO...&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&lt;/ThemeWrapper&gt;);
-  if (!user) return &lt;LoginForm onLogin={handleLogin} /&gt;;
+  if (loading) return (<ThemeWrapper><div className="min-h-screen flex items-center justify-center"><div className="text-center"><FaSpinner className="animate-spin text-4xl text-blue-400 mx-auto mb-4" /><p className="text-gray-300">Loading HUNT by WRDO...</p></div></div></ThemeWrapper>);
+  if (!user) return <LoginForm onLogin={handleLogin} />;
 
   return (
     &lt;ThemeWrapper&gt;
