@@ -14,7 +14,7 @@ const MarketCharts = () => {
   const [range, setRange] = useState('1M');
   const [data, setData] = useState({});
   const [updatedAt, setUpdatedAt] = useState(null);
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
 
   const load = async (r) => {
     try {
