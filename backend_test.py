@@ -720,6 +720,545 @@ class ETFBackendTester:
         except Exception as e:
             self.log_test("Historical Data Pruning", False, f"Error: {str(e)}")
             return False
+
+    def test_phase1_etf_regime_config(self):
+        """Test Phase 1: GET /api/formulas/config/etf-regime"""
+        try:
+            response = self.session.get(f"{API_BASE}/formulas/config/etf-regime")
+            if response.status_code != 200:
+                self.log_test("Phase 1: ETF Regime Config", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            config = response.json()
+            
+            # Validate config structure
+            required_fields = ['kind', 'params']
+            missing_fields = [field for field in required_fields if field not in config]
+            if missing_fields:
+                self.log_test("Phase 1: ETF Regime Config", False, f"Missing fields: {missing_fields}")
+                return False
+            
+            # Validate kind
+            if config.get('kind') != 'etf_regime':
+                self.log_test("Phase 1: ETF Regime Config", False, f"Expected kind=etf_regime, got {config.get('kind')}")
+                return False
+            
+            # Validate expected params
+            params = config.get('params', {})
+            expected_params = {
+                'ema_fast': 20,
+                'ema_slow': 50,
+                'adx_threshold': 20,
+                'atrp_vol_cap_pct': 3.5,
+                'income_etf': 'QQQI'
+            }
+            
+            for param, expected_value in expected_params.items():
+                if param not in params:
+                    self.log_test("Phase 1: ETF Regime Config", False, f"Missing param: {param}")
+                    return False
+                if params[param] != expected_value:
+                    self.log_test("Phase 1: ETF Regime Config", False, f"Param {param}: expected {expected_value}, got {params[param]}")
+                    return False
+            
+            self.log_test("Phase 1: ETF Regime Config", True, "ETF regime config returned with correct kind and default params")
+            return True
+            
+        except Exception as e:
+            self.log_test("Phase 1: ETF Regime Config", False, f"Error: {str(e)}")
+            return False
+
+    def test_phase1_all_formula_configs(self):
+        """Test Phase 1: GET /api/formulas/config/all"""
+        try:
+            response = self.session.get(f"{API_BASE}/formulas/config/all")
+            if response.status_code != 200:
+                self.log_test("Phase 1: All Formula Configs", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            configs = response.json()
+            
+            # Should be an array
+            if not isinstance(configs, list):
+                self.log_test("Phase 1: All Formula Configs", False, f"Expected array, got {type(configs)}")
+                return False
+            
+            # Should include at least one entry with kind=etf_regime
+            etf_regime_found = False
+            for config in configs:
+                if config.get('kind') == 'etf_regime':
+                    etf_regime_found = True
+                    break
+            
+            if not etf_regime_found:
+                self.log_test("Phase 1: All Formula Configs", False, "No etf_regime config found in array")
+                return False
+            
+            self.log_test("Phase 1: All Formula Configs", True, f"All configs returned ({len(configs)} configs) including etf_regime")
+            return True
+            
+        except Exception as e:
+            self.log_test("Phase 1: All Formula Configs", False, f"Error: {str(e)}")
+            return False
+
+    def test_phase1_market_state(self):
+        """Test Phase 1: GET /api/market/state"""
+        try:
+            response = self.session.get(f"{API_BASE}/market/state")
+            if response.status_code != 200:
+                self.log_test("Phase 1: Market State", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            state = response.json()
+            
+            # Validate required fields
+            required_fields = ['ts', 'regime', 'msae_score', 'components', 'stale']
+            missing_fields = [field for field in required_fields if field not in state]
+            if missing_fields:
+                self.log_test("Phase 1: Market State", False, f"Missing fields: {missing_fields}")
+                return False
+            
+            # Validate msae_score range (0-100)
+            msae_score = state.get('msae_score', 0)
+            if not (0 <= msae_score <= 100):
+                self.log_test("Phase 1: Market State", False, f"MSAE score {msae_score} not in range 0-100")
+                return False
+            
+            # Validate components structure
+            components = state.get('components', {})
+            expected_components = ['ema20', 'ema50', 'adx', 'atr_pct', 'vix', 'vxn', 'breadth_pct_above_50dma', 'qqq_dist_from_ath_pct']
+            missing_components = [comp for comp in expected_components if comp not in components]
+            if missing_components:
+                self.log_test("Phase 1: Market State", False, f"Missing components: {missing_components}")
+                return False
+            
+            # Validate regime
+            valid_regimes = ['UPTREND', 'DOWNTREND', 'CHOP']
+            if state.get('regime') not in valid_regimes:
+                self.log_test("Phase 1: Market State", False, f"Invalid regime: {state.get('regime')}")
+                return False
+            
+            # Validate stale is boolean
+            if not isinstance(state.get('stale'), bool):
+                self.log_test("Phase 1: Market State", False, f"Stale should be boolean, got {type(state.get('stale'))}")
+                return False
+            
+            self.log_test("Phase 1: Market State", True, f"Market state returned with regime={state['regime']}, msae_score={msae_score}, stale={state['stale']}")
+            return True
+            
+        except Exception as e:
+            self.log_test("Phase 1: Market State", False, f"Error: {str(e)}")
+            return False
+
+    def test_phase1_market_history(self):
+        """Test Phase 1: GET /api/market/history"""
+        try:
+            # First call market/state to ensure we have at least one snapshot
+            state_response = self.session.get(f"{API_BASE}/market/state")
+            if state_response.status_code != 200:
+                self.log_test("Phase 1: Market History", False, "Failed to create market state snapshot")
+                return False
+            
+            # Now test market history
+            response = self.session.get(f"{API_BASE}/market/history")
+            if response.status_code != 200:
+                self.log_test("Phase 1: Market History", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            history = response.json()
+            
+            # Should be an array
+            if not isinstance(history, list):
+                self.log_test("Phase 1: Market History", False, f"Expected array, got {type(history)}")
+                return False
+            
+            # Should have at least one snapshot after calling market/state
+            if len(history) == 0:
+                self.log_test("Phase 1: Market History", False, "No history snapshots found after creating market state")
+                return False
+            
+            # Validate snapshot structure
+            sample_snapshot = history[0]
+            required_snapshot_fields = ['ts', 'regime', 'msae_score', 'components', 'stale']
+            missing_snapshot_fields = [field for field in required_snapshot_fields if field not in sample_snapshot]
+            if missing_snapshot_fields:
+                self.log_test("Phase 1: Market History", False, f"Snapshot missing fields: {missing_snapshot_fields}")
+                return False
+            
+            self.log_test("Phase 1: Market History", True, f"Market history returned {len(history)} snapshots with valid structure")
+            return True
+            
+        except Exception as e:
+            self.log_test("Phase 1: Market History", False, f"Error: {str(e)}")
+            return False
+
+    def test_phase1_etf_regime_signal(self):
+        """Test Phase 1: GET /api/signals/etf-regime"""
+        try:
+            response = self.session.get(f"{API_BASE}/signals/etf-regime")
+            if response.status_code != 200:
+                self.log_test("Phase 1: ETF Regime Signal", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            signal = response.json()
+            
+            # Validate required fields
+            required_fields = ['decision', 'weights', 'confidence', 'reason', 'params_version']
+            missing_fields = [field for field in required_fields if field not in signal]
+            if missing_fields:
+                self.log_test("Phase 1: ETF Regime Signal", False, f"Missing fields: {missing_fields}")
+                return False
+            
+            # Validate decision
+            valid_decisions = ['TQQQ', 'SQQQ', 'QQQI', 'OUT']
+            decision = signal.get('decision')
+            if decision not in valid_decisions:
+                self.log_test("Phase 1: ETF Regime Signal", False, f"Invalid decision: {decision}")
+                return False
+            
+            # Validate weights structure and sum
+            weights = signal.get('weights', {})
+            expected_weight_keys = ['TQQQ', 'SQQQ', 'QQQI']
+            missing_weight_keys = [key for key in expected_weight_keys if key not in weights]
+            if missing_weight_keys:
+                self.log_test("Phase 1: ETF Regime Signal", False, f"Missing weight keys: {missing_weight_keys}")
+                return False
+            
+            # Validate weights sum <= 1
+            total_weight = sum(weights.values())
+            if total_weight > 1.01:  # Allow small floating point tolerance
+                self.log_test("Phase 1: ETF Regime Signal", False, f"Weights sum {total_weight} > 1")
+                return False
+            
+            # Validate confidence range (0-1)
+            confidence = signal.get('confidence', 0)
+            if not (0 <= confidence <= 1):
+                self.log_test("Phase 1: ETF Regime Signal", False, f"Confidence {confidence} not in range 0-1")
+                return False
+            
+            # Validate reason structure
+            reason = signal.get('reason', {})
+            if not isinstance(reason, dict):
+                self.log_test("Phase 1: ETF Regime Signal", False, f"Reason should be dict, got {type(reason)}")
+                return False
+            
+            # Should have ema and adx in reason
+            if 'ema' not in reason or 'adx' not in reason:
+                self.log_test("Phase 1: ETF Regime Signal", False, "Reason missing ema or adx fields")
+                return False
+            
+            self.log_test("Phase 1: ETF Regime Signal", True, f"ETF regime signal: decision={decision}, confidence={confidence}, weights_sum={total_weight:.2f}")
+            return True
+            
+        except Exception as e:
+            self.log_test("Phase 1: ETF Regime Signal", False, f"Error: {str(e)}")
+            return False
+
+    def test_ndx_constituents_get(self):
+        """Test NDX: GET /api/ndx/constituents"""
+        try:
+            # Test default (active only)
+            response = self.session.get(f"{API_BASE}/ndx/constituents")
+            if response.status_code != 200:
+                self.log_test("NDX: Get Constituents", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            data = response.json()
+            
+            # Validate structure
+            required_fields = ['_id', 'index', 'as_of', 'version', 'universe']
+            missing_fields = [field for field in required_fields if field not in data]
+            if missing_fields:
+                self.log_test("NDX: Get Constituents", False, f"Missing fields: {missing_fields}")
+                return False
+            
+            # Validate universe is array
+            universe = data.get('universe', [])
+            if not isinstance(universe, list):
+                self.log_test("NDX: Get Constituents", False, f"Universe should be array, got {type(universe)}")
+                return False
+            
+            # Should have some constituents
+            if len(universe) == 0:
+                self.log_test("NDX: Get Constituents", False, "No constituents returned")
+                return False
+            
+            # Validate constituent structure
+            sample_constituent = universe[0]
+            required_constituent_fields = ['symbol', 'active']
+            missing_constituent_fields = [field for field in required_constituent_fields if field not in sample_constituent]
+            if missing_constituent_fields:
+                self.log_test("NDX: Get Constituents", False, f"Constituent missing fields: {missing_constituent_fields}")
+                return False
+            
+            # Test with all=true parameter
+            all_response = self.session.get(f"{API_BASE}/ndx/constituents?all=true")
+            if all_response.status_code != 200:
+                self.log_test("NDX: Get Constituents", False, f"All constituents failed: HTTP {all_response.status_code}")
+                return False
+            
+            all_data = all_response.json()
+            all_universe = all_data.get('universe', [])
+            
+            # All should have >= active only
+            if len(all_universe) < len(universe):
+                self.log_test("NDX: Get Constituents", False, f"All constituents ({len(all_universe)}) < active only ({len(universe)})")
+                return False
+            
+            self.log_test("NDX: Get Constituents", True, f"NDX constituents: {len(universe)} active, {len(all_universe)} total")
+            return True
+            
+        except Exception as e:
+            self.log_test("NDX: Get Constituents", False, f"Error: {str(e)}")
+            return False
+
+    def test_ndx_constituents_post(self):
+        """Test NDX: POST /api/ndx/constituents (requires auth)"""
+        try:
+            if not self.auth_token:
+                self.log_test("NDX: Post Constituents", False, "No auth token available - run authentication test first")
+                return False
+            
+            auth_headers = {"Authorization": f"Bearer {self.auth_token}"}
+            
+            # Get current version first
+            get_response = self.session.get(f"{API_BASE}/ndx/constituents")
+            if get_response.status_code != 200:
+                self.log_test("NDX: Post Constituents", False, "Failed to get current constituents")
+                return False
+            
+            current_data = get_response.json()
+            current_version = current_data.get('version', 0)
+            
+            # Create test payload with a few test constituents
+            test_payload = {
+                "as_of": "2025-01-01T00:00:00Z",
+                "source": "test_update",
+                "notes": "Test NDX constituents update",
+                "universe": [
+                    {"symbol": "AAPL", "yf_symbol": "AAPL", "name": "Apple Inc.", "sector": "Technology", "active": True},
+                    {"symbol": "MSFT", "yf_symbol": "MSFT", "name": "Microsoft Corp.", "sector": "Technology", "active": True},
+                    {"symbol": "GOOGL", "yf_symbol": "GOOGL", "name": "Alphabet Inc.", "sector": "Technology", "active": True},
+                    {"symbol": "NVDA", "yf_symbol": "NVDA", "name": "NVIDIA Corp.", "sector": "Technology", "active": True},
+                    {"symbol": "TSLA", "yf_symbol": "TSLA", "name": "Tesla Inc.", "sector": "Technology", "active": False}
+                ]
+            }
+            
+            # Test POST
+            response = self.session.post(f"{API_BASE}/ndx/constituents", json=test_payload, headers=auth_headers)
+            if response.status_code != 200:
+                self.log_test("NDX: Post Constituents", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            result = response.json()
+            
+            # Validate response
+            required_fields = ['message', 'version']
+            missing_fields = [field for field in required_fields if field not in result]
+            if missing_fields:
+                self.log_test("NDX: Post Constituents", False, f"Response missing fields: {missing_fields}")
+                return False
+            
+            # Version should have incremented
+            new_version = result.get('version')
+            if new_version <= current_version:
+                self.log_test("NDX: Post Constituents", False, f"Version not incremented: {new_version} <= {current_version}")
+                return False
+            
+            # Verify the update by getting constituents again
+            verify_response = self.session.get(f"{API_BASE}/ndx/constituents")
+            if verify_response.status_code != 200:
+                self.log_test("NDX: Post Constituents", False, "Failed to verify update")
+                return False
+            
+            verify_data = verify_response.json()
+            if verify_data.get('version') != new_version:
+                self.log_test("NDX: Post Constituents", False, f"Version mismatch after update: {verify_data.get('version')} != {new_version}")
+                return False
+            
+            # Should have our test symbols (active only by default)
+            verify_universe = verify_data.get('universe', [])
+            test_symbols = {member['symbol'] for member in test_payload['universe'] if member['active']}
+            found_symbols = {member['symbol'] for member in verify_universe}
+            
+            if not test_symbols.issubset(found_symbols):
+                missing_symbols = test_symbols - found_symbols
+                self.log_test("NDX: Post Constituents", False, f"Missing test symbols: {missing_symbols}")
+                return False
+            
+            self.log_test("NDX: Post Constituents", True, f"NDX constituents updated: version {current_version} -> {new_version}")
+            return True
+            
+        except Exception as e:
+            self.log_test("NDX: Post Constituents", False, f"Error: {str(e)}")
+            return False
+
+    def test_ndx_constituents_diff(self):
+        """Test NDX: GET /api/ndx/constituents/diff"""
+        try:
+            # Get current version
+            get_response = self.session.get(f"{API_BASE}/ndx/constituents")
+            if get_response.status_code != 200:
+                self.log_test("NDX: Constituents Diff", False, "Failed to get current constituents")
+                return False
+            
+            current_data = get_response.json()
+            current_version = current_data.get('version', 1)
+            
+            # Test diff between same version (should be empty)
+            response = self.session.get(f"{API_BASE}/ndx/constituents/diff?fromVersion={current_version}&toVersion={current_version}")
+            if response.status_code != 200:
+                self.log_test("NDX: Constituents Diff", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            diff = response.json()
+            
+            # Validate structure
+            required_fields = ['fromVersion', 'toVersion', 'added', 'removed', 'changed']
+            missing_fields = [field for field in required_fields if field not in diff]
+            if missing_fields:
+                self.log_test("NDX: Constituents Diff", False, f"Missing fields: {missing_fields}")
+                return False
+            
+            # Same version diff should be empty
+            if diff['fromVersion'] != current_version or diff['toVersion'] != current_version:
+                self.log_test("NDX: Constituents Diff", False, f"Version mismatch in diff response")
+                return False
+            
+            # Arrays should be empty for same version
+            if len(diff['added']) > 0 or len(diff['removed']) > 0 or len(diff['changed']) > 0:
+                self.log_test("NDX: Constituents Diff", False, "Same version diff should be empty")
+                return False
+            
+            # Test with invalid version (should return 404)
+            invalid_response = self.session.get(f"{API_BASE}/ndx/constituents/diff?fromVersion=999&toVersion=1000")
+            if invalid_response.status_code != 404:
+                self.log_test("NDX: Constituents Diff", False, f"Expected 404 for invalid versions, got {invalid_response.status_code}")
+                return False
+            
+            self.log_test("NDX: Constituents Diff", True, f"Constituents diff working: v{current_version} to v{current_version} (empty diff)")
+            return True
+            
+        except Exception as e:
+            self.log_test("NDX: Constituents Diff", False, f"Error: {str(e)}")
+            return False
+
+    def test_ndx_refresh_prices(self):
+        """Test NDX: POST /api/ndx/constituents/refresh-prices"""
+        try:
+            print("Testing NDX price refresh (this may take 30-60 seconds)...")
+            
+            # Test with default interval (1d)
+            response = self.session.post(f"{API_BASE}/ndx/constituents/refresh-prices", timeout=120)
+            if response.status_code != 200:
+                self.log_test("NDX: Refresh Prices", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            result = response.json()
+            
+            # Validate response structure
+            required_fields = ['requested', 'succeeded', 'failed']
+            missing_fields = [field for field in required_fields if field not in result]
+            if missing_fields:
+                self.log_test("NDX: Refresh Prices", False, f"Missing fields: {missing_fields}")
+                return False
+            
+            # Validate counts
+            requested = result.get('requested', 0)
+            succeeded = result.get('succeeded', 0)
+            failed = result.get('failed', [])
+            
+            if requested <= 0:
+                self.log_test("NDX: Refresh Prices", False, f"No symbols requested: {requested}")
+                return False
+            
+            if succeeded < 0:
+                self.log_test("NDX: Refresh Prices", False, f"Invalid succeeded count: {succeeded}")
+                return False
+            
+            if not isinstance(failed, list):
+                self.log_test("NDX: Refresh Prices", False, f"Failed should be array, got {type(failed)}")
+                return False
+            
+            # Should have some success (allow for some failures due to yfinance throttling)
+            success_rate = succeeded / requested if requested > 0 else 0
+            if success_rate < 0.5:  # At least 50% should succeed
+                self.log_test("NDX: Refresh Prices", False, f"Low success rate: {success_rate:.1%} ({succeeded}/{requested})")
+                return False
+            
+            # Test with 15m interval
+            response_15m = self.session.post(f"{API_BASE}/ndx/constituents/refresh-prices?interval=15m", timeout=120)
+            if response_15m.status_code != 200:
+                self.log_test("NDX: Refresh Prices", False, f"15m interval failed: HTTP {response_15m.status_code}")
+                return False
+            
+            result_15m = response_15m.json()
+            if result_15m.get('requested', 0) <= 0:
+                self.log_test("NDX: Refresh Prices", False, "15m interval returned no requests")
+                return False
+            
+            self.log_test("NDX: Refresh Prices", True, f"Price refresh: {succeeded}/{requested} succeeded ({success_rate:.1%}), {len(failed)} failed")
+            return True
+            
+        except Exception as e:
+            self.log_test("NDX: Refresh Prices", False, f"Error: {str(e)}")
+            return False
+
+    def test_legacy_formulas_config(self):
+        """Test Legacy: GET /api/formulas/config (should still return single legacy object)"""
+        try:
+            response = self.session.get(f"{API_BASE}/formulas/config")
+            if response.status_code != 200:
+                self.log_test("Legacy: Formulas Config", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            config = response.json()
+            
+            # Should be a single object (not array) for legacy compatibility
+            if isinstance(config, list):
+                self.log_test("Legacy: Formulas Config", False, "Legacy config should be object, not array")
+                return False
+            
+            # Should have legacy structure (not kind=etf_regime)
+            if config.get('kind') == 'etf_regime':
+                self.log_test("Legacy: Formulas Config", False, "Legacy config should not be etf_regime kind")
+                return False
+            
+            # Should have traditional formula config fields
+            expected_legacy_fields = ['relative_strength', 'sata_weights', 'atr_calculation']
+            found_legacy_fields = [field for field in expected_legacy_fields if field in config]
+            if len(found_legacy_fields) == 0:
+                self.log_test("Legacy: Formulas Config", False, f"No legacy fields found. Expected one of: {expected_legacy_fields}")
+                return False
+            
+            self.log_test("Legacy: Formulas Config", True, f"Legacy config returned with {len(found_legacy_fields)} traditional fields")
+            return True
+            
+        except Exception as e:
+            self.log_test("Legacy: Formulas Config", False, f"Error: {str(e)}")
+            return False
+
+    def test_sanity_dashboard(self):
+        """Test Sanity: GET /api/dashboard (should respond 200)"""
+        try:
+            response = self.session.get(f"{API_BASE}/dashboard")
+            if response.status_code != 200:
+                self.log_test("Sanity: Dashboard", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            data = response.json()
+            
+            # Should have basic dashboard fields
+            if 'greeting' not in data:
+                self.log_test("Sanity: Dashboard", False, "Dashboard missing greeting field")
+                return False
+            
+            self.log_test("Sanity: Dashboard", True, "Dashboard endpoint responding correctly")
+            return True
+            
+        except Exception as e:
+            self.log_test("Sanity: Dashboard", False, f"Error: {str(e)}")
+            return False
         """Test root API endpoint"""
         try:
             response = self.session.get(f"{API_BASE}/")
