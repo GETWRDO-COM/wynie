@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { FaComments } from 'react-icons/fa';
 import AIChat from './AIChat';
-
 import useHotkeys from '../hooks/useHotkeys';
 
 const FloatingChat = ({ api, user }) => {
@@ -21,19 +20,19 @@ const FloatingChat = ({ api, user }) => {
   return (
     <>
       {open && (
-        <div className="fixed z-[10050] w-[380px] max-w-[90vw]" style={{ right: 16 - pos.x, bottom: 120 - pos.y }} onMouseMove={onMouseMove} onMouseUp={onMouseUp}>
+        <div className="fixed z-[10050] w-[420px] max-w-[92vw]" style={{ right: 16 - pos.x, bottom: 140 - pos.y }} onMouseMove={onMouseMove} onMouseUp={onMouseUp}>
           <div className="glass-panel p-3">
             <div className="flex items-center justify-between mb-2 cursor-move select-none" onMouseDown={onMouseDown}>
-              <div className="text-white/90 font-semibold">AI Assistant</div>
+              <div className="text-white/90 font-semibold">WRDO</div>
               <button onClick={() => setOpen(false)} className="text-gray-300 hover:text-white text-sm">Close</button>
             </div>
-            <div className="h-[420px] overflow-hidden rounded-xl bg-black/30 border border-white/10">
+            <div className="h-[520px] rounded-xl bg-black/30 border border-white/10 overflow-hidden">
               <AIChat api={api} user={user} />
             </div>
           </div>
         </div>
       )}
-      <button title="AI (Ctrl+K)" onClick={() => setOpen(!open)} className="fixed bottom-24 right-6 z-[10050] w-12 h-12 rounded-full flex items-center justify-center btn-primary shadow-lg">
+      <button title="WRDO (Ctrl+K)" onClick={() => setOpen(!open)} className="fixed bottom-28 right-6 z-[10050] w-14 h-14 rounded-full flex items-center justify-center btn-primary shadow-xl animate-pulse">
         <FaComments />
       </button>
     </>

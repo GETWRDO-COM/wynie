@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaRobot, FaSpinner } from 'react-icons/fa';
 
-// Simple AI Chat panel extracted into its own component
+// AI Chat panel (WRDO)
 // Requires an axios instance via props.api
 const AIChat = ({ api, user }) => {
   const [messages, setMessages] = useState([]);
@@ -23,6 +23,7 @@ const AIChat = ({ api, user }) => {
     try {
       const response = await api.get('/api/ai/models');
       setAvailableModels(response.data.models || {});
+      // Prefer latest -> gpt-5, fallback to existing key
       setSelectedModel(response.data.recommended || 'latest');
     } catch (err) {
       console.error('Failed to fetch AI models:', err);
@@ -31,7 +32,7 @@ const AIChat = ({ api, user }) => {
 
   const createNewSession = async () => {
     try {
-      const sessionData = { title: 'New Trading Chat', model: selectedModel };
+      const sessionData = { title: 'New WRDO Chat', model: selectedModel };
       const response = await api.post('/api/ai/sessions', sessionData);
       setCurrentSession(response.data.id);
       setMessages([]);
@@ -65,58 +66,69 @@ const AIChat = ({ api, user }) => {
     }
   };
 
+  const primaryModels = [
+    { key: 'latest', label: 'Auto (Latest GPT‑5)' },
+    { key: 'gpt-5-think', label: 'GPT‑5 Think' },
+  ];
+
   return (
-    <div className="glass-card p-6 h-[600px] flex flex-col animate-fade-in">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-white flex items-center">
+    <div className="glass-card p-4 h-full flex flex-col animate-fade-in">
+      <div className="flex justify-between items-center mb-3">
+        <h2 className="text-xl font-bold text-white flex items-center">
           <FaRobot className="mr-2 text-blue-400" />
-          AI Trading Assistant
+          WRDO
         </h2>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)} className="form-select text-sm">
-            {Object.entries(availableModels).map(([key, model]) => (
-              <option key={key} value={key}>{key === 'latest' ? `🚀 Latest (${model})` : `${key}`}</option>
+            {primaryModels.map(m => (
+              <option key={m.key} value={m.key}>{m.label}</option>
+            ))}
+            {/* Keep other models available but below */}
+            {Object.keys(availableModels).filter(k => !primaryModels.find(m => m.key === k)).map((k) => (
+              <option key={k} value={k}>{k}</option>
             ))}
           </select>
           <button onClick={createNewSession} className="btn btn-secondary">New Chat</button>
         </div>
       </div>
-      <div className="mb-4 p-3 bg-white/5 rounded-lg">
+
+      <div className="mb-3 p-3 bg-white/5 rounded-lg">
         <div className="flex items-center gap-4">
           <label className="flex items-center text-sm text-gray-300">
             <input type="checkbox" checked={includeChart} onChange={(e) => setIncludeChart(e.target.checked)} className="mr-2" />
             Include Chart Analysis
           </label>
           {includeChart && (
-            <input type="text" placeholder="Enter ticker (e.g., AAPL, SPY)" value={ticker} onChange={(e) => setTicker(e.target.value.toUpperCase())} className="px-3 py-1 bg-gray-700 border border-white/10 rounded text-white text-sm" />
+            <input type="text" placeholder="Ticker (e.g., AAPL, SPY)" value={ticker} onChange={(e) => setTicker(e.target.value.toUpperCase())} className="px-3 py-1 bg-gray-700 border border-white/10 rounded text-white text-sm" />
           )}
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto mb-4 space-y-3">
+
+      <div className="flex-1 overflow-y-auto mb-3 space-y-3">
         {messages.length === 0 && (
           <div className="text-gray-400 text-center py-8">
-            <FaRobot className="text-4xl mx-auto mb-4 opacity-50" />
-            <p>Welcome to your AI Trading Assistant!</p>
-            <p className="text-sm mt-2">Ask me about market analysis, trading strategies, or specific stocks.</p>
+            <FaRobot className="text-3xl mx-auto mb-3 opacity-50" />
+            <p>Welcome to WRDO. Ask about markets, strategies, or a specific stock.</p>
           </div>
         )}
         {messages.map((message, index) => (
           <div key={index} className={`p-3 rounded-lg ${message.role === 'user' ? 'bg-blue-600/90 ml-12 text-white glow-ring' : 'bg-white/5 mr-12 text-gray-100'}`}>
-            <div className="text-sm opacity-75 mb-1">{message.role === 'user' ? 'You' : `AI (${selectedModel})`}</div>
-            <div className="whitespace-pre-wrap">{message.content}</div>
+            <div className="text-xs opacity-75 mb-1">{message.role === 'user' ? 'You' : `WRDO (${selectedModel})`}</div>
+            <div className="whitespace-pre-wrap text-sm">{message.content}</div>
           </div>
         ))}
         {loading && (
           <div className="bg-white/5 mr-12 p-3 rounded-lg">
-            <div className="flex items-center text-gray-300">
+            <div className="flex items-center text-gray-300 text-sm">
               <FaSpinner className="animate-spin mr-2" />
-              AI is thinking...
+              WRDO is thinking...
             </div>
           </div>
         )}
       </div>
+
       <form onSubmit={sendMessage} className="flex gap-2">
-        <input type="text" value={inputMessage} onChange={(e) => setInputMessage(e.target.value)} placeholder={includeChart && ticker ? `Ask about ${ticker} chart...` : 'Ask me about trading, markets, or analysis...'} className="flex-1 form-input" disabled={loading} />
+        <input type="text" value={inputMessage} onChange={(e) => setInputMessage(e.target.value)} placeholder={includeChart && ticker ? `Ask about ${ticker} chart…` : 'Type to chat with WRDO…'} className="flex-1 form-input" disabled={loading} />
         <button type="submit" disabled={loading || !inputMessage.trim()} className="btn btn-primary disabled:opacity-50">Send</button>
       </form>
     </div>

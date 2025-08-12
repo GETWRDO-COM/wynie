@@ -4,6 +4,7 @@ import { Line } from 'react-chartjs-2';
 const GreedFearCard = () => {
   const [data, setData] = useState(null);
   const [updatedAt, setUpdatedAt] = useState(null);
+  const [imgOk, setImgOk] = useState(true);
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
   const load = async () => {
@@ -22,7 +23,7 @@ const GreedFearCard = () => {
   const spark = useMemo(() => {
     const timeseries = data?.timeseries;
     if (!timeseries || !Array.isArray(timeseries)) return null;
-    const series = timeseries.slice(-60); // last 60 points if present
+    const series = timeseries.slice(-60);
     if (!series || !series.length) return null;
     const labels = series.map((p, i) => i + 1);
     const values = series.map((p) => (typeof p === 'number' ? p : (p.value || p.score || 0)));
@@ -33,7 +34,6 @@ const GreedFearCard = () => {
   }, [data]);
 
   const updated = updatedAt ? new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(updatedAt) : '--:--';
-
   const now = data?.now ?? null;
   const prev = data?.previous_close ?? null;
   const w = data?.one_week_ago ?? null;
@@ -44,7 +44,11 @@ const GreedFearCard = () => {
     <div className="rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl p-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <img src="https://asset.brandfetch.io/idTxxrVf-x/idU4vcfJSP.svg" alt="CNN" className="h-5" />
+          {imgOk ? (
+            <img src="https://logo.clearbit.com/cnn.com" alt="CNN" className="h-5 w-auto" onError={() => setImgOk(false)} />
+          ) : (
+            <span className="text-xs font-bold px-2 py-1 rounded bg-red-600 text-white">CNN</span>
+          )}
           <div className="text-white/90 font-semibold">Fear & Greed Index</div>
         </div>
         <div className="text-xs text-gray-400">Updated {updated}</div>
