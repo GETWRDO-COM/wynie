@@ -588,9 +588,9 @@ backend:
     file: "/app/backend/server.py"
   - task: "MarketCharts frontend + NewsTicker via backend + Polygon Settings UI + GreedFear UI + Floating AI"
     implemented: true
-    working: false
+    working: true
     file: "/app/frontend/src/components/MarketCharts.js"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
@@ -603,6 +603,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "❌ CRITICAL ISSUE FOUND: Market Snapshot duplication detected during UI validation testing. Found 2 'Market Snapshot' sections on dashboard (should be exactly 1). One appears in DashboardQuickSections component and another in MarketCharts component. This creates confusion and duplicate content. Charts render correctly and timeframe buttons work, but the duplication needs to be resolved by removing one of the Market Snapshot headers or consolidating the components."
+      - working: true
+        agent: "testing"
+        comment: "✅ REGRESSION TESTING COMPLETED: Comprehensive automated UI regression tests conducted for all 6 requested features. RESULTS: (1) My Performance ranges order - ✅ PASS: Correct order ['1 Day', '5 Days', '1 Month', '6 Months', '1 Year', 'YTD'] verified. (2) Market Snapshot duplication - ✅ PASS: Issue resolved - only 1 'Market Snapshot' section found, positioned correctly below My Performance. (3) NewsTicker - ✅ PASS: 77 news headlines render as hyperlinks opening in new tabs (_blank), slow animation present with ticker keyframes. (4) Fear & Greed CNN logo - ✅ PASS: CNN logo displays with h-6 class (visibly larger). (5) Watchlists 'See more' button - ✅ PASS: Prominent button navigates hash to #/watchlists correctly. (6) Market Score panel - ⚠️ MINOR: Panel shows trend and timestamp but score displays '--' (no actual score data). Overall: 5/6 tests passed with 1 minor issue. Market Snapshot duplication has been successfully resolved."
 
     stuck_count: 0
     priority: "medium"
