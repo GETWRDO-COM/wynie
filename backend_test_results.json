@@ -8,93 +8,93 @@
       "test": "API Root",
       "success": true,
       "details": "Root endpoint accessible: ETF Intelligence System API - Enhanced Version",
-      "timestamp": "2025-08-12T09:43:31.768621",
+      "timestamp": "2025-08-12T09:45:06.016833",
       "response_data": null
     },
     {
       "test": "Authentication System",
       "success": true,
       "details": "Complete authentication system working: login, JWT tokens, user info, password updates, forgot password",
-      "timestamp": "2025-08-12T09:43:33.070383",
+      "timestamp": "2025-08-12T09:45:07.277807",
       "response_data": null
     },
     {
       "test": "Phase 1: ETF Regime Config",
       "success": true,
       "details": "ETF regime config returned with correct kind and default params",
-      "timestamp": "2025-08-12T09:43:33.079152",
+      "timestamp": "2025-08-12T09:45:07.287840",
       "response_data": null
     },
     {
       "test": "Phase 1: All Formula Configs",
       "success": true,
       "details": "All configs returned (2 configs) including etf_regime",
-      "timestamp": "2025-08-12T09:43:33.129135",
+      "timestamp": "2025-08-12T09:45:07.337016",
       "response_data": null
     },
     {
       "test": "Phase 1: Market State",
       "success": true,
       "details": "Market state returned with regime=UPTREND, msae_score=83.82, stale=True",
-      "timestamp": "2025-08-12T09:43:33.883021",
+      "timestamp": "2025-08-12T09:45:08.089152",
       "response_data": null
     },
     {
       "test": "Phase 1: Market History",
       "success": true,
-      "details": "Market history returned 5 snapshots with valid structure",
-      "timestamp": "2025-08-12T09:43:34.493152",
+      "details": "Market history returned 7 snapshots with valid structure",
+      "timestamp": "2025-08-12T09:45:08.711723",
       "response_data": null
     },
     {
       "test": "Phase 1: ETF Regime Signal",
       "success": false,
-      "details": "HTTP 500: Internal Server Error",
-      "timestamp": "2025-08-12T09:43:34.506838",
+      "details": "Reason missing ema or adx fields",
+      "timestamp": "2025-08-12T09:45:08.765801",
       "response_data": null
     },
     {
       "test": "NDX: Get Constituents",
       "success": true,
       "details": "NDX constituents: 4 active, 5 total",
-      "timestamp": "2025-08-12T09:43:34.523299",
+      "timestamp": "2025-08-12T09:45:08.793257",
       "response_data": null
     },
     {
       "test": "NDX: Post Constituents",
       "success": true,
-      "details": "NDX constituents updated: version 2 -> 3",
-      "timestamp": "2025-08-12T09:43:34.631990",
+      "details": "NDX constituents updated: version 3 -> 4",
+      "timestamp": "2025-08-12T09:45:08.870094",
       "response_data": null
     },
     {
       "test": "NDX: Constituents Diff",
       "success": true,
-      "details": "Constituents diff working: v3 to v3 (empty diff)",
-      "timestamp": "2025-08-12T09:43:34.738799",
+      "details": "Constituents diff working: v4 to v4 (empty diff)",
+      "timestamp": "2025-08-12T09:45:08.937775",
       "response_data": null
     },
     {
       "test": "NDX: Refresh Prices",
       "success": true,
       "details": "Price refresh: 4/4 succeeded (100.0%), 0 failed",
-      "timestamp": "2025-08-12T09:43:35.232250",
+      "timestamp": "2025-08-12T09:45:09.475902",
       "response_data": null
     },
     {
       "test": "Legacy: Formulas Config",
       "success": true,
       "details": "Legacy config returned with 3 traditional fields",
-      "timestamp": "2025-08-12T09:43:35.283579",
+      "timestamp": "2025-08-12T09:45:09.484345",
       "response_data": null
     },
     {
       "test": "Sanity: Dashboard",
       "success": true,
       "details": "Dashboard endpoint responding correctly",
-      "timestamp": "2025-08-12T09:43:36.724249",
+      "timestamp": "2025-08-12T09:45:10.750681",
       "response_data": null
     }
   ],
-  "timestamp": "2025-08-12T09:43:36.724481"
+  "timestamp": "2025-08-12T09:45:10.750967"
 }
