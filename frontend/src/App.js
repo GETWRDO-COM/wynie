@@ -8,7 +8,7 @@ function Shell({children}){
   return (
     <div className="h-screen flex flex-col">
       <nav className="h-12 border-b flex items-center justify-between px-4 bg-card">
-        <div className="font-semibold">Deepvue Workstation</div>
+        <div className="font-semibold">Market Workstation</div>
         <div className="flex gap-4 text-sm">
           <Link to="/">Dashboard</Link>
           <Link to="/settings">Settings</Link>
