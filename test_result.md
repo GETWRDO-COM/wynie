@@ -258,9 +258,9 @@
         comment: "Frontend mock loads, Column Settings opens, table sorts; temporary SVG chart."
   - task: "Frontend wired to backend (Polygon quotes/bars/logos)"
     implemented: true
-    working: true
+    working: false
     file: "/app/frontend/src/pages/Dashboard.jsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -276,6 +276,9 @@
       - working: true
         agent: "testing"
         comment: "✅ LATEST RE-RUN UI TESTING COMPLETED (Aug 12, 2025): Comprehensive automated UI test executed successfully covering all requested functionality: 1) ✅ Header verification PASSED - Shows 'Deepvue Workstation (Live • Polygon + Finnhub)' correctly, 2) ✅ Column Settings PASSED - Dialog opens properly, found 4 categories (General, Price & Volume, Technicals, Fundamentals, Proprietary Ratings) from backend schema, closes correctly, 3) ✅ Table columns PASSED - Verified logo, symbol, last, marketCap columns present, 4) ❌ Screener run FAILED - No rows returned after running default screener (backend API issues), 5) ✅ TSLA addition PASSED - Symbol successfully added to watchlist (count increased from 5 to 6), 6) ✅ Settings PASSED - Dummy keys saved successfully, boolean statuses remain true. Screenshots captured for all steps. Backend API issues persist: WebSocket 403 errors, various /api endpoints returning ERR_ABORTED. Core UI functionality working perfectly despite backend connectivity issues."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL BACKEND INTEGRATION FAILURE (Aug 12, 2025): All backend API endpoints returning 404 errors preventing frontend-backend integration. FAILED ENDPOINTS: /api/marketdata/bars, /api/columns/schema, /api/ratings/compute, /api/watchlists, /api/screeners/filters, /api/marketdata/quotes, /api/marketdata/fundamentals, /api/marketdata/logo. WebSocket connections failing with 403 errors. UI COMPONENTS WORKING: ✅ Header density select, ✅ Column Settings dialogs, ✅ Screener presets UI, ✅ QueryBuilder condition addition, ✅ Watchlists v2 panel creation. However, NO DATA FLOW between frontend and backend - screener returns 0 rows, no logos load, no market data displayed. Backend services appear to be down or misconfigured."
 
 ## metadata:
   created_by: "main_agent"
