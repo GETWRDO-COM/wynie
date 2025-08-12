@@ -2327,6 +2327,157 @@ async def get_etf_regime_signal():
 # Mount the router
 app.include_router(api_router)
 
+@api_router.get("/formulas/config/all")
+async def get_all_formula_configs():
+    """Return all formula configs including etf_regime"""
+    try:
+        await _ensure_etf_regime_config()
+        config = await db.formula_configs.find().to_list(length=None)
+        cleaned = []
+        for cfg in config:
+            cfg = dict(cfg)
+            if '_id' in cfg:
+                cfg['_id'] = str(cfg['_id'])
+            for k, v in list(cfg.items()):
+                if isinstance(v, datetime):
+                    cfg[k] = v.isoformat()
+            cleaned.append(cfg)
+        return cleaned
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ---------- NDX Constituents Admin Endpoints ----------
+
+class NdxMember(BaseModel):
+    symbol: str
+    yf_symbol: Optional[str] = None
+    name: Optional[str] = None
+    sector: Optional[str] = None
+    active: bool = True
+    effective_from: Optional[str] = None
+    effective_to: Optional[str] = None
+    weight: Optional[float] = None
+
+class NdxPayload(BaseModel):
+    as_of: Optional[str] = None
+    source: Optional[str] = None
+    version: Optional[int] = None
+    universe: List[NdxMember]
+    notes: Optional[str] = None
+
+@api_router.get("/ndx/constituents")
+async def get_ndx_constituents(all: bool = Query(False)):
+    doc = await db.ndx_constituents.find_one({"_id": "ndx:active"})
+    if not doc:
+        # return fallback universe as active only
+        uni = [{"symbol": s, "yf_symbol": s, "name": s, "sector": None, "active": True, "effective_from": None, "effective_to": None} for s in NDX_TICKERS_FALLBACK]
+        return {"_id": "ndx:active", "index": "NDX", "as_of": datetime.utcnow().isoformat()+"Z", "version": 1, "universe": uni if all else [u for u in uni if u["active"]]}
+    # sanitize
+    doc["_id"] = str(doc["_id"])
+    if not all and "universe" in doc:
+        doc = dict(doc)
+        doc["universe"] = [m for m in doc["universe"] if m.get("active", True)]
+    return doc
+
+@api_router.post("/ndx/constituents")
+async def upsert_ndx_constituents(payload: NdxPayload, current_user: User = Depends(get_current_user)):
+    # Admin-only could be enforced later via roles; for now any authenticated user
+    # Validate basic shape
+    symbols = set()
+    for m in payload.universe:
+        s = (m.symbol or "").upper()
+        if not s:
+            raise HTTPException(status_code=400, detail="symbol required")
+        if s in symbols:
+            raise HTTPException(status_code=400, detail=f"duplicate symbol {s}")
+        symbols.add(s)
+    now = datetime.utcnow().isoformat()+"Z"
+    # Versioning
+    active = await db.ndx_constituents.find_one({"_id": "ndx:active"})
+    new_version = (active.get("version", 0) + 1) if active else (payload.version or 1)
+    new_doc = {
+        "_id": "ndx:active",
+        "index": "NDX",
+        "as_of": payload.as_of or now,
+        "source": payload.source or "manual_seed",
+        "version": new_version,
+        "notes": payload.notes,
+        "universe": [m.dict() for m in payload.universe]
+    }
+    # Archive previous active as ndx:v<version>
+    if active:
+        old_ver = active.get("version", 0)
+        active_copy = dict(active)
+        active_copy["_id"] = f"ndx:v{old_ver}"
+        await db.ndx_constituents.replace_one({"_id": f"ndx:v{old_ver}"}, active_copy, upsert=True)
+    # Save new active and archive as its version as well
+    await db.ndx_constituents.replace_one({"_id": "ndx:active"}, new_doc, upsert=True)
+    archive_doc = dict(new_doc)
+    archive_doc["_id"] = f"ndx:v{new_version}"
+    await db.ndx_constituents.replace_one({"_id": archive_doc["_id"]}, archive_doc, upsert=True)
+    return {"message": "NDX constituents updated", "version": new_version}
+
+@api_router.get("/ndx/constituents/diff")
+async def ndx_constituents_diff(fromVersion: int = Query(...), toVersion: int = Query(...)):
+    a = await db.ndx_constituents.find_one({"_id": f"ndx:v{fromVersion}"})
+    b = await db.ndx_constituents.find_one({"_id": f"ndx:v{toVersion}"})
+    if not a or not b:
+        raise HTTPException(status_code=404, detail="One or both versions not found")
+    set_a = {m.get("symbol","" ).upper(): m for m in a.get("universe", []) if m.get("active", True)}
+    set_b = {m.get("symbol","" ).upper(): m for m in b.get("universe", []) if m.get("active", True)}
+    added = [set_b[s] for s in set(set_b.keys()) - set(set_a.keys())]
+    removed = [set_a[s] for s in set(set_a.keys()) - set(set_b.keys())]
+    changed = []
+    for s in set(set_a.keys()) & set(set_b.keys()):
+        ma, mb = set_a[s], set_b[s]
+        if (ma.get("yf_symbol") != mb.get("yf_symbol")) or (ma.get("active") != mb.get("active")):
+            changed.append({"symbol": s, "from": ma, "to": mb})
+    return {"fromVersion": fromVersion, "toVersion": toVersion, "added": added, "removed": removed, "changed": changed}
+
+@api_router.post("/ndx/constituents/refresh-prices")
+async def ndx_refresh_prices(interval: str = Query("1d", pattern="^(1d|15m)$")):
+    doc = await db.ndx_constituents.find_one({"_id": "ndx:active"})
+    symbols = [m.get("yf_symbol", m.get("symbol")).upper() for m in (doc.get("universe", []) if doc else []) if m.get("active", True)]
+    if not symbols:
+        symbols = NDX_TICKERS_FALLBACK
+    # batch
+    batch = 20
+    requested = 0
+    succeeded = 0
+    failed = []
+    for i in range(0, len(symbols), batch):
+        chunk = symbols[i:i+batch]
+        requested += len(chunk)
+        try:
+            multi = yf.download(" ".join(chunk), period="120d", interval=interval, progress=False, auto_adjust=False, group_by='ticker')
+            for sym in chunk:
+                try:
+                    df = multi[sym] if isinstance(multi.columns, pd.MultiIndex) else multi
+                    if df is None or df.empty:
+                        failed.append(sym); continue
+                    # Persist last 5 rows only to keep light
+                    tail = df.tail(5)
+                    for idx, row in tail.iterrows():
+                        rec = {
+                            "_id": f"{sym}|{interval}|{idx.strftime('%Y-%m-%d %H:%M') if interval=='15m' else idx.strftime('%Y-%m-%d')}",
+                            "symbol": sym,
+                            "interval": interval,
+                            "ts": idx.to_pydatetime().isoformat(),
+                            "o": float(row['Open']),
+                            "h": float(row['High']),
+                            "l": float(row['Low']),
+                            "c": float(row['Close']),
+                            "v": int(row['Volume']) if not pd.isna(row['Volume']) else 0
+                        }
+                        await db.prices.replace_one({"_id": rec["_id"]}, rec, upsert=True)
+                    succeeded += 1
+                except Exception:
+                    failed.append(sym)
+        except Exception:
+            failed.extend(chunk)
+    return {"requested": requested, "succeeded": succeeded, "failed": failed}
+
+
 # Add this to enable the app to be run directly
 if __name__ == "__main__":
     import uvicorn
