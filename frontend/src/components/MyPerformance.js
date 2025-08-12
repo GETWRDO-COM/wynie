@@ -60,8 +60,14 @@ const MyPerformance = ({ api }) => {
         <div className="text-xs text-gray-400">{updated ? `Updated ${updated}` : ''}</div>
       </div>
       {error && <div className="text-xs text-amber-300">{error} — connect your trading dashboard to show live performance.</div>}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <Stat title="Total" amount={data?.total_amount} change={data?.total_change_pct} />
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-stretch">
+        <div className="glass-panel p-4 relative">
+          <div className="absolute right-4 top-4 text-sm font-bold bg-white/10 text-white rounded px-2 py-1">{totalDelta != null ? `${totalDelta>0?'+':''}$${totalDelta.toLocaleString(undefined,{maximumFractionDigits:0})}` : ''}</div>
+          <div className="text-xs text-gray-400 mb-1">Total</div>
+          <div className="text-3xl font-extrabold text-white">{data?.total_amount != null ? `$${data.total_amount.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}` : '--'}</div>
+          <div className={`text-xs font-semibold ${data?.total_change_pct > 0 ? 'text-green-400' : data?.total_change_pct < 0 ? 'text-red-400' : 'text-gray-300'}`}>{data?.total_change_pct > 0 ? '+' : ''}{data?.total_change_pct != null ? data.total_change_pct.toFixed(2) : '--'}%</div>
+        </div>
         <Stat title="Portfolio 1" amount={data?.portfolio1_amount} change={data?.portfolio1_change_pct} />
         <Stat title="Portfolio 2" amount={data?.portfolio2_amount} change={data?.portfolio2_change_pct} />
       </div>
