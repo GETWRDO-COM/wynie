@@ -2342,6 +2342,8 @@ async def get_etf_regime_signal():
     # Persist signal
     to_save = signal_payload.copy()
     to_save["module"] = "etf_regime"
+    # Avoid duplicate key if payload came from a previous doc (stale freeze etc.)
+    to_save.pop("_id", None)
     await db.signals.insert_one(to_save)
     return signal_payload
 
