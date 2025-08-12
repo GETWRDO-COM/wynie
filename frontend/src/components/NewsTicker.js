@@ -14,7 +14,7 @@ const NewsTicker = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
 
   const fetchFeed = async (cat) => {
     setLoading(true);
