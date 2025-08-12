@@ -1,18 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 
-function colorForScore(score){
-  if(score == null) return '#9ca3af';
-  if(score <= 33) return '#ef4444'; // red
-  if(score <= 66) return '#f59e0b'; // amber
-  return '#22c55e'; // green
-}
-function emojiForScore(score){
-  if(score == null) return '😐';
-  if(score <= 33) return '😨';
-  if(score <= 66) return '😐';
-  return '😄';
-}
+function rel(ts){ if(!ts) return ''; const d=new Date(ts).getTime(); const diff=Math.round((d-Date.now())/60000); const rtf=new Intl.RelativeTimeFormat('en',{numeric:'auto'}); if(Math.abs(diff)<60) return rtf.format(diff,'minute'); const dh=Math.round(diff/60); if(Math.abs(dh)<24) return rtf.format(dh,'hour'); const dd=Math.round(dh/24); return rtf.format(dd,'day'); }
+function colorForScore(score){ if(score == null) return '#9ca3af'; if(score <= 33) return '#ef4444'; if(score <= 66) return '#f59e0b'; return '#22c55e'; }
+function emojiForScore(score){ if(score == null) return '😐'; if(score <= 33) return '😨'; if(score <= 66) return '😐'; return '😄'; }
 
 const GreedFearCard = () => {
   const [data, setData] = useState(null);
@@ -20,12 +11,7 @@ const GreedFearCard = () => {
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
   const load = async () => {
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/greed-fear`);
-      const js = await res.json();
-      setData(js);
-      setUpdatedAt(js.last_updated ? new Date(js.last_updated) : new Date());
-    } catch (e) {}
+    try { const res = await fetch(`${BACKEND_URL}/api/greed-fear`); const js = await res.json(); setData(js); setUpdatedAt(js.last_updated ? new Date(js.last_updated) : new Date()); } catch (e) {}
   };
 
   useEffect(() => { load(); const id = setInterval(load, 6*60*60*1000); return () => clearInterval(id); }, []);
@@ -38,10 +24,8 @@ const GreedFearCard = () => {
     return { labels, datasets:[{ data: values, borderColor: 'rgba(255,255,255,0.9)', backgroundColor: 'rgba(255,255,255,0.08)', tension: 0.25, pointRadius: 0, fill: true }] };
   }, [data]);
 
-  const updated = updatedAt ? new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(updatedAt) : '--:--';
   const now = data?.now ?? null; const prev = data?.previous_close ?? null; const w = data?.one_week_ago ?? null; const m = data?.one_month_ago ?? null; const y = data?.one_year_ago ?? null;
-  const circleColor = colorForScore(now);
-  const face = emojiForScore(now);
+  const circleColor = colorForScore(now); const face = emojiForScore(now);
 
   return (
     <div className="rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl p-4">
@@ -50,7 +34,7 @@ const GreedFearCard = () => {
           <img src="https://logo.clearbit.com/cnn.com" alt="CNN" className="h-6 w-auto" />
           <div className="text-white/90 font-semibold">Fear & Greed Sentiment</div>
         </div>
-        <div className="text-xs text-gray-400">Updated {updated}</div>
+        <div className="text-xs text-gray-400">Updated {rel(updatedAt)}</div>
       </div>
       <div className="flex items-center gap-4">
         <div className="relative flex items-center justify-center w-20 h-20 rounded-full" style={{ background: 'rgba(255,255,255,0.06)', border: '2px solid rgba(255,255,255,0.2)'}}>

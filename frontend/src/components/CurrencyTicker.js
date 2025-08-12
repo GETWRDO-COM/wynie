@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
+function rel(ts){ if(!ts) return ''; const d=(ts instanceof Date? ts.getTime(): new Date(ts).getTime()); const diff=Math.round((d-Date.now())/60000); const rtf=new Intl.RelativeTimeFormat('en',{numeric:'auto'}); if(Math.abs(diff)<60) return rtf.format(diff,'minute'); const dh=Math.round(diff/60); if(Math.abs(dh)<24) return rtf.format(dh,'hour'); const dd=Math.round(dh/24); return rtf.format(dd,'day'); }
+
 const CurrencyTicker = () => {
   const [rates, setRates] = useState(null);
   const [err, setErr] = useState('');
@@ -28,7 +30,7 @@ const CurrencyTicker = () => {
     }
   };
 
-  useEffect(() => { fetchRates(); const id = setInterval(fetchRates, 900000); return () => clearInterval(id); }, []); // 15 minutes
+  useEffect(() => { fetchRates(); const id = setInterval(fetchRates, 900000); return () => clearInterval(id); }, []);
 
   const rows = useMemo(() => {
     if (!rates) return [];
@@ -42,13 +44,13 @@ const CurrencyTicker = () => {
     ];
   }, [rates]);
 
-  const updated = updatedAt ? new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(updatedAt) : '--:--:--';
+  const updatedRel = rel(updatedAt);
 
   return (
     <div className="glass-panel p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="text-white/90 font-semibold">FX (ZAR conversions)</div>
-        <div className="text-xs text-gray-400">Updated {updated}</div>
+        <div className="text-xs text-gray-400">Updated {updatedRel || '--'}</div>
       </div>
       {err && <div className="text-xs text-red-300 mb-2">{err}</div>}
       <div className="divide-y divide-white/10">

@@ -1,12 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-const RANGES = [
-  { id: '1D', label: '1D' },
-  { id: '1W', label: '1W' },
-  { id: '1M', label: '1M' },
-  { id: 'YTD', label: 'YTD' },
-  { id: '1Y', label: '1Y' },
-];
+function rel(ts){ if(!ts) return ''; const d=new Date(ts).getTime(); const diff=Math.round((d-Date.now())/60000); const rtf=new Intl.RelativeTimeFormat('en',{numeric:'auto'}); if(Math.abs(diff)<60) return rtf.format(diff,'minute'); const dh=Math.round(diff/60); if(Math.abs(dh)<24) return rtf.format(dh,'hour'); const dd=Math.round(dh/24); return rtf.format(dd,'day'); }
+
+const RANGES = [ { id: '1D', label: '1D' }, { id: '1W', label: '1W' }, { id: '1M', label: '1M' }, { id: 'YTD', label: 'YTD' }, { id: '1Y', label: '1Y' } ];
 
 const MyPerformance = ({ api }) => {
   const [range, setRange] = useState('1D');
@@ -14,24 +10,10 @@ const MyPerformance = ({ api }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const load = async (r) => {
-    setLoading(true); setError('');
-    try {
-      const resp = await api.get(`/api/portfolio/performance?range=${encodeURIComponent(r)}`);
-      setData(resp.data);
-    } catch (e) {
-      setError('Not connected');
-      setData(null);
-    } finally { setLoading(false); }
-  };
-
+  const load = async (r) => { setLoading(true); setError(''); try { const resp = await api.get(`/api/portfolio/performance?range=${encodeURIComponent(r)}`); setData(resp.data); } catch (e) { setError('Not connected'); setData(null);} finally { setLoading(false); } };
   useEffect(() => { load(range); }, [range]);
 
-  const updated = useMemo(() => {
-    if (!data?.last_updated) return null;
-    const dt = new Date(data.last_updated);
-    return new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(dt);
-  }, [data]);
+  const updated = useMemo(() => (data?.last_updated ? rel(data.last_updated) : null), [data]);
 
   const Stat = ({ title, amount, change }) => (
     <div className="glass-panel p-4">
@@ -41,10 +23,7 @@ const MyPerformance = ({ api }) => {
     </div>
   );
 
-  const totalDelta = useMemo(() => {
-    if (!data) return null;
-    return typeof data.total_delta_amount === 'number' ? data.total_delta_amount : null;
-  }, [data]);
+  const totalDelta = useMemo(() => (data && typeof data.total_delta_amount === 'number' ? data.total_delta_amount : null), [data]);
 
   return (
     <div className="space-y-3">
@@ -52,13 +31,12 @@ const MyPerformance = ({ api }) => {
         <div className="text-white/90 font-semibold text-lg">My Performance</div>
         <div className="flex items-center gap-2">
           {RANGES.map((r) => (
-            <button key={r.id} onClick={() => setRange(r.id)} className={`px-3 py-1.5 rounded-lg text-sm ${range===r.id?'text-white bg-white/10 border border-white/10':'text-gray-300 hover:text-white hover:bg-white/5'}`}>{r.label}</button>
+            <button key={r.id} onClick={() => setRange(r.id)} className={`px-3 py-1.5 rounded-lg text-sm ${range===r.id?'text-white bgWhite/10 border border-white/10':'text-gray-300 hover:text-white hover:bg-white/5'}`}>{r.label}</button>
           ))}
         </div>
         <div className="text-xs text-gray-400">{updated ? `Updated ${updated}` : ''}</div>
       </div>
       {error && <div className="text-xs text-amber-300">{error} — connect your trading dashboard to show live performance.</div>}
-
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-stretch">
         <div className="glass-panel p-4 relative">
           <div className="absolute right-4 top-4 text-sm font-bold bg-white/10 text-white rounded px-2 py-1">{totalDelta != null ? `${totalDelta>0?'+':''}$${totalDelta.toLocaleString(undefined,{maximumFractionDigits:0})}` : ''}</div>
