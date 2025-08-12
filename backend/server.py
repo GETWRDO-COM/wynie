@@ -396,7 +396,8 @@ async def columns_schema():
         cats.setdefault(cat, {"name": cat, "columns": []})
         cats[cat]["columns"].append(col)
     for f in SCREENER_REGISTRY:
-        add(f.get('category') or 'Other', {"id": f['id'], "label": f.get('label') or f['id'], "type": f.get('type') or 'number'})
+        cat = f.get('category') or 'General'
+        add(cat, {"id": f['id'], "label": f.get('label') or f['id'], "type": f.get('type') or 'number', "category": cat})
     categories = list(cats.values())
     return {"categories": categories}
 
