@@ -1,0 +1,19 @@
+{
+  "env": {
+    "browser": true,
+    "es2022": true
+  },
+  "plugins": ["react", "react-hooks", "jsx-a11y", "import"],
+  "extends": [
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:jsx-a11y/recommended",
+    "plugin:import/recommended"
+  ],
+  "settings": {
+    "react": { "version": "detect" }
+  },
+  "rules": {
+    "react/react-in-jsx-scope": "off"
+  }
+}

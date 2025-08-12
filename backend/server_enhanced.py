@@ -55,7 +55,7 @@ def cache_get(key: str):
     item = CACHE.get(key)
     if not item:
         return None
-    if datetime.now(timezone.utc) > item["expires_at"]:
+    if datetime.now(timezone.utc) &gt; item["expires_at"]:
         CACHE.pop(key, None)
         return None
     return item["value"]
@@ -65,6 +65,32 @@ def cache_set(key: str, value: Any, ttl_seconds: int):
 
 FERNET_KEY = base64.urlsafe_b64encode(sha256(JWT_SECRET.encode()).digest())
 fernet = Fernet(FERNET_KEY)
+
+# =====================
+# Auth helpers + models
+# =====================
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class PasswordReset(BaseModel):
+    email: str
+
+def hash_password(password: str) -&gt; str:
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def verify_password(password: str, hashed: str) -&gt; bool:
+    try:
+        return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+    except Exception:
+        return False
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -&gt; str:
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(hours=12))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
 
 class PolygonKeyInput(BaseModel):
     api_key: str
@@ -82,7 +108,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
 
-async def get_polygon_api_key() -> Optional[str]:
+async def get_polygon_api_key() -&gt; Optional[str]:
     doc = await db.app_settings.find_one({"key": "polygon_api_key"})
     if doc and doc.get("encrypted_value"):
         try:
@@ -90,6 +116,58 @@ async def get_polygon_api_key() -> Optional[str]:
         except Exception:
             pass
     return os.environ.get("POLYGON_API_KEY")
+
+# =====================
+# Auth routes (fix login 404)
+# =====================
+@api_router.post("/auth/login")
+async def login(data: LoginRequest):
+    try:
+        email = data.email.strip().lower()
+        password = data.password
+        if not email or not password:
+            raise HTTPException(status_code=400, detail="Email and password are required")
+
+        user = await db.users.find_one({"email": email})
+        if not user:
+            # Restrict auto-create to the known user
+            if email != "beetge@mwebbiz.co.za":
+                raise HTTPException(status_code=401, detail="Access restricted to authorized users only")
+            # create user with provided password
+            hashed = hash_password(password)
+            now = datetime.utcnow()
+            await db.users.insert_one({
+                "email": email,
+                "hashed_password": hashed,
+                "created_at": now,
+                "last_login": now,
+            })
+            user = await db.users.find_one({"email": email})
+        # verify
+        if not verify_password(password, user.get("hashed_password", "")):
+            raise HTTPException(status_code=401, detail="Incorrect email or password")
+        # update last_login
+        await db.users.update_one({"email": email}, {"$set": {"last_login": datetime.utcnow()}})
+        # token
+        token = create_access_token({"sub": email})
+        return {"access_token": token, "token_type": "bearer", "user": {"email": user.get("email"), "last_login": user.get("last_login")}}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/auth/forgot-password")
+async def forgot_password(req: PasswordReset):
+    try:
+        # Do not reveal if user exists
+        return {"message": "If this email exists in our system, you will receive password reset instructions.", "temp_instructions": "Please contact system administrator for password reset assistance."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/auth/me")
+async def me(user: dict = Depends(get_current_user)):
+    return {"email": user.get("email"), "last_login": user.get("last_login")}
+
 
 @api_router.post("/integrations/polygon/key")
 async def set_polygon_key(data: PolygonKeyInput, user: dict = Depends(get_current_user)):
@@ -110,12 +188,12 @@ async def polygon_status(user: dict = Depends(get_current_user)):
     return {"configured": bool(key)}
 
 NEWS_FEEDS = {
-    "All": 'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en',
-    "USA": 'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en',
-    "World": 'https://news.google.com/rss/search?q=world%20news&hl=en-US&gl=US&ceid=US:en',
-    "South Africa": 'https://news.google.com/rss?hl=en-ZA&gl=ZA&ceid=ZA:en',
-    "Stock Market": 'https://news.google.com/rss/search?q=stock%20market&hl=en-US&gl=US&ceid=US:en',
-    "Finance News": 'https://news.google.com/rss/search?q=finance&hl=en-US&gl=US&ceid=US:en',
+    "All": 'https://news.google.com/rss?hl=en-US&amp;gl=US&amp;ceid=US:en',
+    "USA": 'https://news.google.com/rss?hl=en-US&amp;gl=US&amp;ceid=US:en',
+    "World": 'https://news.google.com/rss/search?q=world%20news&amp;hl=en-US&amp;gl=US&amp;ceid=US:en',
+    "South Africa": 'https://news.google.com/rss?hl=en-ZA&amp;gl=ZA&amp;ceid=ZA:en',
+    "Stock Market": 'https://news.google.com/rss/search?q=stock%20market&amp;hl=en-US&amp;gl=US&amp;ceid=US:en',
+    "Finance News": 'https://news.google.com/rss/search?q=finance&amp;hl=en-US&amp;gl=US&amp;ceid=US:en',
 }
 
 @api_router.get("/news")
@@ -125,7 +203,7 @@ async def news_proxy(category: str = Query("All"), q: Optional[str] = Query(None
         cached = cache_get(cache_key)
         if cached:
             return {"category": f"search:{q}", "items": cached, "cached": True}
-        url = f"https://news.google.com/rss/search?q={quote(q)}&hl=en-US&gl=US&ceid=US:en"
+        url = f"https://news.google.com/rss/search?q={quote(q)}&amp;hl=en-US&amp;gl=US&amp;ceid=US:en"
     else:
         cache_key = f"news:{category}"
         cached = cache_get(cache_key)
@@ -209,7 +287,7 @@ async def greed_fear():
                     continue
     except Exception:
         pass
-    raise HTTPException(status_code=502, detail="Unable to fetch CNN Fear & Greed Index")
+    raise HTTPException(status_code=502, detail="Unable to fetch CNN Fear &amp; Greed Index")
 
 TIME_RANGE_CONFIG = {
     "1D": {"multiplier": 5, "timespan": "minute", "days_back": 1},
@@ -221,7 +299,7 @@ TIME_RANGE_CONFIG = {
 }
 
 async def fetch_polygon_prev_close(session: aiohttp.ClientSession, base: str, ticker: str, api_key: str):
-    url = f"{base}/v2/aggs/ticker/{quote(ticker, safe=':')}/prev?adjusted=true&apiKey={api_key}"
+    url = f"{base}/v2/aggs/ticker/{quote(ticker, safe=':')}/prev?adjusted=true&amp;apiKey={api_key}"
     async with session.get(url, timeout=30) as resp:
         if resp.status != 200:
             return None
@@ -232,7 +310,7 @@ async def fetch_polygon_prev_close(session: aiohttp.ClientSession, base: str, ti
         return None
 
 async def fetch_polygon_open_close(session: aiohttp.ClientSession, base: str, ticker: str, date_str: str, api_key: str):
-    url = f"{base}/v1/open-close/{quote(ticker, safe=':')}/{date_str}?adjusted=true&apiKey={api_key}"
+    url = f"{base}/v1/open-close/{quote(ticker, safe=':')}/{date_str}?adjusted=true&amp;apiKey={api_key}"
     async with session.get(url, timeout=30) as resp:
         if resp.status != 200:
             return None
@@ -261,7 +339,7 @@ async def market_aggregates(
     tlist = [t.strip() for t in tickers.split(',') if t.strip()]
     async with aiohttp.ClientSession() as session:
         async def fetch_one(t: str):
-            agg_url = f"{base}/v2/aggs/ticker/{quote(t, safe=':')}/range/{cfg['multiplier']}/{cfg['timespan']}/{start_dt.date()}/{end_dt.date()}?adjusted=true&sort=asc&apiKey={api_key}"
+            agg_url = f"{base}/v2/aggs/ticker/{quote(t, safe=':')}/range/{cfg['multiplier']}/{cfg['timespan']}/{start_dt.date()}/{end_dt.date()}?adjusted=true&amp;sort=asc&amp;apiKey={api_key}"
             async with session.get(agg_url, timeout=40) as resp:
                 data = await resp.json()
             results = data.get("results") or []
@@ -304,7 +382,7 @@ async def earnings(tickers: Optional[str] = Query(None), days_ahead: int = Query
             if tickers:
                 syms = [s.strip().upper() for s in tickers.split(',') if s.strip()][:20]
                 for s in syms:
-                    url = f"{base}?symbol={quote(s)}&from={today}&to={to}&token={api_key}"
+                    url = f"{base}?symbol={quote(s)}&amp;from={today}&amp;to={to}&amp;token={api_key}"
                     try:
                         async with session.get(url, timeout=20) as resp:
                             js = await resp.json()
@@ -322,7 +400,7 @@ async def earnings(tickers: Optional[str] = Query(None), days_ahead: int = Query
                     except Exception:
                         continue
             else:
-                url = f"{base}?from={today}&to={to}&token={api_key}"
+                url = f"{base}?from={today}&amp;to={to}&amp;token={api_key}"
                 async with session.get(url, timeout=20) as resp:
                     js = await resp.json()
                 for r in (js.get('earningsCalendar') or []):
