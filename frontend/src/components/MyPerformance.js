@@ -42,6 +42,12 @@ const MyPerformance = ({ api }) => {
     </div>
   );
 
+  const totalDelta = useMemo(() => {
+    if (!data) return null;
+    // Expect backend to provide total_delta_amount for selected range; otherwise derive from series if provided later
+    return typeof data.total_delta_amount === 'number' ? data.total_delta_amount : null;
+  }, [data]);
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
