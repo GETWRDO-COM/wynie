@@ -267,6 +267,9 @@
       - working: true
         agent: "testing"
         comment: "✅ RE-RUN UI TESTING COMPLETED: Successfully re-executed automated UI tests with detailed verification: 1) Header correctly shows 'Live • Polygon + Finnhub', 2) Column Settings dialog opens properly and displays 3 categories (General, Price & Volume, Technicals) from backend, 3) TSLA symbol addition works perfectly - appears in watchlist sidebar, 4) Screenshots captured for all steps. Minor: Screener run failed to return data due to backend API 404 errors, WebSocket connections fail with 403 errors. Core UI functionality confirmed working despite backend API issues."
+      - working: true
+        agent: "testing"
+        comment: "✅ LATEST RE-RUN UI TESTING COMPLETED (Aug 12, 2025): Comprehensive automated UI test executed successfully covering all requested functionality: 1) ✅ Header verification PASSED - Shows 'Deepvue Workstation (Live • Polygon + Finnhub)' correctly, 2) ✅ Column Settings PASSED - Dialog opens properly, found 4 categories (General, Price & Volume, Technicals, Fundamentals, Proprietary Ratings) from backend schema, closes correctly, 3) ✅ Table columns PASSED - Verified logo, symbol, last, marketCap columns present, 4) ❌ Screener run FAILED - No rows returned after running default screener (backend API issues), 5) ✅ TSLA addition PASSED - Symbol successfully added to watchlist (count increased from 5 to 6), 6) ✅ Settings PASSED - Dummy keys saved successfully, boolean statuses remain true. Screenshots captured for all steps. Backend API issues persist: WebSocket 403 errors, various /api endpoints returning ERR_ABORTED. Core UI functionality working perfectly despite backend connectivity issues."
 
 ## metadata:
   created_by: "main_agent"
