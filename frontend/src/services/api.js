@@ -3,7 +3,6 @@ import axios from "axios"
 const BASE = (process.env.REACT_APP_BACKEND_URL || import.meta?.env?.REACT_APP_BACKEND_URL || "")
 const API = `${BASE}/api`
 
-// Generic helpers
 const get = (url, params) => axios.get(`${API}${url}`, { params }).then(r => r.data)
 const post = (url, body) => axios.post(`${API}${url}`, body).then(r => r.data)
 const put = (url, body) => axios.put(`${API}${url}`, body).then(r => r.data)
@@ -29,5 +28,13 @@ export const deleteColumnPreset = (name) => del(`/columns/presets/${name}`)
 
 // Ratings
 export const computeRatings = ({ symbols, rsWindowDays=63, asShortDays=21, asLongDays=63 }) => post('/ratings/compute', { symbols, rsWindowDays, asShortDays, asLongDays })
+
+// Screener
+export const getScreenerFilters = () => get('/screeners/filters')
+export const runScreener = (payload) => post('/screeners/run', payload)
+
+// Settings
+export const getSettings = () => get('/settings')
+export const saveSettings = (body) => post('/settings', body)
 
 export const apiBase = API
