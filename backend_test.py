@@ -36,11 +36,13 @@ class BackendTester:
         self.base_url = BASE_URL
         self.session = requests.Session()
         self.test_results = {
+            'settings': {'passed': 0, 'failed': 0, 'errors': []},
+            'screener_registry': {'passed': 0, 'failed': 0, 'errors': []},
+            'screener': {'passed': 0, 'failed': 0, 'errors': []},
             'marketdata': {'passed': 0, 'failed': 0, 'errors': []},
             'watchlists': {'passed': 0, 'failed': 0, 'errors': []},
             'columns': {'passed': 0, 'failed': 0, 'errors': []},
             'ratings': {'passed': 0, 'failed': 0, 'errors': []},
-            'screener': {'passed': 0, 'failed': 0, 'errors': []},
             'websocket': {'passed': 0, 'failed': 0, 'errors': []}
         }
         
