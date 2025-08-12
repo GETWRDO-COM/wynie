@@ -4,6 +4,7 @@ import { Input } from "./ui/input"
 import { Checkbox } from "./ui/checkbox"
 import { Button } from "./ui/button"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 
 export default function ColumnSettings({ open, onOpenChange, columnDefs, visibleColumns, setVisibleColumns, presets, savePreset, loadPreset, resetRecommended }) {
   const [search, setSearch] = useState("")
@@ -39,13 +40,15 @@ export default function ColumnSettings({ open, onOpenChange, columnDefs, visible
         <div className="flex gap-3 mb-3">
           <Input placeholder="Search columns" value={search} onChange={(e)=> setSearch(e.target.value)} />
           <Button variant="secondary" onClick={resetRecommended}>Reset</Button>
-          <div className="ml-auto flex gap-2">
+          <div className="ml-auto flex gap-2 items-center">
             <Input placeholder="Preset name" id="presetName" className="w-40" />
             <Button onClick={()=> savePreset(document.getElementById('presetName').value)}>Save Preset</Button>
-            <select className="border rounded px-2" onChange={(e)=> loadPreset(e.target.value)}>
-              <option value="">Load preset...</option>
-              {Object.keys(presets||{}).map(k=> <option key={k} value={k}>{k}</option>)}
-            </select>
+            <Select onValueChange={(v)=> v && loadPreset(v)}>
+              <SelectTrigger className="w-48"><SelectValue placeholder="Load preset..." /></SelectTrigger>
+              <SelectContent>
+                {Object.keys(presets||{}).map(k=> <SelectItem key={k} value={k}>{k}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[60vh] overflow-auto pr-2">

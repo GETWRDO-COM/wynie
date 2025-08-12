@@ -5,6 +5,7 @@ import { Button } from "../components/ui/button"
 import { getScreenerFilters, runScreener } from "../services/api"
 import QueryBuilder from "../components/QueryBuilder"
 import PresetsBar from "../components/PresetsBar"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 
 export default function ScreenerPanel({ onResults }){
   const [registry, setRegistry] = useState(null)
@@ -51,12 +52,15 @@ export default function ScreenerPanel({ onResults }){
         <QueryBuilder registry={registry} query={query} setQuery={setQuery} />
         <div className="flex items-center gap-3">
           <label className="text-sm">Sort By</label>
-          <select className="border rounded px-2 py-1" value={sortKey} onChange={(e)=> setSortKey(e.target.value)}>
-            <option value="last">Last</option>
-            <option value="changePct">% Chg</option>
-            <option value="volume">Volume</option>
-            <option value="RS">RS</option>
-          </select>
+          <Select value={sortKey} onValueChange={setSortKey}>
+            <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="last">Last</SelectItem>
+              <SelectItem value="changePct">% Chg</SelectItem>
+              <SelectItem value="volume">Volume</SelectItem>
+              <SelectItem value="RS">RS</SelectItem>
+            </SelectContent>
+          </Select>
           <Button onClick={run} disabled={running}>{running? 'Running...':'Run Screener'}</Button>
         </div>
       </CardContent>

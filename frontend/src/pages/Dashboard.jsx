@@ -5,6 +5,7 @@ import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Separator } from "../components/ui/separator"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import DataTable from "../components/DataTable"
 import ColumnSettings from "../components/ColumnSettings"
 import ScreenerPanel from "./ScreenerPanel"
@@ -207,24 +208,33 @@ export default function Dashboard() {
           <NotificationsBell />
           <div className="flex items-center gap-2">
             <label>RS</label>
-            <select className="border rounded px-2 py-1" value={rsWindow} onChange={(e)=> setRsWindow(parseInt(e.target.value))}>
-              <option value={21}>1M</option>
-              <option value={63}>3M</option>
-              <option value={126}>6M</option>
-            </select>
+            <Select value={String(rsWindow)} onValueChange={(v)=> setRsWindow(parseInt(v))}>
+              <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="21">1M</SelectItem>
+                <SelectItem value="63">3M</SelectItem>
+                <SelectItem value="126">6M</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex items-center gap-2">
             <label>AS</label>
-            <select className="border rounded px-2 py-1" value={asShort} onChange={(e)=> setAsShort(parseInt(e.target.value))}>
-              <option value={10}>10d</option>
-              <option value={21}>21d</option>
-              <option value={30}>30d</option>
-            </select>
-            <select className="border rounded px-2 py-1" value={asLong} onChange={(e)=> setAsLong(parseInt(e.target.value))}>
-              <option value={42}>42d</option>
-              <option value={63}>63d</option>
-              <option value={90}>90d</option>
-            </select>
+            <Select value={String(asShort)} onValueChange={(v)=> setAsShort(parseInt(v))}>
+              <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10d</SelectItem>
+                <SelectItem value="21">21d</SelectItem>
+                <SelectItem value="30">30d</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={String(asLong)} onValueChange={(v)=> setAsLong(parseInt(v))}>
+              <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="42">42d</SelectItem>
+                <SelectItem value="63">63d</SelectItem>
+                <SelectItem value="90">90d</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <Button size="sm" variant="secondary" onClick={()=> setOpenCol(true)}><Settings2 className="w-4 h-4 mr-1"/>Columns</Button>
         </div>
