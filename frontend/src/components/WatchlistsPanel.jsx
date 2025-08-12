@@ -189,7 +189,7 @@ export default function WatchlistsPanel({ onUseSymbols }){
                       {sec.symbols.map((s, idx) => (
                         <div key={s+idx} className="flex items-center justify-between border rounded px-2 py-1"
                              draggable
-                             onDragStart={(e)=> onDragStartSym(e, s, sec.id, idx)}
+                             onDragStart={(e)=> { onDragStartSym(e, s, sec.id, idx); try { const el = e.currentTarget.cloneNode(true); el.style.position='absolute'; el.style.left='-9999px'; document.body.appendChild(el); e.dataTransfer.setDragImage(el, 10, 10); setTimeout(()=> document.body.removeChild(el), 0) } catch {} }}
                              onDragOver={onDragOverSymbol}
                              onDrop={(e)=> onDropIntoSection(e, sec.id, idx)}>
                           <span className="flex items-center gap-1"><span className="text-muted-foreground"><svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' class='inline-block' viewBox='0 0 24 24' fill='currentColor'><path d='M9 3h6v2H9zm-6 8h18v2H3zm4 8h10v2H7z'></path></svg></span>{s}</span>
