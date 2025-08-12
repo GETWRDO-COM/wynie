@@ -2486,18 +2486,18 @@ async def screen_neglected(
                     # Triggers
                     vol20 = df['Volume'].rolling(20).mean().iloc[-1] or 1
                     vol_spike = float(df['Volume'].iloc[-1] / vol20)
-                    first_close_above = (c.tail(drift_days+1) > ema20.tail(drift_days+1)).astype(int).diff().fillna(0).gt(0).any()
-                    trigger = (vol_spike >= vol_spike_mult) or first_close_above
+                    first_close_above = bool((c.tail(drift_days+1) > ema20.tail(drift_days+1)).astype(int).diff().fillna(0).gt(0).any())
+                    trigger = bool((vol_spike >= vol_spike_mult) or first_close_above)
                     label = "READY" if (drift_ok and slope_ok and quiet_ok and near_ok and trigger) else ("WATCH" if (drift_ok and slope_ok and quiet_ok and near_ok) else None)
                     if label:
                         out.append({
-                            "symbol": sym,
-                            "ret_21d": ret_drift,
-                            "slope_63d": slope,
-                            "atrp_percentile": perc,
-                            "near_20dma": d20,
-                            "trigger": trigger,
-                            "label": label
+                            "symbol": str(sym),
+                            "ret_21d": float(ret_drift),
+                            "slope_63d": float(slope),
+                            "atrp_percentile": float(perc),
+                            "near_20dma": float(d20),
+                            "trigger": bool(trigger),
+                            "label": str(label)
                         })
                 except Exception:
                     continue
