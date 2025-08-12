@@ -50,7 +50,7 @@ const CurrencyTicker = () => {
     <div className="glass-panel p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="text-white/90 font-semibold">FX (ZAR conversions)</div>
-        <div className="text-xs text-gray-400">Updated {updatedRel || '--'}</div>
+        <div className="flex items-center gap-2 text-xs text-gray-400">Updated {updatedRel || '--'} <button onClick={fetchRates} className="btn btn-outline text-[10px] py-0.5 px-2">Reload</button></div>
       </div>
       {err && <div className="text-xs text-red-300 mb-2">{err}</div>}
       <div className="divide-y divide-white/10">
