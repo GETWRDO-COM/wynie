@@ -2398,6 +2398,9 @@ async def import_universe(payload: Any = Body(...), current_user: User = Depends
 # ---------- Backtest: ETF Regime Engine ----------
 
 @api_router.post("/signals/etf-regime/simulate")
+async def etf_regime_simulate_endpoint(payload: Dict[str, Any] = Body(...)):
+    """ETF Regime Simulation endpoint"""
+    return await simulate_etf_regime(payload)
 
 # ---------- Screens ----------
 
