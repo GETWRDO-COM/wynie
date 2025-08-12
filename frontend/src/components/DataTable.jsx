@@ -10,9 +10,9 @@ function SymbolCell({row, logoUrl, selectable, selected, onToggle}){
   return (
     <div className="flex items-center gap-2">
       {selectable && <Checkbox checked={!!selected} onCheckedChange={onToggle} />}
-      <Avatar className="w-5 h-5">
-        <AvatarImage src={logoUrl || ''} alt={row.symbol} />
-        <AvatarFallback className="text-[10px]">{row.symbol?.slice(0,2)}</AvatarFallback>
+      <Avatar className="w-5 h-5 bg-white ring-1 ring-black/10 dark:ring-white/10 rounded-full overflow-hidden">
+        <AvatarImage className="object-contain p-0.5" src={logoUrl || ''} alt={row.symbol} />
+        <AvatarFallback className="text-[10px] text-black bg-white">{row.symbol?.slice(0,2)}</AvatarFallback>
       </Avatar>
       <span className="font-medium">{row.symbol}</span>
     </div>
