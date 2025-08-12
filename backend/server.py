@@ -13,7 +13,7 @@ import uuid
 from datetime import datetime, timedelta
 import asyncio
 import aiohttp
-import json
+import json, io, csv
 import yfinance as yf
 import pandas as pd
 import numpy as np
