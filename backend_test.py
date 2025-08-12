@@ -2462,9 +2462,67 @@ class ETFBackendTester:
         
         return passed, failed, self.test_results
 
+    def run_phase1_tests(self):
+        """Run Phase 1 ETF Regime + NDX backend verification tests"""
+        print("🚀 Starting Phase 1 ETF Regime + NDX Backend Verification")
+        print(f"📡 Testing against: {API_BASE}")
+        print("=" * 80)
+        
+        # Test basic connectivity first
+        if not self.test_api_root():
+            print("❌ Basic connectivity failed - stopping tests")
+            return 0, 1, self.test_results
+        
+        # Authentication tests (required for NDX admin endpoints)
+        auth_success = self.test_authentication_system()
+        
+        # Phase 1 specific tests as per review request
+        tests = [
+            ("Phase 1: ETF Regime Config", self.test_phase1_etf_regime_config),
+            ("Phase 1: All Formula Configs", self.test_phase1_all_formula_configs),
+            ("Phase 1: Market State", self.test_phase1_market_state),
+            ("Phase 1: Market History", self.test_phase1_market_history),
+            ("Phase 1: ETF Regime Signal", self.test_phase1_etf_regime_signal),
+            ("NDX: Get Constituents", self.test_ndx_constituents_get),
+            ("NDX: Post Constituents", self.test_ndx_constituents_post if auth_success else lambda: self.log_test("NDX: Post Constituents", False, "Skipped - authentication failed")),
+            ("NDX: Constituents Diff", self.test_ndx_constituents_diff),
+            ("NDX: Refresh Prices", self.test_ndx_refresh_prices),
+            ("Legacy: Formulas Config", self.test_legacy_formulas_config),
+            ("Sanity: Dashboard", self.test_sanity_dashboard),
+        ]
+        
+        passed = 0
+        failed = 0
+        
+        for test_name, test_func in tests:
+            print(f"\n🧪 Running {test_name}...")
+            try:
+                if test_func():
+                    passed += 1
+                else:
+                    failed += 1
+            except Exception as e:
+                print(f"❌ FAIL {test_name}: Unexpected error: {str(e)}")
+                failed += 1
+        
+        print("\n" + "=" * 80)
+        print(f"📊 PHASE 1 ETF REGIME + NDX TEST SUMMARY")
+        print(f"✅ Passed: {passed}")
+        print(f"❌ Failed: {failed}")
+        print(f"📈 Success Rate: {(passed/(passed+failed)*100):.1f}%")
+        print(f"🏆 Phase 1 Status: {'READY' if failed == 0 else 'NEEDS ATTENTION'}")
+        
+        return passed, failed, self.test_results
+
 if __name__ == "__main__":
+    import sys
     tester = ETFBackendTester()
-    passed, failed, results = tester.run_all_tests()
+    
+    # Check if we should run only Phase 1 tests
+    if len(sys.argv) > 1 and sys.argv[1] == "phase1":
+        passed, failed, results = tester.run_phase1_tests()
+    else:
+        passed, failed, results = tester.run_all_tests()
     
     # Save detailed results
     with open('/app/backend_test_results.json', 'w') as f:
