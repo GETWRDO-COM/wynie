@@ -36,10 +36,14 @@ const NavBar = ({ activeTab, setActiveTab, user, onSettings, onLogout }) => {
                     {t.label}
                   </button>
                 ))}
+                {/* Explicit Settings text button for easier access */}
+                <button onClick={onSettings} aria-label="Open Settings" className="hidden lg:inline-flex px-3 py-1.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10">
+                  Settings
+                </button>
               </div>
             </nav>
             <div className="flex items-center gap-2">
-              <button onClick={onSettings} className="text-gray-300 hover:text-white p-2 rounded-lg hover:bg-white/5" title="Settings"><FaCog className="text-[15px]" /></button>
+              <button onClick={onSettings} aria-label="Open Settings" className="text-gray-300 hover:text-white p-2 rounded-lg hover:bg_white/5" title="Settings"><FaCog className="text-[15px]" /></button>
               <button onClick={onLogout} className="text-gray-300 hover:text-white p-2 rounded-lg hover:bg-white/5" title="Logout"><FaSignOutAlt className="text-[15px]" /></button>
               <button onClick={() => setOpen(!open)} className="md:hidden text-gray-300 hover:text-white p-2 rounded-lg hover:bg-white/5" aria-label="Toggle menu"><FaBars /></button>
             </div>
@@ -50,6 +54,7 @@ const NavBar = ({ activeTab, setActiveTab, user, onSettings, onLogout }) => {
                 {TABS.map((t) => (
                   <button key={t.id} onClick={() => { setActiveTab(t.id); setOpen(false); }} className={`px-3 py-1.5 rounded-lg text-sm ${activeTab === t.id ? 'text-white bg-white/10 border border-white/10' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}>{t.label}</button>
                 ))}
+                <button onClick={() => { onSettings(); setOpen(false); }} className="px-3 py-1.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/5">Settings</button>
               </div>
               <div className="mt-3 text-xs text-gray-400">Signed in as {user?.email}</div>
             </div>
