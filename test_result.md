@@ -453,7 +453,7 @@ backend:
     implemented: true
     working: false
     file: "/app/backend/server.py"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: false
     status_history:
@@ -463,12 +463,15 @@ backend:
       - working: false
         agent: "testing"
         comment: "❌ PARTIALLY IMPLEMENTED: POST /api/signals/etf-regime/simulate endpoint exists but returns incorrect structure. Missing required fields: equity_curve, total_return, max_drawdown, sharpe, flips, pl_by_regime, decisions, params_version. Current response does not match expected simulation output format."
+      - working: false
+        agent: "testing"
+        comment: "❌ ENDPOINT DECLARED BUT NOT IMPLEMENTED: POST /api/signals/etf-regime/simulate endpoint is declared at line 2400 but has no implementation function. The simulate_etf_regime function exists (lines 2508-2658) with correct return structure but is not connected to the endpoint. Missing async def function to handle the POST request."
 
   - task: "Universe Management API"
     implemented: true
     working: false
     file: "/app/backend/server.py"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: false
     status_history:
@@ -478,12 +481,15 @@ backend:
       - working: false
         agent: "testing"
         comment: "❌ PARTIALLY IMPLEMENTED: GET /api/universe endpoint exists and returns data, but POST /api/universe/import fails with HTTP 422. Cannot import test symbols [AAPL, MSFT, NVDA]. Import functionality not working correctly."
+      - working: false
+        agent: "testing"
+        comment: "❌ PARAMETER BINDING ISSUE: POST /api/universe/import fails with HTTP 422 'Field required' error for 'query' parameter. The endpoint expects a 'payload' parameter but FastAPI is looking for 'query'. The endpoint implementation exists (lines 2369-2395) but has incorrect parameter binding."
 
   - task: "Stock Screening APIs"
     implemented: true
     working: false
     file: "/app/backend/server.py"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: false
     status_history:
@@ -493,6 +499,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "❌ PARTIALLY IMPLEMENTED: GET /api/screens/leaders endpoint works and returns ≤5 entries as expected, but GET /api/screens/neglected-pre-earnings fails with HTTP 500. Missing WATCH/READY label functionality in neglected-pre-earnings screen."
+      - working: false
+        agent: "testing"
+        comment: "❌ JSON SERIALIZATION ERROR: GET /api/screens/neglected-pre-earnings fails with HTTP 500 due to numpy.bool serialization issue. Backend logs show 'numpy.bool object is not iterable' error. The endpoint implementation exists (lines 2439-2506) with WATCH/READY labels but returns numpy boolean values that can't be JSON serialized."
 
   - task: "Positions and Trades Management"
     implemented: false
