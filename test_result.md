@@ -48,6 +48,8 @@
 ##   run_ui: false
 ##
 ## test_plan:
+## test_sequence: 6
+
 ## run_ui: true
 
 ##   current_focus:
