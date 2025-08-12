@@ -1,13 +1,30 @@
 import React from "react"
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom"
 import Dashboard from "./pages/Dashboard"
+import Settings from "./pages/Settings"
 import "./index.css"
+
+function Shell({children}){
+  return (
+    <div className="h-screen flex flex-col">
+      <nav className="h-12 border-b flex items-center justify-between px-4 bg-card">
+        <div className="font-semibold">Deepvue Workstation</div>
+        <div className="flex gap-4 text-sm">
+          <Link to="/">Dashboard</Link>
+          <Link to="/settings">Settings</Link>
+        </div>
+      </nav>
+      <div className="flex-1 overflow-hidden">{children}</div>
+    </div>
+  )
+}
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={<Shell><Dashboard /></Shell>} />
+        <Route path="/settings" element={<Shell><Settings /></Shell>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
