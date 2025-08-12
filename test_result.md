@@ -198,12 +198,12 @@
       - working: true
         agent: "testing"
         comment: "✅ WebSocket /api/ws/quotes working correctly. Successfully connected to /api/ws/quotes?symbols=AAPL,MSFT and verified periodic 'quotes' messages arrive with proper structure containing 'type': 'quotes', 'data' array with symbol and last fields. Fixed missing websockets dependency issue."
-  - task: "Watchlists CRUD"
+  - task: "Watchlists v2 CRUD (sections/colors)"
     implemented: true
     working: true
     file: "/app/backend/server.py"
     stuck_count: 0
-    priority: "medium"
+    priority: "high"
     needs_retesting: false
     status_history:
       - working: false
@@ -212,6 +212,9 @@
       - working: true
         agent: "testing"
         comment: "Minor: Fixed MongoDB ObjectId serialization issue in list and update endpoints. All CRUD operations now working: CREATE returns proper watchlist object, GET returns array of watchlists, PUT updates and returns updated object, DELETE returns success confirmation. Error handling works for non-existent watchlists."
+      - working: true
+        agent: "testing"
+        comment: "✅ WATCHLISTS V2 FULLY VALIDATED: All 7 test cases passed perfectly! 1) POST /api/watchlists creates watchlist with provided sections, or creates default 'Main' section when only symbols provided, 2) GET /api/watchlists returns lists with sections array and union symbols array for back-compatibility, 3) PUT /api/watchlists/{id} successfully updates sections (add, rename, recolor, reorder symbols between sections), ensures uppercase symbols and updates union symbols correctly, 4) DELETE /api/watchlists/{id} removes watchlist completely, 5) No ObjectId leakage confirmed in all responses, 6) Colors properly handled as hex strings, 7) Lowercase symbols automatically converted to uppercase. All requested functionality working perfectly."
   - task: "Columns schema + presets"
     implemented: true
     working: true
