@@ -235,6 +235,9 @@
       - working: true
         agent: "testing"
         comment: "All columns endpoints working correctly. Schema returns categories with columns array, presets GET/POST/DELETE all function properly with MongoDB storage."
+      - working: true
+        agent: "testing"
+        comment: "✅ COLUMNS ENDPOINTS RE-VALIDATED (Aug 12, 2025): All columns endpoints working perfectly as part of newly restored endpoints testing: 1) GET /api/columns/schema returns categories with 'General' category containing 'logo' column (id: logo, label: Logo, type: string, width: 60) plus registry-based fields, 2) GET /api/columns/presets returns dict structure, 3) POST /api/columns/presets successfully creates presets, 4) DELETE /api/columns/presets successfully removes presets. Full lifecycle validated with proper MongoDB storage."
   - task: "Ratings compute RS/AS"
     implemented: true
     working: true
