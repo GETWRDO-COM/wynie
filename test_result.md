@@ -578,17 +578,17 @@ backend:
     implemented: true
     working: true
     file: "/app/backend/server.py"
-  - task: "MarketCharts frontend + NewsTicker via backend + Polygon Settings UI"
+  - task: "MarketCharts frontend + NewsTicker via backend + Polygon Settings UI + GreedFear UI + Floating AI"
     implemented: true
-    working: true
+    working: unknown
     file: "/app/frontend/src/components/MarketCharts.js"
     stuck_count: 0
     priority: "high"
     needs_retesting: true
     status_history:
-      - working: true
+      - working: unknown
         agent: "main"
-        comment: "Implemented SPY/QQQ/I:DJI/TQQQ/SQQQ charts with time ranges, close/pre/post and % color; last-updated stamp, refresh every 5 min. NewsTicker now calls backend /api/news. Added Settings UI to save Polygon key to backend encrypted."
+        comment: "Implemented SPY/QQQ/I:DJI/TQQQ/SQQQ charts with time ranges, close/pre/post and % color; last-updated stamp, refresh every 5 min. NewsTicker now calls backend /api/news. Added Settings UI to save Polygon key to backend encrypted. Added CNN Fear & Greed card UI and floating AI chat widget available on all pages. Fixed login input text visibility."
 
     stuck_count: 0
     priority: "medium"
