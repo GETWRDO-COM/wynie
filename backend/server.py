@@ -2388,7 +2388,7 @@ async def import_universe(payload: Any = Body(...), current_user: User = Depends
             "type": (item.get("type") if isinstance(item, dict) else None) or "equity",
             "sector": (item.get("sector") if isinstance(item, dict) else None),
             "tags": (item.get("tags") if isinstance(item, dict) else []) or [],
-            "active": bool((item.get("active") if isinstance(item, dict) else True))
+            "active": bool((item.get("active") if isinstance(item, dict) else None) if (item.get("active") is not None if isinstance(item, dict) else False) else True)
         }
         await db.universe.replace_one({"_id": sym}, doc, upsert=True)
         count += 1
