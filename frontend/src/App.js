@@ -77,8 +77,8 @@ function App() {
   const [selectedTimeframe, setSelectedTimeframe] = useState('1m');
   const [watchlists, setWatchlists] = useState([]);
 
-  useEffect(() =&gt; { const token = localStorage.getItem('authToken'); const userData = localStorage.getItem('user'); if (token &amp;&amp; userData) { try { setUser(JSON.parse(userData)); } catch { localStorage.removeItem('authToken'); localStorage.removeItem('user'); } } setLoading(false); }, []);
-  useEffect(() =&gt; { if (user) { fetchInitialData(); const i = setInterval(fetchInitialData, 30000); return () =&gt; clearInterval(i); } }, [user]);
+  useEffect(() => { const token = localStorage.getItem('authToken'); const userData = localStorage.getItem('user'); if (token && userData) { try { setUser(JSON.parse(userData)); } catch { localStorage.removeItem('authToken'); localStorage.removeItem('user'); } } setLoading(false); }, []);
+  useEffect(() => { if (user) { fetchInitialData(); const i = setInterval(fetchInitialData, 30000); return () => clearInterval(i); } }, [user]);
 
   const fetchInitialData = async () =&gt; { try { await Promise.all([fetchDashboardData(), fetchETFs(), fetchSectors(), fetchMarketScore(), fetchSwingLeaders(), fetchWatchlists(), fetchChartData()]); } catch (e) { console.error('Failed to fetch initial data:', e); } };
   const fetchDashboardData = async () =&gt; { try { const r = await api.get('/api/dashboard'); setDashboardData(r.data); } catch (e) { console.error('Failed to fetch dashboard data:', e); } };
