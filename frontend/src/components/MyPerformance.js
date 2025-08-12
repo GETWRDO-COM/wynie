@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
 const RANGES = [
-  { id: '1D', label: '1 Day' },
-  { id: '5D', label: '5 Days' },
-  { id: '1M', label: '1 Month' },
-  { id: '6M', label: '6 Months' },
-  { id: '1Y', label: '1 Year' },
+  { id: '1D', label: '1D' },
+  { id: '1W', label: '1W' },
+  { id: '1M', label: '1M' },
   { id: 'YTD', label: 'YTD' },
+  { id: '1Y', label: '1Y' },
 ];
 
 const MyPerformance = ({ api }) => {
@@ -44,7 +43,6 @@ const MyPerformance = ({ api }) => {
 
   const totalDelta = useMemo(() => {
     if (!data) return null;
-    // Expect backend to provide total_delta_amount for selected range; otherwise derive from series if provided later
     return typeof data.total_delta_amount === 'number' ? data.total_delta_amount : null;
   }, [data]);
 

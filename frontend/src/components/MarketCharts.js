@@ -8,7 +8,7 @@ const TICKERS = [
   { id: 'TQQQ', label: 'TQQQ' },
   { id: 'SQQQ', label: 'SQQQ' },
 ];
-const RANGES = ['1D','1W','1M','YTD','1Y','5Y'];
+const RANGES = ['1D','1W','1M','YTD','1Y'];
 
 const MarketCharts = () => {
   const [range, setRange] = useState('1M');
@@ -68,7 +68,7 @@ const MarketCharts = () => {
             }]
           };
           const options = {responsive: true, plugins:{legend:{display:false}, tooltip:{mode:'index', intersect:false}}, scales:{x:{display:false}, y:{display:false}}};
-          const pre = td.pre_market; const post = td.post_market;
+          const pre = td.pre_market; const post = td.post_market; const open = td.open;
           return (
             <div key={t.id} className="rounded-xl border border-white/10 bg-black/30 p-3">
               <div className="flex items-center justify-between mb-2">
@@ -76,7 +76,7 @@ const MarketCharts = () => {
                 <div className={`text-sm font-semibold ${up?'text-green-400':'text-red-400'}`}>{change==null?'--':(change>0?'+':'')+change.toFixed(2)+'%'}</div>
               </div>
               <div className="text-xs text-gray-400 mb-2">
-                Close: <span className="text-white/90">{formatNumber(td.close)}</span>
+                Open: <span className="text-white/90">{formatNumber(open)}</span> • Close: <span className="text-white/90">{formatNumber(td.close)}</span>
                 {pre!=null && <> • Pre‑Mkt: <span className="text-white/90">{formatNumber(pre)}</span></>}
                 {post!=null && <> • Post‑Mkt: <span className="text-white/90">{formatNumber(post)}</span></>}
               </div>

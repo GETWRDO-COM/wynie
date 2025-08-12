@@ -121,7 +121,6 @@ async def set_polygon_key(data: PolygonKeyInput, user: dict = Depends(get_curren
             {"$set": {"key": "polygon_api_key", "encrypted_value": enc, "updated_at": datetime.utcnow()}},
             upsert=True
         )
-        # Do not return the key back
         return {"message": "Polygon API key saved."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -149,7 +148,11 @@ async def news_proxy(category: str = Query("All")):
         return {"category": category, "items": cached, "cached": True}
     url = NEWS_FEEDS.get(category, NEWS_FEEDS["All"])
     try:
-        async with aiohttp.ClientSession() as session:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0 Safari/537.36",
+            "Accept": "text/xml,application/xml,application/rss+xml,application/xhtml+xml,application/html;q=0.9,text/plain;q=0.8,*/*;q=0.5",
+        }
+        async with aiohttp.ClientSession(headers=headers) as session:
             async with session.get(url, timeout=20) as resp:
                 text = await resp.text()
         root = ET.fromstring(text)
@@ -161,7 +164,7 @@ async def news_proxy(category: str = Query("All")):
             link = link_el.text if link_el is not None else '#'
             if title:
                 items.append({"title": title, "link": link})
-        items = items[:50]
+        items = items[:100]
         cache_set(cache_key, items, ttl_seconds=300)  # 5 min
         return {"category": category, "items": items, "cached": False}
     except Exception as e:
@@ -183,7 +186,6 @@ async def greed_fear():
     cached = cache_get(cache_key)
     if cached:
         return {"source": cached.get("source", "cache"), **cached}
-    # Try known JSON endpoints first
     try:
         async with aiohttp.ClientSession() as session:
             for u in CNN_JSON_URLS:
@@ -191,7 +193,6 @@ async def greed_fear():
                     async with session.get(u, timeout=20) as resp:
                         if resp.status == 200:
                             data = await resp.json()
-                            # Normalize
                             result = {
                                 "now": data.get("fear_and_greed", {}).get("score") or data.get("now"),
                                 "previous_close": data.get("previous_close"),
@@ -202,20 +203,18 @@ async def greed_fear():
                                 "last_updated": datetime.utcnow().isoformat(),
                                 "source": "cnn-json"
                             }
-                            cache_set(cache_key, result, ttl_seconds=21600)  # 6h
+                            cache_set(cache_key, result, ttl_seconds=21600)
                             return result
                 except Exception:
                     continue
     except Exception:
         pass
-    # Fallback: scrape page for the current value only
     try:
         async with aiohttp.ClientSession() as session:
             for u in CNN_PAGE_URLS:
                 try:
                     async with session.get(u, timeout=20) as resp:
                         html = await resp.text()
-                        # naive scrape: look for "Fear & Greed Now" value like data-score or \"value\":
                         import re
                         m = re.search(r"(Fear\s*&\s*Greed|Greed\s*&\s*Fear).*?(\d{1,3})", html, re.IGNORECASE | re.DOTALL)
                         score = int(m.group(2)) if m else None
@@ -251,7 +250,6 @@ async def fetch_polygon_prev_close(session: aiohttp.ClientSession, base: str, ti
         return None
 
 async def fetch_polygon_open_close(session: aiohttp.ClientSession, base: str, ticker: str, date_str: str, api_key: str):
-    # Only for ETFs/stocks; indices may not support
     url = f"{base}/v1/open-close/{quote(ticker, safe=':')}/{date_str}?adjusted=true&apiKey={api_key}"
     async with session.get(url, timeout=30) as resp:
         if resp.status != 200:
@@ -261,6 +259,7 @@ async def fetch_polygon_open_close(session: aiohttp.ClientSession, base: str, ti
         except Exception:
             return None
         return {
+            "open": data.get("open"),
             "close": data.get("close"),
             "preMarket": data.get("preMarket"),
             "afterHours": data.get("afterHours"),
@@ -284,7 +283,6 @@ async def market_aggregates(
     out: Dict[str, Any] = {}
     tlist = [t.strip() for t in tickers.split(',') if t.strip()]
     async with aiohttp.ClientSession() as session:
-        # Fetch aggregates concurrently
         async def fetch_one(t: str):
             agg_url = f"{base}/v2/aggs/ticker/{quote(t, safe=':')}/range/{cfg['multiplier']}/{cfg['timespan']}/{start_dt.date()}/{end_dt.date()}?adjusted=true&sort=asc&apiKey={api_key}"
             async with session.get(agg_url, timeout=40) as resp:
@@ -292,18 +290,18 @@ async def market_aggregates(
             results = data.get("results") or []
             series = [{"t": r.get("t"), "o": r.get("o"), "h": r.get("h"), "l": r.get("l"), "c": r.get("c"), "v": r.get("v")} for r in results]
             last_close = series[-1]["c"] if series else None
-            # prev close and pre/post
             prev_close = await fetch_polygon_prev_close(session, base, t, api_key)
             pre_val = None
             post_val = None
+            open_val = None
             if not t.startswith("I:"):
-                # Try open/close for today (US ET date)
                 et_now = datetime.now(NY_TZ)
                 date_str = et_now.strftime("%Y-%m-%d")
                 oc = await fetch_polygon_open_close(session, base, t, date_str, api_key)
                 if oc:
                     pre_val = oc.get("preMarket")
                     post_val = oc.get("afterHours")
+                    open_val = oc.get("open")
             change_pct = None
             if last_close and prev_close:
                 try:
@@ -314,6 +312,7 @@ async def market_aggregates(
                 "series": series,
                 "close": last_close,
                 "prev_close": prev_close,
+                "open": open_val,
                 "pre_market": pre_val,
                 "post_market": post_val,
                 "change_pct": change_pct,
@@ -321,8 +320,4 @@ async def market_aggregates(
         await asyncio.gather(*[fetch_one(t) for t in tlist])
     return {"range": range, "last_updated": datetime.utcnow().isoformat(), "data": out}
 
-# --- Existing routes below (truncated for brevity in this file) ---
-# NOTE: Keep your previously implemented routes (dashboard, etfs, watchlists, etc.) intact here.
-
-# Register router
 app.include_router(api_router)

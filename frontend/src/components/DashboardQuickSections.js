@@ -15,8 +15,11 @@ const MiniChart = ({ title, data }) => {
 
 const DashboardQuickSections = ({ chartData, swingLeaders, watchlists, marketScore }) => {
   const indices = chartData || {};
-  const updated = marketScore?.last_updated ? new Date(marketScore.last_updated) : null;
-  const updatedFmt = updated ? new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(updated) : null;
+  const updatedDate = marketScore?.last_updated || marketScore?.date;
+  const updatedFmt = updatedDate ? new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(updatedDate)) : null;
+  const scoreVal = marketScore?.score ?? marketScore?.total_score ?? '--';
+  const trendVal = marketScore?.trend ?? marketScore?.classification ?? 'N/A';
+
   return (
     <div className="space-y-4">
       {/* Indices */}
@@ -24,17 +27,16 @@ const DashboardQuickSections = ({ chartData, swingLeaders, watchlists, marketSco
         <MiniChart title="S&P 500" data={indices.sp500 || indices.SPY} />
         <MiniChart title="NASDAQ 100" data={indices.nasdaq100 || indices.QQQ} />
         <MiniChart title="Dow Jones" data={indices.dowjones || indices.DIA} />
-        <div className="glass-panel p-4 flex flex-col justify-between">
+        <div className="glass-panel p-5 flex flex-col justify-between">
           <div>
-            <div className="text-xs text-gray-400 mb-1">Market Score</div>
-            <div className="text-2xl font-bold text-white">{marketScore?.score ?? '--'}</div>
-            <div className="text-xs text-gray-400">Trend: {marketScore?.trend ?? 'N/A'}</div>
+            <div className="text-sm text-gray-300 mb-1">Market Score</div>
+            <div className="text-3xl font-extrabold text-white">{scoreVal}</div>
+            <div className="text-xs text-gray-400">{trendVal}</div>
           </div>
-          <div className="text-xs text-gray-500 mt-2">{marketScore?.last_updated ? `Updated ${new Intl.DateTimeFormat('en-GB', {year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(marketScore.last_updated))}` : ''}</div>
+          <div className="text-xs text-gray-500 mt-2">{updatedFmt ? `Updated ${updatedFmt}` : ''}</div>
         </div>
       </div>
 
-      {/* Swing Leaders + Watchlists */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <div className="glass-panel p-4">
           <div className="text-white/90 font-semibold mb-2">Top Swing Leaders</div>
@@ -52,7 +54,7 @@ const DashboardQuickSections = ({ chartData, swingLeaders, watchlists, marketSco
         <div className="glass-panel p-4">
           <div className="flex items-center justify-between mb-2">
             <div className="text-white/90 font-semibold">Watchlists</div>
-            <button onClick={() => window.location.hash = '#/watchlists'} className="text-xs text-blue-400 hover:text-blue-300 underline">See more</button>
+            <button onClick={() => window.location.hash = '#/watchlists'} className="btn btn-outline text-xs py-1">See more</button>
           </div>
           <div className="grid grid-cols-2 gap-2">
             {(watchlists || []).slice(0, 6).map((wl) => (
