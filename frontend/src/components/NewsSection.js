@@ -58,7 +58,7 @@ const NewsSection = ({ api }) => {
 
   const renderThumb = (it, size='lg') => {
     const thumb = it.thumb || (it.source ? `https://logo.clearbit.com/${it.source}` : null);
-    const cls = size==='lg' ? 'w-20 h-14' : 'w-16 h-12';
+    const cls = size==='lg' ? 'w-28 h-18' : 'w-20 h-14';
     return thumb ? <img src={thumb} alt="thumb" className={`${cls} object-cover rounded border border-white/10`} onError={(e)=>{ e.currentTarget.style.display='none'; }} /> : <div className={`${cls} rounded bg-white/5 border border-white/10`} />;
   };
 
