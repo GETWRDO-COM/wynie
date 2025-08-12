@@ -905,32 +905,180 @@ class BackendTester:
         except Exception as e:
             self.log_result('screener_registry', 'Quick Screener Filters Sanity Check', False, str(e))
 
+    def test_newly_restored_endpoints(self):
+        """Test the specific endpoints mentioned in the review request"""
+        print("\n=== Testing Newly Restored Endpoints (Review Request) ===")
+        
+        # 1. GET /api/columns/schema returns categories with 'General' including a 'logo' column and registry-based fields
+        try:
+            response = self.session.get(f"{self.base_url}/api/columns/schema")
+            if response.status_code == 200:
+                data = response.json()
+                if 'categories' in data and isinstance(data['categories'], list):
+                    # Look for General category with logo column
+                    general_found = False
+                    logo_found = False
+                    
+                    for category in data['categories']:
+                        if category.get('name') == 'General':
+                            general_found = True
+                            columns = category.get('columns', [])
+                            for column in columns:
+                                if column.get('id') == 'logo':
+                                    logo_found = True
+                                    break
+                            break
+                    
+                    if general_found and logo_found:
+                        self.log_result('columns', 'GET /api/columns/schema returns General category with logo column', True)
+                    else:
+                        self.log_result('columns', 'GET /api/columns/schema returns General category with logo column', False, f"General found: {general_found}, Logo found: {logo_found}")
+                else:
+                    self.log_result('columns', 'GET /api/columns/schema returns General category with logo column', False, f"Invalid response structure: {data}")
+            else:
+                self.log_result('columns', 'GET /api/columns/schema returns General category with logo column', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('columns', 'GET /api/columns/schema returns General category with logo column', False, str(e))
+        
+        # 2. GET/POST/DELETE /api/columns/presets lifecycle
+        preset_name = "TestPreset_" + str(int(time.time()))
+        
+        # GET presets (initial)
+        try:
+            response = self.session.get(f"{self.base_url}/api/columns/presets")
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, dict):
+                    self.log_result('columns', 'GET /api/columns/presets returns dict', True)
+                else:
+                    self.log_result('columns', 'GET /api/columns/presets returns dict', False, f"Expected dict, got: {type(data)}")
+            else:
+                self.log_result('columns', 'GET /api/columns/presets returns dict', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('columns', 'GET /api/columns/presets returns dict', False, str(e))
+        
+        # POST preset
+        try:
+            payload = {"name": preset_name, "columns": ["logo", "symbol", "last", "changePct"]}
+            response = self.session.post(f"{self.base_url}/api/columns/presets", json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                if 'ok' in data and data['ok']:
+                    self.log_result('columns', 'POST /api/columns/presets creates preset', True)
+                else:
+                    self.log_result('columns', 'POST /api/columns/presets creates preset', False, f"Invalid response: {data}")
+            else:
+                self.log_result('columns', 'POST /api/columns/presets creates preset', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('columns', 'POST /api/columns/presets creates preset', False, str(e))
+        
+        # DELETE preset
+        try:
+            response = self.session.delete(f"{self.base_url}/api/columns/presets/{preset_name}")
+            if response.status_code == 200:
+                data = response.json()
+                if 'ok' in data and data['ok']:
+                    self.log_result('columns', 'DELETE /api/columns/presets removes preset', True)
+                else:
+                    self.log_result('columns', 'DELETE /api/columns/presets removes preset', False, f"Invalid response: {data}")
+            else:
+                self.log_result('columns', 'DELETE /api/columns/presets removes preset', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('columns', 'DELETE /api/columns/presets removes preset', False, str(e))
+        
+        # 3. GET /api/marketdata/symbols/search?q=AAPL limit=5 returns results
+        try:
+            response = self.session.get(f"{self.base_url}/api/marketdata/symbols/search?q=AAPL&limit=5")
+            if response.status_code == 200:
+                data = response.json()
+                if 'results' in data and isinstance(data['results'], list):
+                    self.log_result('marketdata', 'GET /api/marketdata/symbols/search?q=AAPL&limit=5 returns results', True)
+                else:
+                    self.log_result('marketdata', 'GET /api/marketdata/symbols/search?q=AAPL&limit=5 returns results', False, f"Invalid response structure: {data}")
+            else:
+                self.log_result('marketdata', 'GET /api/marketdata/symbols/search?q=AAPL&limit=5 returns results', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('marketdata', 'GET /api/marketdata/symbols/search?q=AAPL&limit=5 returns results', False, str(e))
+        
+        # 4. GET /api/marketdata/bars for AAPL 1D with fr/to returns array
+        try:
+            from datetime import datetime, timedelta
+            to_date = datetime.now().date().isoformat()
+            from_date = (datetime.now().date() - timedelta(days=30)).isoformat()
+            
+            response = self.session.get(f"{self.base_url}/api/marketdata/bars?symbol=AAPL&interval=1D&fr={from_date}&to={to_date}")
+            if response.status_code == 200:
+                data = response.json()
+                if 'bars' in data and isinstance(data['bars'], list):
+                    self.log_result('marketdata', 'GET /api/marketdata/bars for AAPL 1D with fr/to returns array', True)
+                else:
+                    self.log_result('marketdata', 'GET /api/marketdata/bars for AAPL 1D with fr/to returns array', False, f"Invalid response structure: {data}")
+            else:
+                self.log_result('marketdata', 'GET /api/marketdata/bars for AAPL 1D with fr/to returns array', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('marketdata', 'GET /api/marketdata/bars for AAPL 1D with fr/to returns array', False, str(e))
+        
+        # 5. GET /api/marketdata/logo returns logoUrl (can be null)
+        try:
+            response = self.session.get(f"{self.base_url}/api/marketdata/logo?symbol=AAPL")
+            if response.status_code == 200:
+                data = response.json()
+                if 'logoUrl' in data:  # logoUrl can be null, that's fine
+                    self.log_result('marketdata', 'GET /api/marketdata/logo returns logoUrl (can be null)', True)
+                else:
+                    self.log_result('marketdata', 'GET /api/marketdata/logo returns logoUrl (can be null)', False, f"Missing logoUrl field: {data}")
+            else:
+                self.log_result('marketdata', 'GET /api/marketdata/logo returns logoUrl (can be null)', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('marketdata', 'GET /api/marketdata/logo returns logoUrl (can be null)', False, str(e))
+        
+        # 6. GET /api/marketdata/fundamentals for AAPL,MSFT returns data map
+        try:
+            response = self.session.get(f"{self.base_url}/api/marketdata/fundamentals?symbols=AAPL,MSFT")
+            if response.status_code == 200:
+                data = response.json()
+                if 'data' in data and isinstance(data['data'], dict):
+                    # Check if we have data for both symbols
+                    if 'AAPL' in data['data'] and 'MSFT' in data['data']:
+                        self.log_result('marketdata', 'GET /api/marketdata/fundamentals for AAPL,MSFT returns data map', True)
+                    else:
+                        self.log_result('marketdata', 'GET /api/marketdata/fundamentals for AAPL,MSFT returns data map', False, f"Missing symbol data: {list(data['data'].keys())}")
+                else:
+                    self.log_result('marketdata', 'GET /api/marketdata/fundamentals for AAPL,MSFT returns data map', False, f"Invalid response structure: {data}")
+            else:
+                self.log_result('marketdata', 'GET /api/marketdata/fundamentals for AAPL,MSFT returns data map', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('marketdata', 'GET /api/marketdata/fundamentals for AAPL,MSFT returns data map', False, str(e))
+        
+        # 7. POST /api/ratings/compute returns RS and AS dictionaries
+        try:
+            payload = {
+                "symbols": ["AAPL", "MSFT"],
+                "rsWindowDays": 63,
+                "asShortDays": 21,
+                "asLongDays": 63
+            }
+            response = self.session.post(f"{self.base_url}/api/ratings/compute", json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                if 'RS' in data and 'AS' in data and isinstance(data['RS'], dict) and isinstance(data['AS'], dict):
+                    self.log_result('ratings', 'POST /api/ratings/compute returns RS and AS dictionaries', True)
+                else:
+                    self.log_result('ratings', 'POST /api/ratings/compute returns RS and AS dictionaries', False, f"Invalid response structure: {data}")
+            else:
+                self.log_result('ratings', 'POST /api/ratings/compute returns RS and AS dictionaries', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('ratings', 'POST /api/ratings/compute returns RS and AS dictionaries', False, str(e))
+
     def run_all_tests(self):
         print(f"Starting Backend API Tests at {datetime.now()}")
         print(f"Base URL: {self.base_url}")
         
-        # Quick screener filters sanity check as requested
-        self.test_screener_filters_sanity_check()
+        # Focus on newly restored endpoints as per review request
+        self.test_newly_restored_endpoints()
         
-        # Test Watchlists v2 as requested
-        self.test_watchlists_v2_crud()
-        
-        # Test settings first to confirm API keys
+        # Also run some key existing tests for context
         self.test_settings_endpoints()
-        
-        # Test the screener expansion as requested
-        self.test_screener_expansion()
-        
-        # Test other screener functionality
-        self.test_screener_registry()
-        self.test_screener_with_fundamentals()
-        self.test_screener_endpoint()
-        
-        # Then test other endpoints
-        self.test_marketdata_endpoints()
-        self.test_websocket_quotes()
-        self.test_columns_endpoints()
-        self.test_ratings_compute()
         
         self.print_summary()
     
