@@ -44,12 +44,10 @@ const GreedFearCard = () => {
     <div className="rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl p-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          {imgOk ? (
-            <img src="https://logo.clearbit.com/cnn.com" alt="CNN" className="h-5 w-auto" onError={() => setImgOk(false)} />
-          ) : (
-            <span className="text-xs font-bold px-2 py-1 rounded bg-red-600 text-white">CNN</span>
-          )}
-          <div className="text-white/90 font-semibold">Fear & Greed Index</div>
+          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full" style={{background: 'linear-gradient(135deg, var(--brand-start), var(--brand-end))'}}>
+            <span className="w-2 h-2 bg-white rounded-full" />
+          </span>
+          <div className="text-white/90 font-semibold">Fear & Greed Sentiment</div>
         </div>
         <div className="text-xs text-gray-400">Updated {updated}</div>
       </div>
