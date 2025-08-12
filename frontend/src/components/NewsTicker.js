@@ -23,7 +23,7 @@ const NewsTicker = () => {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[5000]">
       <div className="mx-auto max-w-7xl">
-        <div className="rounded-xl flex items-center gap-3 px-3 py-1.5 mb-3" style={{ background: 'rgba(10,10,12,0.95)', border: '1px solid rgba(255,255,255,0.12)' }}>
+        <div className="rounded-2xl flex items-center gap-4 px-4 py-2.5 mb-3" style={{ background: 'rgba(10,10,12,0.97)', border: '1px solid rgba(255,255,255,0.14)' }}>
           <div className="flex items-center gap-2 min-w-[280px] text-xs text-white">
             Breaking News
             <select value={category} onChange={(e) => setCategory(e.target.value)} className="text-white text-xs py-0.5 px-2 rounded bg-black/80 border border-white/20">
