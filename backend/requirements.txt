@@ -28,3 +28,6 @@ aiohttp>=3.8.0
 pytz>=2021.1
 emergentintegrations>=0.1.0
 bcrypt>=4.0.1
+APScheduler>=3.10.4
+exchange_calendars>=4.5
+openpyxl>=3.1.5
