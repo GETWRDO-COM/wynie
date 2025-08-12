@@ -20,14 +20,17 @@ const DashboardQuickSections = ({ chartData, swingLeaders, watchlists, marketSco
   return (
     <div className="space-y-4">
       {/* Indices */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-stretch">
         <MiniChart title="S&P 500" data={indices.sp500 || indices.SPY} />
         <MiniChart title="NASDAQ 100" data={indices.nasdaq100 || indices.QQQ} />
         <MiniChart title="Dow Jones" data={indices.dowjones || indices.DIA} />
-        <div className="glass-panel p-4">
-          <div className="text-xs text-gray-400 mb-1">Market Score</div>
-          <div className="text-2xl font-bold text-white">{marketScore?.score ?? '--'}</div>
-          <div className="text-xs text-gray-400">Trend: {marketScore?.trend ?? 'N/A'}</div>
+        <div className="glass-panel p-4 flex flex-col justify-between">
+          <div>
+            <div className="text-xs text-gray-400 mb-1">Market Score</div>
+            <div className="text-2xl font-bold text-white">{marketScore?.score ?? '--'}</div>
+            <div className="text-xs text-gray-400">Trend: {marketScore?.trend ?? 'N/A'}</div>
+          </div>
+          <div className="text-xs text-gray-500 mt-2">{marketScore?.last_updated ? `Updated ${new Intl.DateTimeFormat('en-GB', {year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(marketScore.last_updated))}` : ''}</div>
         </div>
       </div>
 
