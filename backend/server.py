@@ -163,6 +163,94 @@ async def alert_runner():
             logging.warning("alert runner error: %s", e)
         await asyncio.sleep(3)
 
+# ---------------- Watchlists (v2 with sections) ----------------
+class Section(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    color: Optional[str] = None  # hex or token
+    symbols: List[str] = Field(default_factory=list)
+
+class Watchlist(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    color: Optional[str] = None
+    symbols: List[str] = Field(default_factory=list)  # union for backward-compat
+    sections: List[Section] = Field(default_factory=list)
+    createdAt: datetime = Field(default_factory=datetime.utcnow)
+    updatedAt: datetime = Field(default_factory=datetime.utcnow)
+
+class WatchlistCreate(BaseModel):
+    name: str
+    color: Optional[str] = None
+    symbols: Optional[List[str]] = None
+    sections: Optional[List[Section]] = None
+
+class WatchlistUpdate(BaseModel):
+    name: Optional[str] = None
+    color: Optional[str] = None
+    sections: Optional[List[Section]] = None
+
+@api_router.get('/watchlists')
+async def get_watchlists():
+    docs = await db.watchlists.find().sort('createdAt', 1).to_list(1000)
+    out = []
+    for d in docs:
+        d.pop('_id', None)
+        # rebuild union symbols for compatibility
+        sections = d.get('sections') or []
+        if sections:
+            sym_set = []
+            for sec in sections:
+                for s in sec.get('symbols', []) or []:
+                    sym_set.append(s)
+            d['symbols'] = sym_set
+        out.append(d)
+    return out
+
+@api_router.post('/watchlists')
+async def create_watchlist(body: WatchlistCreate):
+    wl = Watchlist(name=body.name, color=body.color)
+    if body.sections:
+        # Trust provided sections
+        wl.sections = body.sections
+    elif body.symbols:
+        # Create default section if only symbols provided
+        wl.sections = [Section(name='Main', color=body.color, symbols=[s.upper() for s in body.symbols])]
+    # union symbols
+    wl.symbols = [s for sec in wl.sections for s in (sec.symbols or [])]
+    await db.watchlists.insert_one(wl.dict())
+    return wl
+
+@api_router.put('/watchlists/{id}')
+async def update_watchlist(id: str, body: WatchlistUpdate):
+    doc = await db.watchlists.find_one({"id": id})
+    if not doc:
+        raise HTTPException(404, 'Not found')
+    upd: Dict[str, Any] = {}
+    if body.name is not None:
+        upd['name'] = body.name
+    if body.color is not None:
+        upd['color'] = body.color
+    if body.sections is not None:
+        # ensure symbols uppercased
+        sections = []
+        for sec in body.sections:
+            symbols = [s.upper() for s in (sec.symbols or [])]
+            sections.append({"id": sec.id or str(uuid.uuid4()), "name": sec.name, "color": sec.color, "symbols": symbols})
+        upd['sections'] = sections
+        # rebuild union
+        upd['symbols'] = [s for sec in sections for s in (sec.get('symbols') or [])]
+    upd['updatedAt'] = datetime.utcnow()
+    await db.watchlists.update_one({"id": id}, {"$set": upd})
+    new_doc = await db.watchlists.find_one({"id": id})
+    new_doc.pop('_id', None)
+    return new_doc
+
+@api_router.delete('/watchlists/{id}')
+async def delete_watchlist(id: str):
+    await db.watchlists.delete_one({"id": id})
+    return {"ok": True}
+
 # ---------------- Screener metadata/run (same as before) ----------------
 @api_router.get("/screeners/filters")
 async def screener_filters():
@@ -197,7 +285,7 @@ async def run_screener_endpoint(body: ScreenerBody):
     next_cursor = cursor + limit if (cursor + limit) < len(rows) else None
     return {"rows": page_rows, "nextCursor": next_cursor}
 
-# ---------------- Market data (same as before, trimmed) ----------------
+# ---------------- Market data (quotes minimal) ----------------
 @api_router.get("/marketdata/quotes")
 async def get_quotes(symbols: str):
     if not poly_client:

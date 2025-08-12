@@ -15,6 +15,7 @@ import MiniListPanel from "../components/MiniListPanel"
 import NotificationsBell from "../components/NotificationsBell"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import axios from "axios"
+import WatchlistsPanel from "../components/WatchlistsPanel"
 
 const BASE = (process.env.REACT_APP_BACKEND_URL || import.meta?.env?.REACT_APP_BACKEND_URL || "")
 
@@ -260,6 +261,7 @@ export default function Dashboard() {
             </div>
             <div className="col-span-4 h-full space-y-3">
               <ScreenerPanel onResults={(rows)=> setRows(rows)} />
+              <WatchlistsPanel onUseSymbols={(syms)=> setWatchSymbols(syms)} />
               <MiniListPanel title="Live List" rows={filteredRows} columnDefs={columnDefs} visibleColumns={miniColumns} onColumnsClick={()=> setOpenCol(true)} sort={miniSort} setSort={setMiniSort} onRowClick={(r)=> setSelected(r.symbol)} onEdit={onEdit} logos={logos} />
             </div>
           </div>
