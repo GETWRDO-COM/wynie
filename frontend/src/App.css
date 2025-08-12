@@ -44,7 +44,12 @@ html { scroll-behavior: smooth; }
 .table td { @apply py-3 px-2 border-b border-white/10; }
 .table tbody tr { @apply hover:bg-white/5 transition-colors duration-150; }
 
-.form-input { @apply bg-gray-900/60 border border-white/10 rounded px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors; }
+.form-input { @apply bg-gray-900/60 border border-white/10 rounded px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors; color: #ffffff !important; background-color: rgba(13,17,23,0.9) !important; caret-color: #ffffff; }
+.form-input::placeholder { color: #9ca3af; opacity: 1; }
+.form-input:-webkit-autofill,
+.form-input:-webkit-autofill:hover,
+.form-input:-webkit-autofill:focus { -webkit-text-fill-color: #ffffff; transition: background-color 9999s ease-in-out 0s; box-shadow: 0 0 0px 1000px rgba(13,17,23,0.9) inset; }
+
 .form-select { @apply bg-gray-900/60 border border-white/10 rounded px-3 py-2 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors; }
 
 .skeleton { @apply bg-white/10 animate-pulse rounded; }
