@@ -2445,14 +2445,14 @@ async def screen_neglected(
     near_ema20_tol: float = Query(0.01),
     vol_spike_mult: float = Query(1.5)
 ):
-    cur = db.universe.find({"active": True})
-    uni = await cur.to_list(length=2000)
-    symbols = [u.get("symbol", u.get("_id")).upper() for u in uni] if uni else NDX_TICKERS_FALLBACK[:50]
-    out = []
-    batch = 20
-    for i in range(0, len(symbols), batch):
-        chunk = symbols[i:i+batch]
-        try:
+    try:
+        cur = db.universe.find({"active": True})
+        uni = await cur.to_list(length=2000)
+        symbols = [u.get("symbol", u.get("_id")).upper() for u in uni] if uni else NDX_TICKERS_FALLBACK[:50]
+        out = []
+        batch = 20
+        for i in range(0, len(symbols), batch):
+            chunk = symbols[i:i+batch]
             multi = yf.download(" ".join(chunk), period="365d", interval="1d", progress=False, auto_adjust=False, group_by='ticker')
             for sym in chunk:
                 try:
@@ -2501,9 +2501,9 @@ async def screen_neglected(
                         })
                 except Exception:
                     continue
-        except Exception:
-            continue
-    return out
+        return out
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 async def simulate_etf_regime(payload: Dict[str, Any]):
     """
