@@ -1,7 +1,11 @@
 from __future__ import annotations
 from typing import List, Dict
 
+# Expanded registry for screener fields (initial large set; easy to extend)
 REGISTRY: List[Dict] = [
+    # General
+    {"id": "symbol", "label": "Symbol", "category": "General", "type": "string", "source": "provider"},
+
     # Price & Volume
     {"id": "last", "label": "Last", "category": "Price & Volume", "type": "number", "source": "provider"},
     {"id": "changePct", "label": "% Change", "category": "Price & Volume", "type": "number", "source": "computed"},
@@ -24,9 +28,13 @@ REGISTRY: List[Dict] = [
     {"id": "bb_bw", "label": "Bollinger BW", "category": "Technicals", "type": "number", "source": "computed"},
     {"id": "stoch_k", "label": "Stoch %K", "category": "Technicals", "type": "number", "source": "computed"},
 
-    # Signals
+    # Signals (bool)
     {"id": "sma50_above_sma200", "label": "SMA50 > SMA200", "category": "Signals", "type": "boolean", "source": "computed"},
     {"id": "ema8_above_ema21", "label": "EMA8 > EMA21", "category": "Signals", "type": "boolean", "source": "computed"},
+
+    # Proprietary
+    {"id": "RS", "label": "RS", "category": "Proprietary Ratings", "type": "number", "source": "computed"},
+    {"id": "AS", "label": "AS", "category": "Proprietary Ratings", "type": "number", "source": "computed"},
 
     # Fundamentals (Finnhub)
     {"id": "marketCap", "label": "Market Cap", "category": "Fundamentals", "type": "number", "source": "finnhub"},
@@ -37,7 +45,4 @@ REGISTRY: List[Dict] = [
     {"id": "pb", "label": "P/B", "category": "Fundamentals", "type": "number", "source": "finnhub"},
     {"id": "roe", "label": "ROE", "category": "Fundamentals", "type": "number", "source": "finnhub"},
     {"id": "roa", "label": "ROA", "category": "Fundamentals", "type": "number", "source": "finnhub"},
-    {"id": "grossMarginTTM", "label": "Gross Margin TTM", "category": "Fundamentals", "type": "number", "source": "finnhub"},
-    {"id": "operatingMarginTTM", "label": "Operating Margin TTM", "category": "Fundamentals", "type": "number", "source": "finnhub"},
-    {"id": "netMarginTTM", "label": "Net Margin TTM", "category": "Fundamentals", "type": "number", "source": "finnhub"},
 ]
