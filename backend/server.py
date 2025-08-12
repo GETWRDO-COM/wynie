@@ -285,7 +285,7 @@ async def run_screener_endpoint(body: ScreenerBody):
     next_cursor = cursor + limit if (cursor + limit) < len(rows) else None
     return {"rows": page_rows, "nextCursor": next_cursor}
 
-# ---------------- Market data (quotes minimal) ----------------
+# ---------------- Market data ----------------
 @api_router.get("/marketdata/quotes")
 async def get_quotes(symbols: str):
     if not poly_client:
