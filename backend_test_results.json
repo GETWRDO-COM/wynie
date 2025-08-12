@@ -1,100 +1,100 @@
 {
   "summary": {
-    "passed": 2,
-    "failed": 9
+    "passed": 7,
+    "failed": 4
   },
   "detailed_results": [
     {
       "test": "API Root",
       "success": true,
       "details": "Root endpoint accessible: ETF Intelligence System API - Enhanced Version",
-      "timestamp": "2025-08-12T09:29:22.793987",
+      "timestamp": "2025-08-12T09:32:11.562629",
       "response_data": null
     },
     {
       "test": "Authentication System",
       "success": true,
       "details": "Complete authentication system working: login, JWT tokens, user info, password updates, forgot password",
-      "timestamp": "2025-08-12T09:29:24.332008",
+      "timestamp": "2025-08-12T09:32:12.956230",
       "response_data": null
     },
     {
       "test": "Phase 1: ETF Regime Config",
       "success": true,
       "details": "ETF regime config returned with correct kind and default params",
-      "timestamp": "2025-08-12T09:29:24.394212",
+      "timestamp": "2025-08-12T09:32:12.970493",
       "response_data": null
     },
     {
       "test": "Phase 1: All Formula Configs",
-      "success": false,
-      "details": "HTTP 404: {\"detail\":\"Not Found\"}",
-      "timestamp": "2025-08-12T09:29:24.443125",
+      "success": true,
+      "details": "All configs returned (2 configs) including etf_regime",
+      "timestamp": "2025-08-12T09:32:12.981212",
       "response_data": null
     },
     {
       "test": "Phase 1: Market State",
       "success": false,
       "details": "HTTP 503: {\"detail\":\"Data unavailable for QQQ\"}",
-      "timestamp": "2025-08-12T09:29:24.996975",
+      "timestamp": "2025-08-12T09:32:13.190704",
       "response_data": null
     },
     {
       "test": "Phase 1: Market History",
       "success": false,
       "details": "Failed to create market state snapshot",
-      "timestamp": "2025-08-12T09:29:25.172358",
+      "timestamp": "2025-08-12T09:32:13.345665",
       "response_data": null
     },
     {
       "test": "Phase 1: ETF Regime Signal",
       "success": false,
       "details": "HTTP 503: {\"detail\":\"Data unavailable for QQQ\"}",
-      "timestamp": "2025-08-12T09:29:25.302426",
+      "timestamp": "2025-08-12T09:32:13.477092",
       "response_data": null
     },
     {
       "test": "NDX: Get Constituents",
-      "success": false,
-      "details": "HTTP 404: {\"detail\":\"Not Found\"}",
-      "timestamp": "2025-08-12T09:29:25.351689",
+      "success": true,
+      "details": "NDX constituents: 91 active, 91 total",
+      "timestamp": "2025-08-12T09:32:13.498664",
       "response_data": null
     },
     {
       "test": "NDX: Post Constituents",
       "success": false,
-      "details": "Failed to get current constituents",
-      "timestamp": "2025-08-12T09:29:25.359490",
+      "details": "Version not incremented: 1 <= 1",
+      "timestamp": "2025-08-12T09:32:13.575069",
       "response_data": null
     },
     {
       "test": "NDX: Constituents Diff",
-      "success": false,
-      "details": "Failed to get current constituents",
-      "timestamp": "2025-08-12T09:29:25.367603",
+      "success": true,
+      "details": "Constituents diff working: v1 to v1 (empty diff)",
+      "timestamp": "2025-08-12T09:32:13.644142",
       "response_data": null
     },
     {
       "test": "NDX: Refresh Prices",
-      "success": false,
-      "details": "HTTP 404: {\"detail\":\"Not Found\"}",
-      "timestamp": "2025-08-12T09:29:25.418503",
+      "success": true,
+      "details": "Price refresh: 4/4 succeeded (100.0%), 0 failed",
+      "timestamp": "2025-08-12T09:32:14.378535",
       "response_data": null
     },
     {
       "test": "Legacy: Formulas Config",
-      "success": false,
-      "details": "HTTP 500: Internal Server Error",
-      "timestamp": "2025-08-12T09:29:25.430255",
+      "success": true,
+      "details": "Legacy config returned with 3 traditional fields",
+      "timestamp": "2025-08-12T09:32:14.388332",
       "response_data": null
     },
     {
       "test": "Sanity: Dashboard",
       "success": true,
       "details": "Dashboard endpoint responding correctly",
-      "timestamp": "2025-08-12T09:29:27.130052",
+      "timestamp": "2025-08-12T09:32:15.942994",
       "response_data": null
     }
   ],
-  "timestamp": "2025-08-12T09:29:27.130268"
+  "timestamp": "2025-08-12T09:32:15.943223"
 }
