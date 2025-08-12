@@ -3,10 +3,17 @@
     "browser": true,
     "es2022": true
   },
-  "extends": ["react-app", "react-app/jest"],
-  "plugins": ["react-hooks"],
+  "plugins": ["react", "react-hooks", "jsx-a11y", "import"],
+  "extends": [
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:jsx-a11y/recommended",
+    "plugin:import/recommended"
+  ],
+  "settings": {
+    "react": { "version": "detect" }
+  },
   "rules": {
-    "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "warn"
+    "react/react-in-jsx-scope": "off"
   }
 }
