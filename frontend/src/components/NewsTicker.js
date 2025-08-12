@@ -21,7 +21,7 @@ const NewsTicker = () => {
     try {
       const resp = await fetch(`${BACKEND_URL}/api/news?category=${encodeURIComponent(cat)}`);
       const data = await resp.json();
-      const parsed = (data && data.items) ? data.items.slice(0, 50) : [];
+      const parsed = (data && data.items) ? data.items.slice(0, 80) : [];
       setItems(parsed);
     } catch (e) {
       console.error('News load failed', e);
@@ -39,13 +39,13 @@ const NewsTicker = () => {
 
   const parts = useMemo(() => {
     const arr = loading ? ['Loading news…'] : items.length ? items.map((it) => it.title) : ['No headlines available'];
-    return [...arr, ...arr, ...arr, ...arr, ...arr, ...arr];
+    return [...arr, ...arr, ...arr, ...arr, ...arr, ...arr, ...arr, ...arr];
   }, [items, loading]);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[60]">
       <div className="mx-auto max-w-7xl">
-        <div className="rounded-xl flex items-center gap-3 px-3 py-1.5 mb-3" style={{ background: 'rgba(0,0,0,0.75)', border: '1px solid rgba(255,255,255,0.1)' }}>
+        <div className="rounded-xl flex items-center gap-3 px-3 py-1.5 mb-3" style={{ background: 'rgba(0,0,0,0.78)', border: '1px solid rgba(255,255,255,0.1)' }}>
           <div className="flex items-center gap-2 min-w-[220px] text-xs text-white/90">
             Breaking News
             <select value={category} onChange={(e) => setCategory(e.target.value)} className="text-white text-xs py-0.5 px-2 rounded bg-black/80 border border-white/20">
@@ -56,13 +56,17 @@ const NewsTicker = () => {
           </div>
           <div className="relative flex-1 overflow-hidden h-6">
             <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-black/80 via-transparent to-black/80" />
-            <div className="absolute whitespace-nowrap will-change-transform animate-[ticker_900s_linear_infinite] text-xs text-white/90">
-              {parts.map((t, i) => (
-                <span key={i} className="inline-flex items-center">
-                  {i > 0 && <span className="mx-4 text-white/40">|</span>}
-                  {t}
-                </span>
-              ))}
+            <div className="absolute whitespace-nowrap will-change-transform animate-[ticker_1500s_linear_infinite] text-xs text-white/90">
+              {items.length === 0 ? (
+                <span className="inline-flex items-center">{loading ? 'Loading news…' : 'No headlines available'}</span>
+              ) : (
+                items.concat(items).map((it, i) => (
+                  <span key={i} className="inline-flex items-center">
+                    {i > 0 && <span className="mx-4 text-white/40">|</span>}
+                    <a href={it.link} target="_blank" rel="noopener noreferrer" className="hover:text-white underline-offset-2 hover:underline">{it.title}</a>
+                  </span>
+                ))
+              )}
             </div>
           </div>
         </div>

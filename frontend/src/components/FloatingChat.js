@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaComments } from 'react-icons/fa';
 import AIChat from './AIChat';
 import useHotkeys from '../hooks/useHotkeys';
@@ -8,9 +8,23 @@ const FloatingChat = ({ api, user }) => {
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [drag, setDrag] = useState(null);
 
+  useEffect(() => {
+    // Load dock state
+    try {
+      const s = JSON.parse(localStorage.getItem('wrdoDock') || '{}');
+      if (s && typeof s.open === 'boolean') setOpen(s.open);
+      if (s && typeof s.x === 'number' && typeof s.y === 'number') setPos({ x: s.x, y: s.y });
+    } catch {}
+  }, []);
+  useEffect(() => {
+    // Persist dock state
+    localStorage.setItem('wrdoDock', JSON.stringify({ open, x: pos.x, y: pos.y }));
+  }, [open, pos]);
+
   useHotkeys([
-    { combo: 'ctrl+k', handler: () => setOpen((v) => !v) },
-    { combo: 'ctrl+/', handler: () => setOpen(true) },
+    { combo: 'ctrl+k', handler: () => { setOpen((v) => !v); setTimeout(()=>document.getElementById('wrdo-chat-input')?.focus(), 60); } },
+    { combo: 'ctrl+/', handler: () => { setOpen(true); setTimeout(()=>document.getElementById('wrdo-chat-input')?.focus(), 60); } },
+    { combo: 'slash', handler: () => { if(open){ document.getElementById('wrdo-chat-input')?.focus(); } } },
   ]);
 
   const onMouseDown = (e) => { setDrag({ startX: e.clientX, startY: e.clientY, baseX: pos.x, baseY: pos.y }); };
@@ -35,7 +49,7 @@ const FloatingChat = ({ api, user }) => {
           </div>
         </div>
       )}
-      <button title="WRDO (Ctrl+K)" onClick={() => setOpen(!open)} className="fixed bottom-28 right-6 z-[10050] w-14 h-14 rounded-full flex items-center justify-center btn-primary shadow-xl animate-pulse">
+      <button title="WRDO (Ctrl+K)" onClick={() => { setOpen((v)=>!v); setTimeout(()=>document.getElementById('wrdo-chat-input')?.focus(), 60); }} className="fixed bottom-28 right-6 z-[10050] w-14 h-14 rounded-full flex items-center justify-center btn-primary shadow-xl animate-pulse">
         <FaComments />
       </button>
     </>

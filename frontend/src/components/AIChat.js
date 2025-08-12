@@ -1,29 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FaRobot, FaSpinner } from 'react-icons/fa';
 
 // AI Chat panel (WRDO)
-// Requires an axios instance via props.api
 const AIChat = ({ api, user }) => {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState('latest');
-  const [availableModels, setAvailableModels] = useState({});
   const [currentSession, setCurrentSession] = useState(null);
   const [ticker, setTicker] = useState('');
   const [includeChart, setIncludeChart] = useState(false);
+  const inputRef = useRef(null);
 
   useEffect(() => {
-    fetchAvailableModels();
+    fetchModels();
     createNewSession();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchAvailableModels = async () => {
+  const fetchModels = async () => {
     try {
       const response = await api.get('/api/ai/models');
-      setAvailableModels(response.data.models || {});
-      // Prefer latest -> gpt-5, fallback to existing key
+      // Only expose two options in UI, but keep latest auto
       setSelectedModel(response.data.recommended || 'latest');
     } catch (err) {
       console.error('Failed to fetch AI models:', err);
@@ -36,13 +34,13 @@ const AIChat = ({ api, user }) => {
       const response = await api.post('/api/ai/sessions', sessionData);
       setCurrentSession(response.data.id);
       setMessages([]);
+      setTimeout(() => inputRef.current?.focus(), 50);
     } catch (err) {
       console.error('Failed to create chat session:', err);
     }
   };
 
-  const sendMessage = async (e) => {
-    e.preventDefault();
+  const submit = async () => {
     if (!inputMessage.trim() || !currentSession) return;
     const userMessage = { role: 'user', content: inputMessage, timestamp: new Date().toISOString() };
     setMessages(prev => [...prev, userMessage]);
@@ -58,11 +56,19 @@ const AIChat = ({ api, user }) => {
       const aiMessage = { role: 'assistant', content: response.data.response, timestamp: new Date().toISOString() };
       setMessages(prev => [...prev, aiMessage]);
       setInputMessage('');
+      setTimeout(() => inputRef.current?.focus(), 50);
     } catch (err) {
       const errorMessage = { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.', timestamp: new Date().toISOString() };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const onKeyDown = (e) => {
+    if ((e.key === 'Enter') && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      submit();
     }
   };
 
@@ -82,10 +88,6 @@ const AIChat = ({ api, user }) => {
           <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)} className="form-select text-sm">
             {primaryModels.map(m => (
               <option key={m.key} value={m.key}>{m.label}</option>
-            ))}
-            {/* Keep other models available but below */}
-            {Object.keys(availableModels).filter(k => !primaryModels.find(m => m.key === k)).map((k) => (
-              <option key={k} value={k}>{k}</option>
             ))}
           </select>
           <button onClick={createNewSession} className="btn btn-secondary">New Chat</button>
@@ -127,8 +129,8 @@ const AIChat = ({ api, user }) => {
         )}
       </div>
 
-      <form onSubmit={sendMessage} className="flex gap-2">
-        <input type="text" value={inputMessage} onChange={(e) => setInputMessage(e.target.value)} placeholder={includeChart && ticker ? `Ask about ${ticker} chart…` : 'Type to chat with WRDO…'} className="flex-1 form-input" disabled={loading} />
+      <form onSubmit={(e)=>{e.preventDefault(); submit();}} className="flex gap-2">
+        <input id="wrdo-chat-input" ref={inputRef} type="text" value={inputMessage} onKeyDown={onKeyDown} onChange={(e) => setInputMessage(e.target.value)} placeholder={includeChart && ticker ? `Ask about ${ticker} chart…` : 'Type to chat with WRDO…'} className="flex-1 form-input" disabled={loading} />
         <button type="submit" disabled={loading || !inputMessage.trim()} className="btn btn-primary disabled:opacity-50">Send</button>
       </form>
     </div>

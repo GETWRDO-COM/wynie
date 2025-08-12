@@ -1,10 +1,22 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 
+function colorForScore(score){
+  if(score == null) return '#9ca3af';
+  if(score <= 33) return '#ef4444'; // red
+  if(score <= 66) return '#f59e0b'; // amber
+  return '#22c55e'; // green
+}
+function emojiForScore(score){
+  if(score == null) return '😐';
+  if(score <= 33) return '😨';
+  if(score <= 66) return '😐';
+  return '😄';
+}
+
 const GreedFearCard = () => {
   const [data, setData] = useState(null);
   const [updatedAt, setUpdatedAt] = useState(null);
-  const [imgOk, setImgOk] = useState(true);
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
   const load = async () => {
@@ -13,47 +25,41 @@ const GreedFearCard = () => {
       const js = await res.json();
       setData(js);
       setUpdatedAt(js.last_updated ? new Date(js.last_updated) : new Date());
-    } catch (e) {
-      // ignore
-    }
+    } catch (e) {}
   };
 
   useEffect(() => { load(); const id = setInterval(load, 6*60*60*1000); return () => clearInterval(id); }, []);
 
   const spark = useMemo(() => {
-    const timeseries = data?.timeseries;
-    if (!timeseries || !Array.isArray(timeseries)) return null;
-    const series = timeseries.slice(-60);
-    if (!series || !series.length) return null;
-    const labels = series.map((p, i) => i + 1);
+    const ts = data?.timeseries; if(!Array.isArray(ts)) return null;
+    const series = ts.slice(-60); if(!series.length) return null;
+    const labels = series.map((_, i) => i+1);
     const values = series.map((p) => (typeof p === 'number' ? p : (p.value || p.score || 0)));
-    return {
-      labels,
-      datasets: [{ data: values, borderColor: 'rgba(255,255,255,0.9)', backgroundColor: 'rgba(255,255,255,0.08)', tension: 0.25, pointRadius: 0, fill: true }]
-    };
+    return { labels, datasets:[{ data: values, borderColor: 'rgba(255,255,255,0.9)', backgroundColor: 'rgba(255,255,255,0.08)', tension: 0.25, pointRadius: 0, fill: true }] };
   }, [data]);
 
   const updated = updatedAt ? new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(updatedAt) : '--:--';
-  const now = data?.now ?? null;
-  const prev = data?.previous_close ?? null;
-  const w = data?.one_week_ago ?? null;
-  const m = data?.one_month_ago ?? null;
-  const y = data?.one_year_ago ?? null;
+  const now = data?.now ?? null; const prev = data?.previous_close ?? null; const w = data?.one_week_ago ?? null; const m = data?.one_month_ago ?? null; const y = data?.one_year_ago ?? null;
+  const circleColor = colorForScore(now);
+  const face = emojiForScore(now);
 
   return (
     <div className="rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl p-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full" style={{background: 'linear-gradient(135deg, var(--brand-start), var(--brand-end))'}}>
-            <span className="w-2 h-2 bg-white rounded-full" />
-          </span>
+          <img src="https://logo.clearbit.com/cnn.com" alt="CNN" className="h-5 w-auto" />
           <div className="text-white/90 font-semibold">Fear & Greed Sentiment</div>
         </div>
         <div className="text-xs text-gray-400">Updated {updated}</div>
       </div>
       <div className="flex items-center gap-4">
-        <div className="flex items-center justify-center w-20 h-20 rounded-full border-2 border-white/20 bg-white/5">
-          <div className="text-2xl font-bold text-white">{now ?? '--'}</div>
+        <div className="relative flex items-center justify-center w-20 h-20 rounded-full" style={{ background: 'rgba(255,255,255,0.06)', border: '2px solid rgba(255,255,255,0.2)'}}>
+          <svg width="76" height="76" className="absolute">
+            <circle cx="38" cy="38" r="32" stroke="#1f2937" strokeWidth="6" fill="none" />
+            <circle cx="38" cy="38" r="32" stroke={circleColor} strokeWidth="6" fill="none" strokeLinecap="round" strokeDasharray={Math.max(10, Math.min(200, (now||0)/100*200)) + ", 220"} transform="rotate(-90 38 38)" />
+          </svg>
+          <div className="text-xl font-bold text-white z-10">{now ?? '--'}</div>
+          <div className="absolute -right-2 -top-2 text-lg" title={now!=null?`${now}`:''}>{face}</div>
         </div>
         <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs text-gray-300">
           {prev != null && <div>Prev close: <span className="text-white/90 font-medium">{prev}</span></div>}
