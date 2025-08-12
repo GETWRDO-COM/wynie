@@ -429,11 +429,18 @@ async def get_market_score_normalized():
             await db.market_scores.insert_one(default)
             return default
         doc = scores[0]
+        # Remove MongoDB ObjectId to avoid serialization issues
+        if '_id' in doc:
+            del doc['_id']
         score = doc.get('score') or doc.get('total_score')
         trend = doc.get('trend') or doc.get('classification')
         last_updated = doc.get('last_updated') or doc.get('date') or datetime.utcnow().isoformat()
         recommendation = doc.get('recommendation')
-        normalized = {**doc, "score": score, "trend": trend, "last_updated": last_updated, "recommendation": recommendation}
+        normalized = {"score": score, "trend": trend, "last_updated": last_updated, "recommendation": recommendation}
+        # Add other fields from doc if they exist
+        for key, value in doc.items():
+            if key not in normalized and key != '_id':
+                normalized[key] = value
         return normalized
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
