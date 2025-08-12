@@ -44,7 +44,7 @@ class FocusedBackendTester:
             # Test login with provided credentials - first time should auto-create
             login_data = {
                 "email": "beetge@mwebbiz.co.za",
-                "password": "TestPassword123!"
+                "password": "Albee1990!"
             }
             
             print(f"Testing login to: {API_BASE}/auth/login")
