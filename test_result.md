@@ -444,40 +444,49 @@ agent_communication:
 
 backend:
   - task: "ETF Regime Simulation API"
-    implemented: false
-    working: "NA"
+    implemented: true
+    working: false
     file: "/app/backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "❌ NOT IMPLEMENTED: POST /api/signals/etf-regime/simulate endpoint does not exist in backend code. Expected to return equity_curve, total_return, max_drawdown, sharpe, flips, pl_by_regime, decisions, params_version with date range parameters."
+      - working: false
+        agent: "testing"
+        comment: "❌ PARTIALLY IMPLEMENTED: POST /api/signals/etf-regime/simulate endpoint exists but returns incorrect structure. Missing required fields: equity_curve, total_return, max_drawdown, sharpe, flips, pl_by_regime, decisions, params_version. Current response does not match expected simulation output format."
 
   - task: "Universe Management API"
-    implemented: false
-    working: "NA"
+    implemented: true
+    working: false
     file: "/app/backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "❌ NOT IMPLEMENTED: GET /api/universe and POST /api/universe/import endpoints do not exist. Expected to manage symbol universe with admin import functionality for AAPL, MSFT, NVDA sample data."
+      - working: false
+        agent: "testing"
+        comment: "❌ PARTIALLY IMPLEMENTED: GET /api/universe endpoint exists and returns data, but POST /api/universe/import fails with HTTP 422. Cannot import test symbols [AAPL, MSFT, NVDA]. Import functionality not working correctly."
 
   - task: "Stock Screening APIs"
-    implemented: false
-    working: "NA"
+    implemented: true
+    working: false
     file: "/app/backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "❌ NOT IMPLEMENTED: GET /api/screens/leaders and GET /api/screens/neglected-pre-earnings endpoints do not exist. Expected leaders endpoint with top parameter and neglected-pre-earnings with WATCH/READY status controls."
+      - working: false
+        agent: "testing"
+        comment: "❌ PARTIALLY IMPLEMENTED: GET /api/screens/leaders endpoint works and returns ≤5 entries as expected, but GET /api/screens/neglected-pre-earnings fails with HTTP 500. Missing WATCH/READY label functionality in neglected-pre-earnings screen."
 
   - task: "Positions and Trades Management"
     implemented: false
