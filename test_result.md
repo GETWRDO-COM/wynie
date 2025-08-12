@@ -431,6 +431,9 @@ metadata:
 test_plan:
   current_focus: []
   stuck_tasks: []
+- agent: "main"
+  message: "Patched backend to add /api/auth/login, /api/auth/forgot-password, /api/auth/me directly in server_enhanced.py to resolve 404 during login. Removed lock glyph from login page UI. Added frontend .eslintrc.json with plugin:react-hooks/recommended to enable react-hooks/exhaustive-deps rule."
+
   test_all: false
   test_priority: "high_first"
 
