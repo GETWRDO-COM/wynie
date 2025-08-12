@@ -974,26 +974,59 @@ async def polygon_status(user: dict = Depends(get_current_user)):
     return {"configured": bool(key)}
 
 @api_router.get("/news")
-async def news_proxy(category: str = Query("All")):
-    cache_key = f"news:{category}"
-    cached = cache_get(cache_key)
-    if cached:
-        return {"category": category, "items": cached, "cached": True}
-    url = NEWS_FEEDS.get(category, NEWS_FEEDS["All"])
+async def news_proxy(category: str = Query("All"), q: str | None = Query(None)):
+    # Support dynamic search via Google News RSS when q is provided
+    if q:
+        cache_key = f"newsq:{q}"
+        cached = cache_get(cache_key)
+        if cached:
+            return {"category": f"search:{q}", "items": cached, "cached": True}
+        url = f"https://news.google.com/rss/search?q={quote(q)}&hl=en-US&gl=US&ceid=US:en"
+    else:
+        cache_key = f"news:{category}"
+        cached = cache_get(cache_key)
+        if cached:
+            return {"category": category, "items": cached, "cached": True}
+        url = NEWS_FEEDS.get(category, NEWS_FEEDS["All"])
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, timeout=20) as resp:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0 Safari/537.36",
+            "Accept": "text/xml,application/xml,application/rss+xml,application/xhtml+xml,application/html;q=0.9,text/plain;q=0.8,*/*;q=0.5",
+        }
+        async with aiohttp.ClientSession(headers=headers) as session:
+            async with session.get(url, timeout=25) as resp:
                 text = await resp.text()
         root = ET.fromstring(text)
+        ns = { 'media': 'http://search.yahoo.com/mrss/' }
         items = []
         for it in root.findall('.//item'):
             title_el = it.find('title')
             link_el = it.find('link')
+            pub_el = it.find('pubDate')
             title = title_el.text if title_el is not None else ''
             link = link_el.text if link_el is not None else '#'
+            published = pub_el.text if pub_el is not None else None
+            thumb = None
+            mthumb = it.find('media:thumbnail', ns)
+            if mthumb is not None and mthumb.attrib.get('url'):
+                thumb = mthumb.attrib.get('url')
+            else:
+                mcont = it.find('media:content', ns)
+                if mcont is not None and mcont.attrib.get('url'):
+                    thumb = mcont.attrib.get('url')
+            if not thumb:
+                encl = it.find('enclosure')
+                if encl is not None and encl.attrib.get('url'):
+                    thumb = encl.attrib.get('url')
+            source = None
+            try:
+                from urllib.parse import urlparse
+                source = urlparse(link).hostname
+            except Exception:
+                source = None
             if title:
-                items.append({"title": title, "link": link})
-        items = items[:50]
+                items.append({"title": title, "link": link, "thumb": thumb, "published": published, "source": source})
+        items = items[:100]
         cache_set(cache_key, items, ttl_seconds=300)  # 5 min
         return {"category": category, "items": items, "cached": False}
     except Exception as e:
