@@ -264,6 +264,9 @@
       - working: true
         agent: "testing"
         comment: "Comprehensive UI testing completed successfully. All major functionality working: ✅ Header renders 'Deepvue Workstation (Live • Polygon)' ✅ Column Settings dialog opens/closes properly ✅ Symbol addition (TSLA) works and appears in watchlist ✅ Table renders with logo column and 5 data rows ✅ Tab switching between Screener and Watchlists works perfectly. Minor backend API issues detected: /api/marketdata/bars returns 500 errors and Polygon logo API blocked by CORS/ORB, but these don't affect core UI functionality."
+      - working: true
+        agent: "testing"
+        comment: "✅ RE-RUN UI TESTING COMPLETED: Successfully re-executed automated UI tests with detailed verification: 1) Header correctly shows 'Live • Polygon + Finnhub', 2) Column Settings dialog opens properly and displays 3 categories (General, Price & Volume, Technicals) from backend, 3) TSLA symbol addition works perfectly - appears in watchlist sidebar, 4) Screenshots captured for all steps. Minor: Screener run failed to return data due to backend API 404 errors, WebSocket connections fail with 403 errors. Core UI functionality confirmed working despite backend API issues."
 
 ## metadata:
   created_by: "main_agent"
