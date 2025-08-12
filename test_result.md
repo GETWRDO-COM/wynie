@@ -48,6 +48,8 @@
 ##   run_ui: false
 ##
 ## test_plan:
+## run_ui: true
+
 ##   current_focus:
 ##     - "Task name 1"
 ##     - "Task name 2"
