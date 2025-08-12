@@ -252,6 +252,9 @@
       - working: true
         agent: "testing"
         comment: "Minor: Added error handling for Polygon API rate limits. Ratings compute endpoint working correctly, returns RS and AS dictionaries with percentile rankings for requested symbols. Handles custom window parameters and validates required fields."
+      - working: true
+        agent: "testing"
+        comment: "✅ RATINGS COMPUTE RE-VALIDATED (Aug 12, 2025): POST /api/ratings/compute working perfectly as part of newly restored endpoints testing. Returns proper RS and AS dictionaries structure for requested symbols (AAPL, MSFT). Accepts custom window parameters (rsWindowDays: 63, asShortDays: 21, asLongDays: 63). Response format validated with correct keys: RS and AS both as dictionaries containing percentile rankings."
 
 ## frontend:
   - task: "Dashboard + Table + Column Settings (mock)"
