@@ -2367,21 +2367,28 @@ async def get_universe(active: bool = Query(True)):
     return items
 
 @api_router.post("/universe/import")
-async def import_universe(payload: UniverseImport, current_user: User = Depends(get_current_user)):
-    # admin-only later; currently any authenticated user
+async def import_universe(payload: Any, current_user: User = Depends(get_current_user)):
+    # Accept either {symbols:[...] } or a bare array [...]
+    items = []
+    if isinstance(payload, dict) and isinstance(payload.get("symbols"), list):
+        items = payload["symbols"]
+    elif isinstance(payload, list):
+        items = payload
+    else:
+        raise HTTPException(status_code=400, detail="Provide list of symbols or {symbols:[...]}")
     count = 0
-    for item in payload.symbols:
-        sym = (item.get("symbol") or "").upper()
+    for item in items:
+        sym = (item.get("symbol") or "").upper() if isinstance(item, dict) else str(item).upper()
         if not sym:
             continue
         doc = {
             "_id": sym,
             "symbol": sym,
-            "name": item.get("name") or sym,
-            "type": item.get("type", "equity"),
-            "sector": item.get("sector"),
-            "tags": item.get("tags", []),
-            "active": bool(item.get("active", True))
+            "name": (item.get("name") if isinstance(item, dict) else None) or sym,
+            "type": (item.get("type") if isinstance(item, dict) else None) or "equity",
+            "sector": (item.get("sector") if isinstance(item, dict) else None),
+            "tags": (item.get("tags") if isinstance(item, dict) else []) or [],
+            "active": bool((item.get("active") if isinstance(item, dict) else True))
         }
         await db.universe.replace_one({"_id": sym}, doc, upsert=True)
         count += 1
