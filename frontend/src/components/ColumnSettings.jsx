@@ -12,8 +12,9 @@ export default function ColumnSettings({ open, onOpenChange, columnDefs, visible
     const groups = {}
     for (const c of columnDefs || []) {
       if (search && !c.label.toLowerCase().includes(search.toLowerCase())) continue
-      groups[c.category] ||= []
-      groups[c.category].push(c)
+      const cat = c.category || 'General'
+      groups[cat] ||= []
+      groups[cat].push(c)
     }
     return groups
   }, [search, columnDefs])
