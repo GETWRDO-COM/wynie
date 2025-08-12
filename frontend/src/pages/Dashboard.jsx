@@ -9,11 +9,15 @@ import DataTable from "../components/DataTable"
 import ColumnSettings from "../components/ColumnSettings"
 import ScreenerPanel from "./ScreenerPanel"
 import { getBars, getLogo, getQuotes, computeRatings, getColumnSchema, getColumnPresets, saveColumnPreset, getFundamentals } from "../services/api"
-import { Settings2, ListPlus, List, Pencil, Eraser, LineChart } from "lucide-react"
+import { Settings2, ListPlus, List, Pencil, Eraser, LineChart, BellPlus } from "lucide-react"
 import useQuotesWS from "../hooks/useQuotesWS"
 import { LS } from "../mock/mock"
 import TVToolbar from "../components/TVToolbar"
 import MiniListPanel from "../components/MiniListPanel"
+import NotificationsBell from "../components/NotificationsBell"
+import axios from "axios"
+
+const BASE = (process.env.REACT_APP_BACKEND_URL || import.meta?.env?.REACT_APP_BACKEND_URL || "")
 
 function useLocalState(key, initial) {
   const [v, setV] = useState(()=> LS.get(key, initial))
@@ -186,12 +190,21 @@ export default function Dashboard() {
 
   const onEdit = (symbol, key, value)=>{ setRows(prev => prev.map(r => r.symbol===symbol ? ({...r, [key]: value}) : r)) }
 
-  // Deepvue-like layout: Top split (Chart left, Mini list right), Bottom big table
+  async function createAlert(type){
+    try {
+      const value = prompt(type==='pct_change_ge' ? 'Enter % change threshold (e.g. 5 for +5%)' : 'Enter price level')
+      if (!value) return
+      await axios.post(`${BASE}/api/alerts`, { symbol: selected, type, value: parseFloat(value) })
+      alert('Alert created')
+    } catch (e) { alert('Failed to create alert') }
+  }
+
   return (
     <div className="h-screen w-full flex flex-col">
       <header className="h-12 border-b px-4 flex items-center justify-between bg-card">
         <div className="font-semibold">Market Workstation (Live • Polygon + Finnhub)</div>
         <div className="flex items-center gap-3 text-sm">
+          <NotificationsBell />
           <div className="flex items-center gap-2">
             <label>RS</label>
             <select className="border rounded px-2 py-1" value={rsWindow} onChange={(e)=> setRsWindow(parseInt(e.target.value))}>
@@ -220,8 +233,16 @@ export default function Dashboard() {
       <PanelGroup direction="vertical" className="flex-1">
         <Panel defaultSize={58} minSize={40}>
           <div className="h-full grid grid-cols-12 gap-3 p-3">
-            <div className="col-span-8 h-full"><CandleChart symbol={selected} drawings={drawings} setDrawings={setDrawings} tool={tool} setTool={setTool} /></div>
-            <div className="col-span-4 h-full">
+            <div className="col-span-8 h-full">
+              <div className="flex items-center gap-2 mb-2">
+                <Button size="sm" variant="secondary" onClick={()=> createAlert('price_above')}><BellPlus className="w-4 h-4 mr-1"/>Price Above</Button>
+                <Button size="sm" variant="secondary" onClick={()=> createAlert('price_below')}><BellPlus className="w-4 h-4 mr-1"/>Price Below</Button>
+                <Button size="sm" variant="secondary" onClick={()=> createAlert('pct_change_ge')}><BellPlus className="w-4 h-4 mr-1"/>% Change ≥</Button>
+              </div>
+              <CandleChart symbol={selected} drawings={drawings} setDrawings={setDrawings} tool={tool} setTool={setTool} />
+            </div>
+            <div className="col-span-4 h-full space-y-3">
+              <ScreenerPanel onResults={(rows)=> setRows(rows)} />
               <MiniListPanel title="Live List" rows={filteredRows} columnDefs={columnDefs} visibleColumns={miniColumns} onColumnsClick={()=> setOpenCol(true)} sort={miniSort} setSort={setMiniSort} onRowClick={(r)=> setSelected(r.symbol)} onEdit={onEdit} logos={logos} />
             </div>
           </div>
