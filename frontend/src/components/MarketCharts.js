@@ -24,7 +24,7 @@ const MarketCharts = () => {
     <div className="glass-panel p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="text-white/90 font-semibold">Market Snapshot</div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2"><button onClick={()=>load(range)} className="btn btn-outline text-xs py-1">Reload</button>
           {RANGES.map(r => (
             <button key={r} onClick={() => setRange(r)} className={`px-3 py-1.5 rounded-lg text-sm ${range===r?'text-white bg-white/10 border border-white/10':'text-gray-300 hover:text-white hover:bg-white/5'}`}>{r}</button>
           ))}
