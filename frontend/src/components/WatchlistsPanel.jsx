@@ -5,6 +5,7 @@ import { Input } from "./ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { listWatchlists, createWatchlist, updateWatchlist, deleteWatchlist } from "../services/api"
 import { LS } from "../mock/mock"
+import { GripVertical, X } from "lucide-react"
 
 const COLORS = ["#3b82f6","#10b981","#f59e0b","#ef4444","#8b5cf6","#06b6d4","#22c55e","#f97316"]
 
