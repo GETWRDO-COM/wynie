@@ -2736,6 +2736,50 @@ class ETFBackendTester:
             except:
                 pass  # Ignore cleanup errors
     
+    def run_phase2_targeted_tests(self):
+        """Run targeted Phase 2 tests from review request"""
+        print(f"🎯 Starting TARGETED Phase 2 Backend Tests (Review Request)")
+        print(f"📡 Backend URL: {BACKEND_URL}")
+        print(f"🔗 API Base: {API_BASE}")
+        print("=" * 80)
+        
+        # First ensure authentication
+        print(f"\n🔐 Setting up authentication...")
+        auth_success = self.test_authentication_system()
+        if not auth_success:
+            print("❌ Authentication failed - cannot proceed with authenticated tests")
+            return
+        
+        # Run the specific Phase 2 tests mentioned in review request
+        phase2_tests = [
+            ("Phase 2: Universe Import (AAPL, MSFT, NVDA)", self.test_phase2_universe_import),
+            ("Phase 2: Screens Neglected Pre-Earnings", self.test_phase2_screens_neglected_pre_earnings),
+            ("Phase 2: ETF Regime Simulate", self.test_phase2_etf_regime_simulate),
+        ]
+        
+        passed = 0
+        failed = 0
+        
+        for test_name, test_func in phase2_tests:
+            print(f"\n🧪 Running {test_name}...")
+            try:
+                if test_func():
+                    passed += 1
+                else:
+                    failed += 1
+            except Exception as e:
+                print(f"❌ EXCEPTION in {test_name}: {str(e)}")
+                failed += 1
+        
+        print("\n" + "=" * 80)
+        print(f"🏁 PHASE 2 TARGETED TESTS COMPLETE")
+        print(f"✅ Passed: {passed}")
+        print(f"❌ Failed: {failed}")
+        print(f"📊 Success Rate: {(passed/(passed+failed)*100):.1f}%" if (passed+failed) > 0 else "No tests run")
+        print("=" * 80)
+        
+        return passed, failed
+
     def run_all_tests(self):
         """Run all backend tests including enhanced professional features"""
         print(f"🚀 Starting COMPREHENSIVE ETF Intelligence System Backend Tests")
