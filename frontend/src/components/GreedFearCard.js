@@ -4,7 +4,7 @@ import { Line } from 'react-chartjs-2';
 const GreedFearCard = () => {
   const [data, setData] = useState(null);
   const [updatedAt, setUpdatedAt] = useState(null);
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
   const load = async () => {
     try {
