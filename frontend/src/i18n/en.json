@@ -1,0 +1,15 @@
+{
+  "app.title": "HUNT Trade Journal",
+  "dashboard.whatChanged": "What changed today?",
+  "dashboard.kpi.netPnl": "Net P&L",
+  "dashboard.kpi.r": "R",
+  "dashboard.kpi.winRate": "Win-rate",
+  "dashboard.kpi.expectancy": "Expectancy",
+  "dashboard.kpi.maxDd": "Max DD",
+  "actions.save": "Save",
+  "admin.accounts": "Accounts",
+  "filters.portfolio": "Portfolio",
+  "filters.pf1": "PF1",
+  "filters.pf2": "PF2",
+  "filters.combined": "Combined"
+}

@@ -1,0 +1,21 @@
+rules:
+  new_high:
+    label: "New High"
+    description: "Closing price equals the highest close over the 252-day lookback."
+    condition: "close == max(close, 252)"
+  failed_breakout:
+    label: "Failed Breakout"
+    description: "Price closed back below prior breakout level."
+    condition: "had_breakout and close < breakout_level"
+  close_below_trendline:
+    label: "Close Below Trendline"
+    condition: "close < trendline_50"
+  short_term_ma_cut_down:
+    label: "Short-Term MA Cut Down"
+    condition: "ema10 < ema21"
+  soft_stop_atr:
+    label: "Soft Stop (−1×ATR)"
+    condition: "close <= entry - 1*atr"
+  break_even_reached:
+    label: "Break-Even Reached"
+    condition: "close >= break_even_price"
