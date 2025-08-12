@@ -287,81 +287,191 @@ class BackendTester:
         except Exception as e:
             self.log_result('marketdata', 'Error Handling - Missing q param', False, str(e))
     
-    def test_watchlists_crud(self):
-        print("\n=== Testing Watchlists CRUD ===")
+    def test_watchlists_v2_crud(self):
+        print("\n=== Testing Watchlists v2 CRUD (Sections & Colors) ===")
         test_watchlist_id = None
         
-        # Test 1: Create Watchlist
+        # Test 1: Create Watchlist with only symbols (server should create default section)
         try:
-            payload = {"name": "Test Portfolio", "symbols": ["AAPL", "MSFT", "GOOGL"]}
+            payload = {"name": "Tech Stocks", "symbols": ["AAPL", "MSFT", "GOOGL"], "color": "#3B82F6"}
             response = self.session.post(f"{self.base_url}/api/watchlists", json=payload)
             if response.status_code == 200:
                 data = response.json()
-                if 'id' in data and 'name' in data and 'symbols' in data:
+                # Check for v2 structure: id, name, symbols (union), sections
+                if ('id' in data and 'name' in data and 'symbols' in data and 'sections' in data):
                     test_watchlist_id = data['id']
-                    self.log_result('watchlists', 'Create Watchlist', True)
+                    # Verify server created default section
+                    sections = data.get('sections', [])
+                    if len(sections) == 1 and sections[0].get('name') == 'Main':
+                        # Verify union symbols match section symbols
+                        union_symbols = set(data.get('symbols', []))
+                        section_symbols = set(sections[0].get('symbols', []))
+                        if union_symbols == section_symbols:
+                            # Check no ObjectId leakage
+                            data_str = str(data)
+                            if 'ObjectId' not in data_str and '_id' not in data_str:
+                                self.log_result('watchlists', 'Create Watchlist with symbols (default section created)', True)
+                            else:
+                                self.log_result('watchlists', 'Create Watchlist with symbols (default section created)', False, f"ObjectId leakage detected: {data}")
+                        else:
+                            self.log_result('watchlists', 'Create Watchlist with symbols (default section created)', False, f"Union symbols mismatch: union={union_symbols}, section={section_symbols}")
+                    else:
+                        self.log_result('watchlists', 'Create Watchlist with symbols (default section created)', False, f"Default section not created properly: {sections}")
                 else:
-                    self.log_result('watchlists', 'Create Watchlist', False, f"Invalid response structure: {data}")
+                    self.log_result('watchlists', 'Create Watchlist with symbols (default section created)', False, f"Missing v2 fields: {data}")
             else:
-                self.log_result('watchlists', 'Create Watchlist', False, f"HTTP {response.status_code}: {response.text}")
+                self.log_result('watchlists', 'Create Watchlist with symbols (default section created)', False, f"HTTP {response.status_code}: {response.text}")
         except Exception as e:
-            self.log_result('watchlists', 'Create Watchlist', False, str(e))
+            self.log_result('watchlists', 'Create Watchlist with symbols (default section created)', False, str(e))
         
-        # Test 2: List Watchlists
+        # Test 2: Create Watchlist with explicit sections
+        try:
+            sections_payload = [
+                {"name": "Large Cap", "color": "#10B981", "symbols": ["AAPL", "MSFT"]},
+                {"name": "Growth", "color": "#F59E0B", "symbols": ["TSLA", "NVDA"]}
+            ]
+            payload = {"name": "Multi-Section List", "sections": sections_payload, "color": "#8B5CF6"}
+            response = self.session.post(f"{self.base_url}/api/watchlists", json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                if ('id' in data and 'sections' in data and len(data['sections']) == 2):
+                    # Verify union symbols are built from all sections
+                    expected_union = {"AAPL", "MSFT", "TSLA", "NVDA"}
+                    actual_union = set(data.get('symbols', []))
+                    if expected_union == actual_union:
+                        # Verify colors are hex strings
+                        sections = data['sections']
+                        colors_valid = all(sec.get('color', '').startswith('#') for sec in sections)
+                        if colors_valid:
+                            self.log_result('watchlists', 'Create Watchlist with explicit sections', True)
+                        else:
+                            self.log_result('watchlists', 'Create Watchlist with explicit sections', False, f"Invalid hex colors: {sections}")
+                    else:
+                        self.log_result('watchlists', 'Create Watchlist with explicit sections', False, f"Union symbols incorrect: expected={expected_union}, actual={actual_union}")
+                else:
+                    self.log_result('watchlists', 'Create Watchlist with explicit sections', False, f"Invalid sections structure: {data}")
+            else:
+                self.log_result('watchlists', 'Create Watchlist with explicit sections', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('watchlists', 'Create Watchlist with explicit sections', False, str(e))
+        
+        # Test 3: GET /api/watchlists returns lists with sections and union symbols for back-compat
         try:
             response = self.session.get(f"{self.base_url}/api/watchlists")
             if response.status_code == 200:
                 data = response.json()
-                if isinstance(data, list):
-                    self.log_result('watchlists', 'List Watchlists', True)
+                if isinstance(data, list) and len(data) > 0:
+                    # Check first watchlist has v2 structure
+                    first_wl = data[0]
+                    if ('id' in first_wl and 'symbols' in first_wl and 'sections' in first_wl):
+                        # Verify no ObjectId leakage in any watchlist
+                        data_str = str(data)
+                        if 'ObjectId' not in data_str and '_id' not in data_str:
+                            self.log_result('watchlists', 'GET watchlists returns v2 structure with back-compat', True)
+                        else:
+                            self.log_result('watchlists', 'GET watchlists returns v2 structure with back-compat', False, f"ObjectId leakage detected")
+                    else:
+                        self.log_result('watchlists', 'GET watchlists returns v2 structure with back-compat', False, f"Missing v2 fields in first watchlist: {first_wl}")
                 else:
-                    self.log_result('watchlists', 'List Watchlists', False, f"Expected list, got: {type(data)}")
+                    self.log_result('watchlists', 'GET watchlists returns v2 structure with back-compat', False, f"Expected non-empty list, got: {data}")
             else:
-                self.log_result('watchlists', 'List Watchlists', False, f"HTTP {response.status_code}: {response.text}")
+                self.log_result('watchlists', 'GET watchlists returns v2 structure with back-compat', False, f"HTTP {response.status_code}: {response.text}")
         except Exception as e:
-            self.log_result('watchlists', 'List Watchlists', False, str(e))
+            self.log_result('watchlists', 'GET watchlists returns v2 structure with back-compat', False, str(e))
         
-        # Test 3: Update Watchlist (if we have an ID)
+        # Test 4: PUT /api/watchlists/{id} updates sections (add, rename, recolor, reorder symbols)
         if test_watchlist_id:
             try:
-                payload = {"name": "Updated Test Portfolio", "symbols": ["AAPL", "TSLA"]}
+                # Update with new sections structure
+                updated_sections = [
+                    {"name": "Core Holdings", "color": "#EF4444", "symbols": ["AAPL", "MSFT", "AMZN"]},  # renamed, recolored, added AMZN
+                    {"name": "Speculative", "color": "#8B5CF6", "symbols": ["TSLA"]}  # new section
+                ]
+                payload = {"name": "Updated Tech Portfolio", "sections": updated_sections}
                 response = self.session.put(f"{self.base_url}/api/watchlists/{test_watchlist_id}", json=payload)
                 if response.status_code == 200:
                     data = response.json()
-                    if 'name' in data:
-                        self.log_result('watchlists', 'Update Watchlist', True)
+                    if ('sections' in data and len(data['sections']) == 2):
+                        # Verify symbols are uppercase
+                        all_symbols = []
+                        for sec in data['sections']:
+                            all_symbols.extend(sec.get('symbols', []))
+                        uppercase_check = all(sym.isupper() for sym in all_symbols)
+                        
+                        # Verify union symbols updated
+                        expected_union = {"AAPL", "MSFT", "AMZN", "TSLA"}
+                        actual_union = set(data.get('symbols', []))
+                        
+                        if uppercase_check and expected_union == actual_union:
+                            self.log_result('watchlists', 'PUT watchlist updates sections (rename, recolor, reorder)', True)
+                        else:
+                            self.log_result('watchlists', 'PUT watchlist updates sections (rename, recolor, reorder)', False, f"Uppercase check: {uppercase_check}, Union match: {expected_union == actual_union}")
                     else:
-                        self.log_result('watchlists', 'Update Watchlist', False, f"Invalid response structure: {data}")
+                        self.log_result('watchlists', 'PUT watchlist updates sections (rename, recolor, reorder)', False, f"Invalid sections after update: {data}")
                 else:
-                    self.log_result('watchlists', 'Update Watchlist', False, f"HTTP {response.status_code}: {response.text}")
+                    self.log_result('watchlists', 'PUT watchlist updates sections (rename, recolor, reorder)', False, f"HTTP {response.status_code}: {response.text}")
             except Exception as e:
-                self.log_result('watchlists', 'Update Watchlist', False, str(e))
+                self.log_result('watchlists', 'PUT watchlist updates sections (rename, recolor, reorder)', False, str(e))
         
-        # Test 4: Delete Watchlist (if we have an ID)
+        # Test 5: DELETE /api/watchlists/{id} removes watchlist
         if test_watchlist_id:
             try:
                 response = self.session.delete(f"{self.base_url}/api/watchlists/{test_watchlist_id}")
                 if response.status_code == 200:
                     data = response.json()
                     if 'ok' in data and data['ok']:
-                        self.log_result('watchlists', 'Delete Watchlist', True)
+                        # Verify it's actually deleted
+                        verify_response = self.session.get(f"{self.base_url}/api/watchlists")
+                        if verify_response.status_code == 200:
+                            watchlists = verify_response.json()
+                            deleted_found = any(wl.get('id') == test_watchlist_id for wl in watchlists)
+                            if not deleted_found:
+                                self.log_result('watchlists', 'DELETE watchlist removes it completely', True)
+                            else:
+                                self.log_result('watchlists', 'DELETE watchlist removes it completely', False, f"Watchlist still exists after deletion")
+                        else:
+                            self.log_result('watchlists', 'DELETE watchlist removes it completely', False, f"Could not verify deletion")
                     else:
-                        self.log_result('watchlists', 'Delete Watchlist', False, f"Invalid response: {data}")
+                        self.log_result('watchlists', 'DELETE watchlist removes it completely', False, f"Invalid delete response: {data}")
                 else:
-                    self.log_result('watchlists', 'Delete Watchlist', False, f"HTTP {response.status_code}: {response.text}")
+                    self.log_result('watchlists', 'DELETE watchlist removes it completely', False, f"HTTP {response.status_code}: {response.text}")
             except Exception as e:
-                self.log_result('watchlists', 'Delete Watchlist', False, str(e))
+                self.log_result('watchlists', 'DELETE watchlist removes it completely', False, str(e))
         
-        # Test 5: Error handling - Update non-existent watchlist
+        # Test 6: Error handling - Update non-existent watchlist
         try:
-            payload = {"name": "Non-existent"}
+            payload = {"name": "Non-existent", "sections": [{"name": "Test", "symbols": ["AAPL"]}]}
             response = self.session.put(f"{self.base_url}/api/watchlists/non-existent-id", json=payload)
             if response.status_code == 404:
-                self.log_result('watchlists', 'Error Handling - Update non-existent', True)
+                self.log_result('watchlists', 'Error Handling - Update non-existent watchlist', True)
             else:
-                self.log_result('watchlists', 'Error Handling - Update non-existent', False, f"Expected 404, got {response.status_code}")
+                self.log_result('watchlists', 'Error Handling - Update non-existent watchlist', False, f"Expected 404, got {response.status_code}")
         except Exception as e:
-            self.log_result('watchlists', 'Error Handling - Update non-existent', False, str(e))
+            self.log_result('watchlists', 'Error Handling - Update non-existent watchlist', False, str(e))
+        
+        # Test 7: Verify lowercase symbols are converted to uppercase
+        try:
+            payload = {"name": "Case Test", "symbols": ["aapl", "msft", "googl"]}  # lowercase
+            response = self.session.post(f"{self.base_url}/api/watchlists", json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                symbols = data.get('symbols', [])
+                sections = data.get('sections', [])
+                if sections and len(sections) > 0:
+                    section_symbols = sections[0].get('symbols', [])
+                    uppercase_check = all(sym.isupper() for sym in section_symbols)
+                    if uppercase_check and set(symbols) == {"AAPL", "MSFT", "GOOGL"}:
+                        # Clean up
+                        self.session.delete(f"{self.base_url}/api/watchlists/{data['id']}")
+                        self.log_result('watchlists', 'Lowercase symbols converted to uppercase', True)
+                    else:
+                        self.log_result('watchlists', 'Lowercase symbols converted to uppercase', False, f"Symbols not uppercased: {section_symbols}")
+                else:
+                    self.log_result('watchlists', 'Lowercase symbols converted to uppercase', False, f"No sections found: {data}")
+            else:
+                self.log_result('watchlists', 'Lowercase symbols converted to uppercase', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('watchlists', 'Lowercase symbols converted to uppercase', False, str(e))
     
     def test_columns_endpoints(self):
         print("\n=== Testing Columns Endpoints ===")
