@@ -10,6 +10,8 @@ from typing import List, Dict, Optional, Any
 import uuid
 from datetime import datetime, timedelta
 import asyncio
+import requests
+from starlette.responses import StreamingResponse
 
 from polygon_client import PolygonClient
 from finnhub_client import FinnhubClient
@@ -339,6 +341,25 @@ async def market_logo(symbol: str):
     url = poly_client.get_logo(symbol.upper())
     return {"logoUrl": url}
 
+@api_router.get('/marketdata/logo_image')
+async def market_logo_image(symbol: str):
+    """Image proxy to avoid CORS/ORB blocks for logos."""
+    try:
+        url = poly_client.get_logo(symbol.upper()) if poly_client else None
+        if not url:
+            raise RuntimeError('no_logo')
+        r = requests.get(url, timeout=20)
+        if r.status_code != 200:
+            raise RuntimeError('bad_status')
+        ct = r.headers.get('content-type', 'image/png')
+        return StreamingResponse(iter([r.content]), media_type=ct)
+    except Exception as e:
+        # 1x1 transparent PNG fallback
+        png_bytes = bytes.fromhex('89504E470D0A1A0A0000000D4948445200000001000000010806000000' +
+                                  '1F15C4890000000A49444154789C6360000002000100' +
+                                  '05FE02FEA7AE2A0000000049454E44AE426082')
+        return StreamingResponse(iter([png_bytes]), media_type='image/png')
+
 @api_router.get('/marketdata/fundamentals')
 async def market_fundamentals(symbols: str):
     syms = [s.strip().upper() for s in symbols.split(',') if s.strip()]
@@ -369,14 +390,11 @@ async def market_fundamentals(symbols: str):
 # ---------------- Columns schema + presets ----------------
 @api_router.get('/columns/schema')
 async def columns_schema():
-    # Build columns from registry and add 'logo'
+    # Build columns from registry; symbol will include logo avatar in UI, so no separate logo column
     cats: Dict[str, Dict[str, Any]] = {}
     def add(cat: str, col: Dict[str, Any]):
         cats.setdefault(cat, {"name": cat, "columns": []})
         cats[cat]["columns"].append(col)
-    # General with logo + symbol
-    add('General', {"id": "logo", "label": "Logo", "type": "string", "width": 60})
-    # Add registry fields as columns
     for f in SCREENER_REGISTRY:
         add(f.get('category') or 'Other', {"id": f['id'], "label": f.get('label') or f['id'], "type": f.get('type') or 'number'})
     categories = list(cats.values())

@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import DataTable from "../components/DataTable"
 import ColumnSettings from "../components/ColumnSettings"
 import ScreenerPanel from "./ScreenerPanel"
-import { getBars, getLogo, getQuotes, computeRatings, getColumnSchema, getColumnPresets, saveColumnPreset, getFundamentals } from "../services/api"
-import { Settings2, ListPlus, Pencil, Eraser, BellPlus } from "lucide-react"
+import { getBars, getQuotes, computeRatings, getColumnSchema, getColumnPresets, saveColumnPreset, getFundamentals } from "../services/api"
+import { Settings2, Pencil, Eraser, BellPlus } from "lucide-react"
 import useQuotesWS from "../hooks/useQuotesWS"
 import { LS } from "../mock/mock"
 import TVToolbar from "../components/TVToolbar"
@@ -16,6 +16,7 @@ import NotificationsBell from "../components/NotificationsBell"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import axios from "axios"
 import WatchlistsPanel from "../components/WatchlistsPanel"
+import { Avatar, AvatarImage, AvatarFallback } from "../components/ui/avatar"
 
 const BASE = (process.env.REACT_APP_BACKEND_URL || import.meta?.env?.REACT_APP_BACKEND_URL || "")
 
@@ -57,7 +58,13 @@ function CandleChart({ symbol, drawings, setDrawings, tool, setTool }) {
   return (
     <Card className="h-full">
       <CardHeader className="flex flex-row items-center justify-between py-2">
-        <CardTitle className="text-base">{symbol} • Chart</CardTitle>
+        <CardTitle className="text-base flex items-center gap-2">
+          <Avatar className="w-5 h-5 bg-white ring-1 ring-black/10 dark:ring-white/10 rounded-full overflow-hidden">
+            <AvatarImage className="object-contain p-0.5" src={`${BASE}/api/marketdata/logo_image?symbol=${symbol}`} alt={symbol} />
+            <AvatarFallback className="text-[10px] text-black bg-white">{symbol?.slice(0,2)}</AvatarFallback>
+          </Avatar>
+          {symbol} • Chart
+        </CardTitle>
         <div className="flex items-center gap-2">
           <Button size="sm" variant={tool==='line'? 'default':'secondary'} onClick={()=> setTool('line')}><Pencil className="w-4 h-4 mr-1"/>Line</Button>
           <Button size="sm" variant="secondary" onClick={clear}><Eraser className="w-4 h-4 mr-1"/>Clear</Button>
@@ -95,8 +102,8 @@ function CandleChart({ symbol, drawings, setDrawings, tool, setTool }) {
 export default function Dashboard() {
   const [rows, setRows] = useState([])
   const [selected, setSelected] = useLocalState("selectedSymbol", "AAPL")
-  const [visibleColumns, setVisibleColumns] = useLocalState("visibleColumns", ["logo","symbol","last","changePct","volume","avgVol20d","runRate20d","sma20","sma50","sma200","rsi14","marketCap","peTTM","RS","AS"]) 
-  const [miniColumns, setMiniColumns] = useLocalState("miniColumns", ["logo","symbol","last","changePct","volume","RS","AS"]) 
+  const [visibleColumns, setVisibleColumns] = useLocalState("visibleColumns", ["symbol","last","changePct","volume","avgVol20d","runRate20d","sma20","sma50","sma200","rsi14","marketCap","peTTM","RS","AS"]) 
+  const [miniColumns, setMiniColumns] = useLocalState("miniColumns", ["symbol","last","changePct","volume","RS","AS"]) 
   const [sort, setSort] = useState({ key: "RS", dir: "desc" })
   const [miniSort, setMiniSort] = useState({ key: "changePct", dir: "desc" })
   const [rsWindow, setRsWindow] = useLocalState("rsWindow", 63)
@@ -163,13 +170,12 @@ export default function Dashboard() {
     })()
   }, [rsWindow, asShort, asLong, watchSymbols])
 
+  // Build proxied logo URLs to avoid CORS
   useEffect(()=>{
     (async()=>{
       const next = {...logos}
       for (const s of watchSymbols) {
-        if (!next[s]) {
-          try { const r = await getLogo(s); next[s] = r.logoUrl || null } catch {}
-        }
+        next[s] = `${BASE}/api/marketdata/logo_image?symbol=${s}`
       }
       setLogos(next)
     })()
@@ -187,7 +193,7 @@ export default function Dashboard() {
 
   const savePreset = async (name)=>{ if(!name) return; try { await saveColumnPreset(name, visibleColumns); setPresets(prev=> ({...prev, [name]: visibleColumns})) } catch { setPresets(prev=> ({...prev, [name]: visibleColumns})) } }
   const loadPreset = (name)=>{ if(!name) return; const cols = presets[name]; if (cols) setVisibleColumns(cols) }
-  const resetRecommended = ()=> setVisibleColumns(["logo","symbol","last","changePct","volume","avgVol20d","runRate20d","sma20","sma50","sma200","rsi14","marketCap","peTTM","RS","AS"])
+  const resetRecommended = ()=> setVisibleColumns(["symbol","last","changePct","volume","avgVol20d","runRate20d","sma20","sma50","sma200","rsi14","marketCap","peTTM","RS","AS"])
 
   const onEdit = (symbol, key, value)=>{ setRows(prev => prev.map(r => r.symbol===symbol ? ({...r, [key]: value}) : r)) }
 
@@ -203,7 +209,7 @@ export default function Dashboard() {
   return (
     <div className="h-screen w-full flex flex-col">
       <header className="h-12 border-b px-4 flex items-center justify-between bg-card">
-        <div className="font-semibold">Market Workstation (Live • Polygon + Finnhub)</div>
+        <div className="font-semibold">Market Workstation</div>
         <div className="flex items-center gap-3 text-sm">
           <NotificationsBell />
           <div className="flex items-center gap-2">
@@ -269,7 +275,7 @@ export default function Dashboard() {
         <PanelResizeHandle className="h-1 bg-border" />
         <Panel defaultSize={42} minSize={30}>
           <div className="h-full p-3">
-            <DataTable rows={filteredRows} columnDefs={columnDefs} visibleColumns={visibleColumns} onColumnsClick={()=> setOpenCol(true)} sort={sort} setSort={setSort} onRowClick={(r)=> setSelected(r.symbol)} onEdit={onEdit} logos={logos} density={density} />
+            <DataTable rows={filteredRows} columnDefs={columnDefs} visibleColumns={visibleColumns} onColumnsClick={()=> setOpenCol(true)} sort={sort} setSort={setSort} onRowClick={(r)=> setSelected(r.symbol)} onEdit={onEdit} logos={logos} density={density} summaryLabel="matched" />
           </div>
         </Panel>
       </PanelGroup>

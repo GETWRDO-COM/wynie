@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Input } from "./ui/input"
 import { Button } from "./ui/button"
 import { Checkbox } from "./ui/checkbox"
-import { ArrowUpDown, Settings } from "lucide-react"
+import { ArrowUpDown, Settings, GripVertical, X } from "lucide-react"
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar"
 
 function SymbolCell({row, logoUrl, selectable, selected, onToggle}){
@@ -29,7 +29,7 @@ function formatValue(col, v){
   return v
 }
 
-export default function DataTable({ rows, columnDefs, visibleColumns, onColumnsClick, sort, setSort, onRowClick, onEdit, logos, selectable=false, selectedMap={}, onSelectChange, density='compact' }) {
+export default function DataTable({ rows, columnDefs, visibleColumns, onColumnsClick, sort, setSort, onRowClick, onEdit, logos, selectable=false, selectedMap={}, onSelectChange, density='compact', summaryLabel }) {
   const colMap = useMemo(()=>{
     const map = {}
     ;(columnDefs||[]).forEach(c => map[c.id] = c)
@@ -56,7 +56,7 @@ export default function DataTable({ rows, columnDefs, visibleColumns, onColumnsC
   return (
     <div className="w-full overflow-auto border rounded-md text-xs">
       <div className="flex items-center justify-between px-3 py-2 border-b bg-card sticky top-0 z-10">
-        <div className="text-xs text-muted-foreground">Rows: {rows.length}</div>
+        <div className="text-xs text-muted-foreground">{summaryLabel ? `${rows.length} ${summaryLabel}` : ''}</div>
         <Button variant="secondary" size="sm" onClick={onColumnsClick}><Settings className="w-4 h-4 mr-2"/>Columns</Button>
       </div>
       <Table>
@@ -77,12 +77,7 @@ export default function DataTable({ rows, columnDefs, visibleColumns, onColumnsC
             <TableRow key={r.symbol} className="cursor-pointer hover:bg-muted/30" onClick={()=> onRowClick && onRowClick(r)}>
               {cols.map(col => (
                 <TableCell key={col.id} className={`${padY}`}>
-                  {col.id === 'logo' ? (
-                    <Avatar className="w-5 h-5 bg-white ring-1 ring-black/10 dark:ring-white/10 rounded-full overflow-hidden">
-                      <AvatarImage className="object-contain p-0.5" src={logos?.[r.symbol] || ''} alt={r.symbol} />
-                      <AvatarFallback className="text-[10px] text-black bg-white">{r.symbol?.slice(0,2)}</AvatarFallback>
-                    </Avatar>
-                  ) : col.id === 'symbol' ? (
+                  {col.id === 'symbol' ? (
                     <SymbolCell row={r} logoUrl={logos?.[r.symbol]} selectable={selectable} selected={selectedMap[r.symbol]} onToggle={(val)=> onSelectChange && onSelectChange(r.symbol, !!val)} />
                   ) : col.editable ? (
                     <Input value={r[col.id] || ''} onClick={(e)=> e.stopPropagation()} onChange={(e)=> onEdit && onEdit(r.symbol, col.id, e.target.value)} />
