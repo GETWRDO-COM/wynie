@@ -135,6 +135,7 @@ function App() {
         </main>
       </div>
       <NewsTicker />
+      <FloatingChat api={api} user={user} />
     </ThemeWrapper>
   );
 }
