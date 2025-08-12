@@ -15,7 +15,6 @@ const AIChat = ({ api, user }) => {
   useEffect(() => {
     fetchModels();
     createNewSession();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchModels = async () => {
