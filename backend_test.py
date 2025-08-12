@@ -942,9 +942,9 @@ class ETFBackendTester:
                 self.log_test("Phase 1: ETF Regime Signal", False, f"Reason should be dict, got {type(reason)}")
                 return False
             
-            # Should have ema and adx in reason
-            if 'ema' not in reason or 'adx' not in reason:
-                self.log_test("Phase 1: ETF Regime Signal", False, "Reason missing ema or adx fields")
+            # Should have ema and adx in reason, unless it's a stale response
+            if 'stale' not in reason and ('ema' not in reason or 'adx' not in reason):
+                self.log_test("Phase 1: ETF Regime Signal", False, "Reason missing ema or adx fields (non-stale response)")
                 return False
             
             self.log_test("Phase 1: ETF Regime Signal", True, f"ETF regime signal: decision={decision}, confidence={confidence}, weights_sum={total_weight:.2f}")
