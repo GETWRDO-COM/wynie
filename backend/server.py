@@ -2391,6 +2391,113 @@ async def import_universe(payload: UniverseImport, current_user: User = Depends(
 # ---------- Backtest: ETF Regime Engine ----------
 
 @api_router.post("/signals/etf-regime/simulate")
+
+# ---------- Screens ----------
+
+@api_router.get("/screens/leaders")
+async def screen_leaders(top: int = Query(25, ge=1, le=200)):
+    cur = db.universe.find({"active": True})
+    uni = await cur.to_list(length=2000)
+    symbols = [u.get("symbol", u.get("_id")).upper() for u in uni] if uni else NDX_TICKERS_FALLBACK[:50]
+    ranks = []
+    batch = 20
+    qqq_df = await _fetch_hist("QQQ", period="180d", interval="1d")
+    if qqq_df.empty:
+        raise HTTPException(status_code=503, detail="QQQ data unavailable")
+    qqq_ret20 = float(qqq_df['Close'].iloc[-1] / qqq_df['Close'].iloc[-21] - 1) if len(qqq_df['Close']) > 21 else 0
+    for i in range(0, len(symbols), batch):
+        chunk = symbols[i:i+batch]
+        try:
+            multi = yf.download(" ".join(chunk), period="180d", interval="1d", progress=False, auto_adjust=False, group_by='ticker')
+            for sym in chunk:
+                try:
+                    df = multi[sym] if isinstance(multi.columns, pd.MultiIndex) else multi
+                    if df is None or df.empty or len(df['Close']) < 60:
+                        continue
+                    c = df['Close']
+                    v = df['Volume']
+                    r20 = float(c.iloc[-1] / c.iloc[-21] - 1) if len(c) > 21 else 0
+                    r50 = float(c.iloc[-1] / c.iloc[-51] - 1) if len(c) > 51 else 0
+                    rs = r20 - qqq_ret20
+                    vol_surge = float(v.iloc[-1] / (v.rolling(20).mean().iloc[-1] or 1))
+                    score = (r20 + r50 + rs + (vol_surge - 1)) / 4.0
+                    ranks.append({"symbol": sym, "ret_20d": r20, "ret_50d": r50, "rs_vs_qqq": rs, "volume_surge": vol_surge, "score": score})
+                except Exception:
+                    continue
+        except Exception:
+            continue
+    ranks.sort(key=lambda x: x['score'], reverse=True)
+    return ranks[:top]
+
+@api_router.get("/screens/neglected-pre-earnings")
+async def screen_neglected(
+    require_earnings_window: bool = Query(False),
+    drift_days: int = Query(21),
+    slope_days: int = Query(63),
+    atrp_low_percentile: float = Query(40.0),
+    near_ema20_tol: float = Query(0.01),
+    vol_spike_mult: float = Query(1.5)
+):
+    cur = db.universe.find({"active": True})
+    uni = await cur.to_list(length=2000)
+    symbols = [u.get("symbol", u.get("_id")).upper() for u in uni] if uni else NDX_TICKERS_FALLBACK[:50]
+    out = []
+    batch = 20
+    for i in range(0, len(symbols), batch):
+        chunk = symbols[i:i+batch]
+        try:
+            multi = yf.download(" ".join(chunk), period="365d", interval="1d", progress=False, auto_adjust=False, group_by='ticker')
+            for sym in chunk:
+                try:
+                    df = multi[sym] if isinstance(multi.columns, pd.MultiIndex) else multi
+                    if df is None or df.empty:
+                        continue
+                    c = df['Close']
+                    if len(c) < max(drift_days+2, slope_days+2, 60):
+                        continue
+                    # Drift <= 0% over drift_days
+                    ret_drift = float(c.iloc[-1] / c.iloc[-drift_days-1] - 1)
+                    drift_ok = ret_drift <= 0
+                    # Slope flatness over slope_days (linear regression slope magnitude small)
+                    y = c.tail(slope_days)
+                    x = pd.Series(range(len(y)))
+                    slope = float(((x - x.mean()) * (y - y.mean())).sum() / (((x - x.mean())**2).sum() + 1e-9))
+                    slope_ok = abs(slope) <= (abs(y.mean()) * 0.0005)
+                    # ATR% percentile over ~1y
+                    hl = df['High'] - df['Low']
+                    hc = (df['High'] - df['Close'].shift()).abs()
+                    lc = (df['Low'] - df['Close'].shift()).abs()
+                    tr = pd.concat([hl, hc, lc], axis=1).max(axis=1)
+                    atr = tr.rolling(14).mean()
+                    atrp = (atr / c) * 100
+                    perc = float((atrp.rank(pct=True).iloc[-1] * 100))
+                    quiet_ok = perc <= atrp_low_percentile
+                    # Near a flat 20-DMA
+                    ema20 = _ema(c, 20)
+                    d20 = abs(c.iloc[-1] - ema20.iloc[-1]) / (ema20.iloc[-1] or 1)
+                    near_ok = d20 <= near_ema20_tol
+                    # Triggers
+                    vol20 = df['Volume'].rolling(20).mean().iloc[-1] or 1
+                    vol_spike = float(df['Volume'].iloc[-1] / vol20)
+                    first_close_above = (c.tail(drift_days+1) > ema20.tail(drift_days+1)).astype(int).diff().fillna(0).gt(0).any()
+                    trigger = (vol_spike >= vol_spike_mult) or first_close_above
+                    label = "READY" if (drift_ok and slope_ok and quiet_ok and near_ok and trigger) else ("WATCH" if (drift_ok and slope_ok and quiet_ok and near_ok) else None)
+                    if label:
+                        out.append({
+                            "symbol": sym,
+                            "ret_21d": ret_drift,
+                            "slope_63d": slope,
+                            "atrp_percentile": perc,
+                            "near_20dma": d20,
+                            "trigger": trigger,
+                            "label": label
+                        })
+                except Exception:
+                    continue
+        except Exception:
+            continue
+    return out
+
 async def simulate_etf_regime(payload: Dict[str, Any]):
     """
     Backtest ETF regime router between start and end (ISO dates).
