@@ -878,9 +878,42 @@ class BackendTester:
         except Exception as e:
             self.log_result('screener', 'Rate limit handling (multiple rapid requests)', False, str(e))
 
+    def test_screener_filters_sanity_check(self):
+        print("\n=== Quick Screener GET Filters Sanity Check ===")
+        
+        # Quick sanity check for screener filters endpoint
+        try:
+            response = self.session.get(f"{self.base_url}/api/screeners/filters")
+            if response.status_code == 200:
+                data = response.json()
+                if 'categories' in data and isinstance(data['categories'], list):
+                    # Quick validation of expected structure
+                    categories = data['categories']
+                    if len(categories) > 0:
+                        # Check first category has expected structure
+                        first_cat = categories[0]
+                        if 'name' in first_cat and 'fields' in first_cat:
+                            self.log_result('screener_registry', 'Quick Screener Filters Sanity Check', True)
+                        else:
+                            self.log_result('screener_registry', 'Quick Screener Filters Sanity Check', False, f"Invalid category structure: {first_cat}")
+                    else:
+                        self.log_result('screener_registry', 'Quick Screener Filters Sanity Check', False, "No categories found")
+                else:
+                    self.log_result('screener_registry', 'Quick Screener Filters Sanity Check', False, f"Invalid response structure: {data}")
+            else:
+                self.log_result('screener_registry', 'Quick Screener Filters Sanity Check', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('screener_registry', 'Quick Screener Filters Sanity Check', False, str(e))
+
     def run_all_tests(self):
         print(f"Starting Backend API Tests at {datetime.now()}")
         print(f"Base URL: {self.base_url}")
+        
+        # Quick screener filters sanity check as requested
+        self.test_screener_filters_sanity_check()
+        
+        # Test Watchlists v2 as requested
+        self.test_watchlists_v2_crud()
         
         # Test settings first to confirm API keys
         self.test_settings_endpoints()
@@ -896,7 +929,6 @@ class BackendTester:
         # Then test other endpoints
         self.test_marketdata_endpoints()
         self.test_websocket_quotes()
-        self.test_watchlists_crud()
         self.test_columns_endpoints()
         self.test_ratings_compute()
         
