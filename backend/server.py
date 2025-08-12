@@ -2367,7 +2367,7 @@ async def get_universe(active: bool = Query(True)):
     return items
 
 @api_router.post("/universe/import")
-async def import_universe(payload: Any, current_user: User = Depends(get_current_user)):
+async def import_universe(payload: Any = Body(...), current_user: User = Depends(get_current_user)):
     # Accept either {symbols:[...] } or a bare array [...]
     items = []
     if isinstance(payload, dict) and isinstance(payload.get("symbols"), list):
