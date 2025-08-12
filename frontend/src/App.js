@@ -124,6 +124,7 @@ function App() {
             <div className="space-y-6">
               <HeroBanner user={user} />
               <DashboardQuickSections chartData={chartData} swingLeaders={swingLeaders} watchlists={watchlists} marketScore={marketScore} />
+              <GreedFearCard />
               <MarketCharts />
             </div>
           )}
