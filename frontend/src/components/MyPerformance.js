@@ -3,10 +3,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 const RANGES = [
   { id: '1D', label: '1 Day' },
   { id: '5D', label: '5 Days' },
-  { id: 'YTD', label: 'YTD' },
   { id: '1M', label: '1 Month' },
   { id: '6M', label: '6 Months' },
-  { id: '12M', label: '12 Months' },
+  { id: '1Y', label: '1 Year' },
+  { id: 'YTD', label: 'YTD' },
 ];
 
 const MyPerformance = ({ api }) => {
