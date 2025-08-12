@@ -55,7 +55,7 @@ def cache_get(key: str):
     item = CACHE.get(key)
     if not item:
         return None
-    if datetime.now(timezone.utc) &gt; item["expires_at"]:
+    if datetime.now(timezone.utc) > item["expires_at"]:
         CACHE.pop(key, None)
         return None
     return item["value"]
