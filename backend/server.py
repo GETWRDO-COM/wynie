@@ -2353,6 +2353,162 @@ async def get_etf_regime_signal():
 
 # ==================== END MSAE + ETF ENGINE ====================
 
+# ---------- Backtest: ETF Regime Engine ----------
+
+@api_router.post("/signals/etf-regime/simulate")
+async def simulate_etf_regime(payload: Dict[str, Any]):
+    """
+    Backtest ETF regime router between start and end (ISO dates).
+    Body: {start: 'YYYY-MM-DD', end: 'YYYY-MM-DD', params?: {overrides}}
+    Returns: {equity_curve: [{ts, equity}], total_return, max_dd, sharpe, flips, pl_by_regime, decisions[], params_version}
+    """
+    start = payload.get("start")
+    end = payload.get("end")
+    if not start or not end:
+        raise HTTPException(status_code=400, detail="start and end are required (YYYY-MM-DD)")
+    try:
+        start_dt = datetime.fromisoformat(start)
+        end_dt = datetime.fromisoformat(end)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+
+    cfg = await _ensure_etf_regime_config()
+    base_params = cfg.get("params", {})
+    params = {**base_params, **(payload.get("params") or {})}
+
+    # Fetch daily histories
+    qqq = await _fetch_hist("QQQ", period="max", interval="1d")
+    tqqq = await _fetch_hist("TQQQ", period="max", interval="1d")
+    sqqq = await _fetch_hist("SQQQ", period="max", interval="1d")
+    income_etf = params.get("income_etf", "QQQI")
+    qqqi = await _fetch_hist(income_etf, period="max", interval="1d") if not params.get("out_instead_of_income", False) else pd.DataFrame()
+    if qqq.empty or tqqq.empty or sqqq.empty:
+        raise HTTPException(status_code=503, detail="Price data unavailable")
+
+    # Align date range
+    qqq = qqq[(qqq.index >= start_dt) & (qqq.index <= end_dt)].copy()
+    if len(qqq) < 60:
+        raise HTTPException(status_code=400, detail="Need at least 60 days for indicators")
+
+    # Indicators for QQQ
+    close = qqq['Close']
+    ema20 = _ema(close, params.get("ema_fast", 20))
+    ema50 = _ema(close, params.get("ema_slow", 50))
+    adx = _compute_adx(qqq, params.get("adx_period", 14))
+    # ATR%
+    hl = qqq['High'] - qqq['Low']
+    hc = (qqq['High'] - qqq['Close'].shift()).abs()
+    lc = (qqq['Low'] - qqq['Close'].shift()).abs()
+    tr = pd.concat([hl, hc, lc], axis=1).max(axis=1)
+    atr = tr.rolling(params.get("atr_period", 14)).mean()
+    atrp = (atr / close) * 100
+
+    # Confirmation conditions
+    th = params.get("adx_threshold", 20)
+    cond_up = (close > ema20) & (ema20 > ema50) & (adx > th)
+    cond_dn = (close < ema20) & (ema20 < ema50) & (adx > th)
+    n = params.get("flip_confirmation_days", 2)
+
+    # Precompute returns
+    def daily_ret(df: pd.DataFrame) -> pd.Series:
+        return df['Close'].pct_change().fillna(0.0)
+    r_tqqq = daily_ret(tqqq)
+    r_sqqq = daily_ret(sqqq)
+    r_qqqi = daily_ret(qqqi) if not qqqi.empty else pd.Series(0.0, index=qqq.index)
+
+    # Align returns to qqq index
+    r_tqqq = r_tqqq.reindex(qqq.index).fillna(0.0)
+    r_sqqq = r_sqqq.reindex(qqq.index).fillna(0.0)
+    r_qqqi = r_qqqi.reindex(qqq.index).fillna(0.0)
+
+    equity = 1.0
+    eq_curve = []
+    decisions = []
+    flips = 0
+    last_decision = None
+    freeze_days_left = 0
+    max_equity = 1.0
+    max_dd = 0.0
+
+    for i in range(len(qqq)):
+        idx = qqq.index[i]
+        # confirmation window
+        up_conf = cond_up.iloc[max(0, i-n+1):i+1].all() if i+1 >= n else False
+        dn_conf = cond_dn.iloc[max(0, i-n+1):i+1].all() if i+1 >= n else False
+
+        # Guards
+        decay = False
+        look = params.get("decay_guard_lookback_days", 10)
+        if i >= look:
+            r1 = (1 + r_tqqq.iloc[i-look+1:i+1]).prod() - 1
+            r2 = (1 + r_sqqq.iloc[i-look+1:i+1]).prod() - 1
+            decay = (r1 < 0) and (r2 < 0)
+        volfreeze = atrp.iloc[i] > params.get("atrp_vol_cap_pct", 3.5)
+        if volfreeze and freeze_days_left <= 0:
+            freeze_days_left = params.get("freeze_on_vol_spike_days", 1)
+
+        decision = last_decision or (income_etf if not params.get("out_instead_of_income", False) else "OUT")
+        if freeze_days_left > 0:
+            freeze_days_left -= 1
+        else:
+            if decay:
+                decision = income_etf if not params.get("out_instead_of_income", False) else "OUT"
+            else:
+                if up_conf:
+                    decision = "TQQQ"
+                elif dn_conf:
+                    decision = "SQQQ"
+                else:
+                    decision = income_etf if not params.get("out_instead_of_income", False) else "OUT"
+
+        if decision != last_decision and last_decision is not None:
+            flips += 1
+        last_decision = decision
+
+        # Apply returns
+        day_ret = 0.0
+        if decision == "TQQQ":
+            day_ret = float(r_tqqq.iloc[i])
+        elif decision == "SQQQ":
+            day_ret = float(r_sqqq.iloc[i])
+        elif decision == income_etf:
+            day_ret = float(r_qqqi.iloc[i])
+        else:  # OUT
+            day_ret = 0.0
+
+        equity *= (1 + day_ret)
+        max_equity = max(max_equity, equity)
+        dd = (max_equity - equity) / max_equity
+        max_dd = max(max_dd, dd)
+        eq_curve.append({"ts": idx.isoformat(), "equity": round(equity, 6)})
+        decisions.append({"ts": idx.isoformat(), "decision": decision})
+
+    # Metrics
+    total_return = equity - 1.0
+    if len(eq_curve) > 1:
+        rets = pd.Series([eq_curve[i]["equity"]/eq_curve[i-1]["equity"] - 1 for i in range(1, len(eq_curve))])
+        sharpe = float(rets.mean() / (rets.std() + 1e-9) * (252 ** 0.5))
+    else:
+        sharpe = 0.0
+
+    pl_by_regime = {
+        "TQQQ": float((1 + r_tqqq).prod() - 1),
+        "SQQQ": float((1 + r_sqqq).prod() - 1),
+        income_etf: float((1 + r_qqqi).prod() - 1) if not params.get("out_instead_of_income", False) else 0.0
+    }
+
+    return {
+        "equity_curve": eq_curve,
+        "total_return": round(float(total_return), 6),
+        "max_drawdown": round(float(max_dd), 6),
+        "sharpe": round(sharpe, 3),
+        "flips": flips,
+        "pl_by_regime": pl_by_regime,
+        "decisions": decisions,
+        "params_version": f"preview@{datetime.utcnow().isoformat()}"
+    }
+
+
 @api_router.get("/formulas/config/all")
 async def get_all_formula_configs():
     """Return all formula configs including etf_regime"""
