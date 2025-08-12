@@ -2353,6 +2353,41 @@ async def get_etf_regime_signal():
 
 # ==================== END MSAE + ETF ENGINE ====================
 
+# ---------- Universe ----------
+
+class UniverseImport(BaseModel):
+    symbols: List[Dict[str, Any]]  # each: {symbol, name, type, sector, tags[], active}
+
+@api_router.get("/universe")
+async def get_universe(active: bool = Query(True)):
+    query = {"active": True} if active else {}
+    items = await db.universe.find(query).to_list(length=10000)
+    for it in items:
+        it.pop("_id", None)
+    return items
+
+@api_router.post("/universe/import")
+async def import_universe(payload: UniverseImport, current_user: User = Depends(get_current_user)):
+    # admin-only later; currently any authenticated user
+    count = 0
+    for item in payload.symbols:
+        sym = (item.get("symbol") or "").upper()
+        if not sym:
+            continue
+        doc = {
+            "_id": sym,
+            "symbol": sym,
+            "name": item.get("name") or sym,
+            "type": item.get("type", "equity"),
+            "sector": item.get("sector"),
+            "tags": item.get("tags", []),
+            "active": bool(item.get("active", True))
+        }
+        await db.universe.replace_one({"_id": sym}, doc, upsert=True)
+        count += 1
+    return {"imported": count}
+
+
 # ---------- Backtest: ETF Regime Engine ----------
 
 @api_router.post("/signals/etf-regime/simulate")
