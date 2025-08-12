@@ -21,7 +21,7 @@ const NavBar = ({ activeTab, setActiveTab, user, onSettings, onLogout }) => {
 
   return (
     <header className="sticky top-0 z-[2000]">
-      <div className={`${scrolled ? 'bg-[#070a11]/98 shadow-lg border-b border-white/10' : 'bg-[#070a11]/90'} transition-colors`}>
+      <div className={`${scrolled ? 'bg-[#070a11]/[0.98] shadow-2xl shadow-black/60 ring-1 ring-white/15 border-b border-white/10 backdrop-blur-xl' : 'bg-[#070a11]/95'} transition-colors`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative">
           <div className="h-14 flex items-center justify-between gap-4">
             <div className="text-white font-semibold tracking-wide">HUNT by WRDO</div>
