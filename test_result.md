@@ -135,7 +135,7 @@
     working: true
     file: "/app/backend/screener_registry.py"
     stuck_count: 0
-    priority: "medium"
+    priority: "high"
     needs_retesting: false
     status_history:
       - working: false
@@ -144,6 +144,9 @@
       - working: true
         agent: "testing"
         comment: "✅ Screener registry working perfectly. GET /api/screeners/filters returns categories and fields including fundamentals like marketCap. All expected categories present: Price & Volume, Technicals, Signals, and Fundamentals with proper field definitions."
+      - working: true
+        agent: "testing"
+        comment: "✅ SCREENER EXPANSION FULLY VALIDATED: All requested features working perfectly! 1) GET /api/screeners/filters returns all new fields (macd_line, macd_signal, macd_hist, stoch_k, stoch_d, gapPct, liquidity, hi52, lo52), 2) POST /api/screeners/run successfully processes all test cases with universe [AAPL,MSFT,TSLA,NVDA,AMZN,GOOGL,META,AMD,NFLX,AVGO]: a) pct_to_hi52<=2 sorted by last desc (1 row), b) relVol>=1.2 (0 rows), c) macd_cross_up==true (6 rows), d) AND group marketCap>=1B AND rsi14 between [30,70] (0 rows). All return proper JSON shape {rows,nextCursor}. Rate-limit handling OK. Settings confirmed polygon:true, finnhub:true."
   - task: "Polygon adapter + marketdata endpoints"
     implemented: true
     working: true
