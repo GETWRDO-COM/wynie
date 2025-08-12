@@ -7,10 +7,13 @@ import { listWatchlists, createWatchlist, updateWatchlist, deleteWatchlist } fro
 
 const COLORS = ["#3b82f6","#10b981","#f59e0b","#ef4444","#8b5cf6","#06b6d4","#22c55e","#f97316"]
 
+function rid(){ return (globalThis.crypto?.randomUUID?.() || `id_${Date.now()}_${Math.random().toString(36).slice(2)}`) }
+
 export default function WatchlistsPanel({ onUseSymbols }){
   const [lists, setLists] = useState([])
   const [activeId, setActiveId] = useState(null)
   const [newName, setNewName] = useState("")
+  const [template, setTemplate] = useState("multi") // 'core' | 'multi'
 
   const active = useMemo(()=> lists.find(l=> l.id===activeId) || lists[0], [lists, activeId])
 
@@ -19,10 +22,18 @@ export default function WatchlistsPanel({ onUseSymbols }){
 
   async function addList(){
     const name = newName.trim() || "My List"
-    const body = { name, sections: [{ id: crypto.randomUUID(), name: "Core", color: COLORS[0], symbols: ["AAPL","MSFT","NVDA"] }] }
-    try { const r = await createWatchlist(body.name, body.sections[0].symbols); // backward-compat
-      // immediately upgrade to sections model
-      await updateWatchlist(r.id, { sections: body.sections })
+    let sections
+    if (template === 'multi') {
+      sections = [
+        { id: rid(), name: "Core", color: "#3b82f6", symbols: ["AAPL","MSFT","NVDA"] },
+        { id: rid(), name: "Momentum", color: "#10b981", symbols: ["TSLA","AMD","META"] },
+        { id: rid(), name: "Earnings", color: "#f59e0b", symbols: ["AMZN","GOOGL","NFLX"] },
+      ]
+    } else {
+      sections = [{ id: rid(), name: "Core", color: "#3b82f6", symbols: ["AAPL","MSFT","NVDA"] }]
+    }
+    try {
+      const r = await createWatchlist(name, [], sections)
       setNewName("")
       await load()
       setActiveId(r.id)
@@ -33,7 +44,7 @@ export default function WatchlistsPanel({ onUseSymbols }){
     if (!active) return
     const name = prompt("Section name?") || "Section"
     const color = COLORS[Math.floor(Math.random()*COLORS.length)]
-    const sections = [...(active.sections||[]), { id: crypto.randomUUID(), name, color, symbols: [] }]
+    const sections = [...(active.sections||[]), { id: rid(), name, color, symbols: [] }]
     await updateWatchlist(active.id, { sections }); await load()
   }
 
@@ -65,8 +76,15 @@ export default function WatchlistsPanel({ onUseSymbols }){
     <Card>
       <CardHeader className="py-2"><CardTitle className="text-base">Watchlists</CardTitle></CardHeader>
       <CardContent className="space-y-3">
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <Input placeholder="New list name" value={newName} onChange={(e)=> setNewName(e.target.value)} />
+          <Select value={template} onValueChange={setTemplate}>
+            <SelectTrigger className="w-40"><SelectValue placeholder="Start with"/></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="core">Core only</SelectItem>
+              <SelectItem value="multi">Core + Momentum + Earnings</SelectItem>
+            </SelectContent>
+          </Select>
           <Button size="sm" onClick={addList}>Add</Button>
         </div>
         <div className="flex gap-2 overflow-x-auto">
@@ -91,7 +109,7 @@ export default function WatchlistsPanel({ onUseSymbols }){
                     </div>
                     <div className="flex items-center gap-2">
                       <Select value={sec.color||''} onValueChange={(v)=> setColor(sec.id, v)}>
-                        <SelectTrigger className="w-24"><SelectValue placeholder="Color"/></SelectTrigger>
+                        <SelectTrigger className="w-28"><SelectValue placeholder="Color"/></SelectTrigger>
                         <SelectContent>
                           {COLORS.map(c=> <SelectItem key={c} value={c}><div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full" style={{background:c}}></span><span>{c}</span></div></SelectItem>)}
                         </SelectContent>
@@ -106,7 +124,7 @@ export default function WatchlistsPanel({ onUseSymbols }){
                         <div key={s} className="flex items-center justify-between border rounded px-2 py-1">
                           <span>{s}</span>
                           <Select onValueChange={(to)=> moveSymbol(s, sec.id, to)}>
-                            <SelectTrigger className="w-28"><SelectValue placeholder="Move"/></SelectTrigger>
+                            <SelectTrigger className="w-32"><SelectValue placeholder="Move"/></SelectTrigger>
                             <SelectContent>
                               {(active.sections||[]).filter(x=> x.id!==sec.id).map(x=> (
                                 <SelectItem key={x.id} value={x.id}>→ {x.name}</SelectItem>

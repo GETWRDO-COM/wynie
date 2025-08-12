@@ -17,7 +17,13 @@ export const getFundamentals = (symbolsCsv) => get('/marketdata/fundamentals', {
 
 // Watchlists
 export const listWatchlists = () => get('/watchlists')
-export const createWatchlist = (name, symbols=[]) => post('/watchlists', { name, symbols })
+export const createWatchlist = (name, symbols = [], sections = null, color = null) => {
+  const body = { name }
+  if (color) body.color = color
+  if (sections && Array.isArray(sections)) body.sections = sections
+  else body.symbols = symbols
+  return post('/watchlists', body)
+}
 export const updateWatchlist = (id, patch) => put(`/watchlists/${id}`, patch)
 export const deleteWatchlist = (id) => del(`/watchlists/${id}`)
 
