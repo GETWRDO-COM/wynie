@@ -141,7 +141,7 @@ def test_auth_and_news_endpoints():
                     results.append(f"❌ FAIL: GET /api/market/aggregates - Missing tickers: {missing_tickers}")
                     print(f"   ❌ FAIL: Missing tickers: {missing_tickers}")
             else:
-                results.append("❌ FAIL: GET /api/market/aggregates - Missing 'tickers' field")
+                results.append("❌ FAIL: GET /api/market/aggregates - Missing 'data' field")
                 print("   ❌ FAIL: Missing 'tickers' field")
         else:
             results.append(f"❌ FAIL: GET /api/market/aggregates - HTTP {aggregates_response.status_code}: {aggregates_response.text}")
