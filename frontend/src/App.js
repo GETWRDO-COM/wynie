@@ -21,7 +21,7 @@ function Shell({children}){
 
 function App() {
   useEffect(()=>{
-    // Force dark theme to match Deepvue screenshots
+    // Force dark theme by default for workstation contrast
     try { document.documentElement.classList.add('dark') } catch {}
   },[])
   return (
