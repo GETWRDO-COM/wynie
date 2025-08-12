@@ -24,7 +24,10 @@ const FloatingChat = ({ api, user }) => {
           <div className="glass-panel p-3">
             <div className="flex items-center justify-between mb-2 cursor-move select-none" onMouseDown={onMouseDown}>
               <div className="text-white/90 font-semibold">WRDO</div>
-              <button onClick={() => setOpen(false)} className="text-gray-300 hover:text-white text-sm">Close</button>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setOpen(false)} className="text-gray-300 hover:text-white text-xs px-2 py-1 rounded bg-white/5 border border-white/10">Minimize</button>
+                <button onClick={() => setOpen(false)} className="text-gray-300 hover:text-white text-sm">Close</button>
+              </div>
             </div>
             <div className="h-[520px] rounded-xl bg-black/30 border border-white/10 overflow-hidden">
               <AIChat api={api} user={user} />
