@@ -76,9 +76,9 @@ export default function DataTable({ rows, columnDefs, visibleColumns, onColumnsC
               {cols.map(col => (
                 <TableCell key={col.id} className="py-1">
                   {col.id === 'logo' ? (
-                    <Avatar className="w-5 h-5">
-                      <AvatarImage src={logos?.[r.symbol] || ''} alt={r.symbol} />
-                      <AvatarFallback className="text-[10px]">{r.symbol?.slice(0,2)}</AvatarFallback>
+                    <Avatar className="w-5 h-5 bg-white ring-1 ring-black/10 dark:ring-white/10 rounded-full overflow-hidden">
+                      <AvatarImage className="object-contain p-0.5" src={logos?.[r.symbol] || ''} alt={r.symbol} />
+                      <AvatarFallback className="text-[10px] text-black bg-white">{r.symbol?.slice(0,2)}</AvatarFallback>
                     </Avatar>
                   ) : col.id === 'symbol' ? (
                     <SymbolCell row={r} logoUrl={logos?.[r.symbol]} selectable={selectable} selected={selectedMap[r.symbol]} onToggle={(val)=> onSelectChange && onSelectChange(r.symbol, !!val)} />
