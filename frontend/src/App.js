@@ -16,6 +16,7 @@ import PolygonKeySettings from './components/PolygonKeySettings';
 import GreedFearCard from './components/GreedFearCard';
 import FloatingChat from './components/FloatingChat';
 import MyPerformance from './components/MyPerformance';
+import MarketScoreCard from './components/MarketScoreCard';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
@@ -124,9 +125,12 @@ function App() {
             <div className="space-y-6">
               <HeroBanner user={user} />
               <MyPerformance api={api} />
-              <GreedFearCard />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <GreedFearCard />
+                <MarketScoreCard marketScore={marketScore} />
+              </div>
               <MarketCharts />
-              <DashboardQuickSections chartData={chartData} swingLeaders={swingLeaders} watchlists={watchlists} marketScore={marketScore} />
+              <DashboardQuickSections swingLeaders={swingLeaders} watchlists={watchlists} marketScore={marketScore} />
             </div>
           )}
           {activeTab === 'swing-grid' && (<div className="glass-panel p-6 animate-fade-in"><SwingAnalysisGrid api={api} etfs={selectedSector ? etfs.filter(e => e.sector === selectedSector) : etfs} sectors={sectors} selectedSector={selectedSector} setSelectedSector={setSelectedSector} analyzeChart={() => {}} addToWatchlist={() => {}} /></div>)}
