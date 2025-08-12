@@ -2509,6 +2509,56 @@ async def screen_neglected(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# ---------- Exports ----------
+
+@api_router.get("/exports/excel/daily")
+async def export_excel_daily():
+    import openpyxl
+    wb = openpyxl.Workbook()
+    ws1 = wb.active
+    ws1.title = "market_state"
+    latest = await db.market_state.find({}).sort("ts", -1).limit(1).to_list(1)
+    if latest:
+        row = latest[0]
+        row.pop("_id", None)
+        ws1.append(list(row.keys()))
+        ws1.append([json.dumps(v) if isinstance(v, (dict, list)) else v for v in row.values()])
+    ws2 = wb.create_sheet("etf_signal")
+    sig = await db.signals.find({"module": "etf_regime"}).sort("ts", -1).limit(1).to_list(1)
+    if sig:
+        row = sig[0]
+        row.pop("_id", None)
+        ws2.append(list(row.keys()))
+        ws2.append([json.dumps(v) if isinstance(v, (dict, list)) else v for v in row.values()])
+    bytes_io = io.BytesIO()
+    wb.save(bytes_io)
+    bytes_io.seek(0)
+    return StreamingResponse(bytes_io, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", headers={"Content-Disposition": "attachment; filename=daily.xlsx"})
+
+@api_router.get("/exports/csv/daily")
+async def export_csv_daily():
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    # market_state
+    ms = await db.market_state.find({}).sort("ts", -1).limit(1).to_list(1)
+    writer.writerow(["[market_state]"])
+    if ms:
+        row = ms[0]
+        row.pop("_id", None)
+        writer.writerow(list(row.keys()))
+        writer.writerow([json.dumps(v) if isinstance(v, (dict, list)) else v for v in row.values()])
+    # etf_signal
+    writer.writerow(["[etf_signal]"])
+    sig = await db.signals.find({"module": "etf_regime"}).sort("ts", -1).limit(1).to_list(1)
+    if sig:
+        row = sig[0]
+        row.pop("_id", None)
+        writer.writerow(list(row.keys()))
+        writer.writerow([json.dumps(v) if isinstance(v, (dict, list)) else v for v in row.values()])
+    buf.seek(0)
+    return StreamingResponse(io.BytesIO(buf.getvalue().encode("utf-8")), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=daily.csv"})
+
+
 async def simulate_etf_regime(payload: Dict[str, Any]):
     """
     Backtest ETF regime router between start and end (ISO dates).
