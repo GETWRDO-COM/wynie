@@ -188,12 +188,12 @@ async def polygon_status(user: dict = Depends(get_current_user)):
     return {"configured": bool(key)}
 
 NEWS_FEEDS = {
-    "All": 'https://news.google.com/rss?hl=en-US&amp;gl=US&amp;ceid=US:en',
-    "USA": 'https://news.google.com/rss?hl=en-US&amp;gl=US&amp;ceid=US:en',
-    "World": 'https://news.google.com/rss/search?q=world%20news&amp;hl=en-US&amp;gl=US&amp;ceid=US:en',
-    "South Africa": 'https://news.google.com/rss?hl=en-ZA&amp;gl=ZA&amp;ceid=ZA:en',
-    "Stock Market": 'https://news.google.com/rss/search?q=stock%20market&amp;hl=en-US&amp;gl=US&amp;ceid=US:en',
-    "Finance News": 'https://news.google.com/rss/search?q=finance&amp;hl=en-US&amp;gl=US&amp;ceid=US:en',
+    "All": 'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en',
+    "USA": 'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en',
+    "World": 'https://news.google.com/rss/search?q=world%20news&hl=en-US&gl=US&ceid=US:en',
+    "South Africa": 'https://news.google.com/rss?hl=en-ZA&gl=ZA&ceid=ZA:en',
+    "Stock Market": 'https://news.google.com/rss/search?q=stock%20market&hl=en-US&gl=US&ceid=US:en',
+    "Finance News": 'https://news.google.com/rss/search?q=finance&hl=en-US&gl=US&ceid=US:en',
 }
 
 @api_router.get("/news")
@@ -203,7 +203,7 @@ async def news_proxy(category: str = Query("All"), q: Optional[str] = Query(None
         cached = cache_get(cache_key)
         if cached:
             return {"category": f"search:{q}", "items": cached, "cached": True}
-        url = f"https://news.google.com/rss/search?q={quote(q)}&amp;hl=en-US&amp;gl=US&amp;ceid=US:en"
+        url = f"https://news.google.com/rss/search?q={quote(q)}&hl=en-US&gl=US&ceid=US:en"
     else:
         cache_key = f"news:{category}"
         cached = cache_get(cache_key)
@@ -287,7 +287,7 @@ async def greed_fear():
                     continue
     except Exception:
         pass
-    raise HTTPException(status_code=502, detail="Unable to fetch CNN Fear &amp; Greed Index")
+    raise HTTPException(status_code=502, detail="Unable to fetch CNN Fear & Greed Index")
 
 TIME_RANGE_CONFIG = {
     "1D": {"multiplier": 5, "timespan": "minute", "days_back": 1},
@@ -299,7 +299,7 @@ TIME_RANGE_CONFIG = {
 }
 
 async def fetch_polygon_prev_close(session: aiohttp.ClientSession, base: str, ticker: str, api_key: str):
-    url = f"{base}/v2/aggs/ticker/{quote(ticker, safe=':')}/prev?adjusted=true&amp;apiKey={api_key}"
+    url = f"{base}/v2/aggs/ticker/{quote(ticker, safe=':')}/prev?adjusted=true&apiKey={api_key}"
     async with session.get(url, timeout=30) as resp:
         if resp.status != 200:
             return None
@@ -310,7 +310,7 @@ async def fetch_polygon_prev_close(session: aiohttp.ClientSession, base: str, ti
         return None
 
 async def fetch_polygon_open_close(session: aiohttp.ClientSession, base: str, ticker: str, date_str: str, api_key: str):
-    url = f"{base}/v1/open-close/{quote(ticker, safe=':')}/{date_str}?adjusted=true&amp;apiKey={api_key}"
+    url = f"{base}/v1/open-close/{quote(ticker, safe=':')}/{date_str}?adjusted=true&apiKey={api_key}"
     async with session.get(url, timeout=30) as resp:
         if resp.status != 200:
             return None
@@ -339,7 +339,7 @@ async def market_aggregates(
     tlist = [t.strip() for t in tickers.split(',') if t.strip()]
     async with aiohttp.ClientSession() as session:
         async def fetch_one(t: str):
-            agg_url = f"{base}/v2/aggs/ticker/{quote(t, safe=':')}/range/{cfg['multiplier']}/{cfg['timespan']}/{start_dt.date()}/{end_dt.date()}?adjusted=true&amp;sort=asc&amp;apiKey={api_key}"
+            agg_url = f"{base}/v2/aggs/ticker/{quote(t, safe=':')}/range/{cfg['multiplier']}/{cfg['timespan']}/{start_dt.date()}/{end_dt.date()}?adjusted=true&sort=asc&apiKey={api_key}"
             async with session.get(agg_url, timeout=40) as resp:
                 data = await resp.json()
             results = data.get("results") or []
@@ -382,7 +382,7 @@ async def earnings(tickers: Optional[str] = Query(None), days_ahead: int = Query
             if tickers:
                 syms = [s.strip().upper() for s in tickers.split(',') if s.strip()][:20]
                 for s in syms:
-                    url = f"{base}?symbol={quote(s)}&amp;from={today}&amp;to={to}&amp;token={api_key}"
+                    url = f"{base}?symbol={quote(s)}&from={today}&to={to}&token={api_key}"
                     try:
                         async with session.get(url, timeout=20) as resp:
                             js = await resp.json()
@@ -400,7 +400,7 @@ async def earnings(tickers: Optional[str] = Query(None), days_ahead: int = Query
                     except Exception:
                         continue
             else:
-                url = f"{base}?from={today}&amp;to={to}&amp;token={api_key}"
+                url = f"{base}?from={today}&to={to}&token={api_key}"
                 async with session.get(url, timeout=20) as resp:
                     js = await resp.json()
                 for r in (js.get('earningsCalendar') or []):
