@@ -2144,7 +2144,11 @@ async def _vol_guard(params: Dict[str, Any], components: Dict[str, Any]) -> bool
 
 async def _latest_signal() -> Optional[Dict[str, Any]]:
     sig = await db.signals.find({"module": "etf_regime"}).sort("ts", -1).limit(1).to_list(1)
-    return sig[0] if sig else None
+    if sig:
+        result = sig[0].copy()
+        result.pop("_id", None)  # Remove ObjectId to prevent serialization issues
+        return result
+    return None
 
 async def _compute_signal(snapshot: MarketStateSnapshot, params_doc: Dict[str, Any]) -> Dict[str, Any]:
     params = params_doc.get("params", {})
