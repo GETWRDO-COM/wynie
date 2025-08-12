@@ -14,7 +14,7 @@ const MarketCharts = () => {
   const [range, setRange] = useState('1M');
   const [data, setData] = useState({});
   const [updatedAt, setUpdatedAt] = useState(null);
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+  const BACKEND_URL = (typeof import !== 'undefined' && import.meta && import.meta.env && import.meta.env.REACT_APP_BACKEND_URL) || process.env.REACT_APP_BACKEND_URL || '';
 
   const load = async (r) => {
     try {
@@ -36,6 +36,7 @@ const MarketCharts = () => {
   return (
     <div className="glass-panel p-4">
       <div className="flex items-center justify-between mb-3">
+        <div className="text-white/90 font-semibold">Market Snapshot</div>
         <div className="flex items-center gap-2">
           {RANGES.map(r => (
             <button key={r} onClick={() => setRange(r)} className={`px-3 py-1.5 rounded-lg text-sm ${range===r?'text-white bg-white/10 border border-white/10':'text-gray-300 hover:text-white hover:bg-white/5'}`}>{r}</button>
@@ -60,9 +61,10 @@ const MarketCharts = () => {
               data: values,
               borderColor: color,
               backgroundColor: fill,
-              tension: 0.25,
+              tension: 0.35,
               pointRadius: 0,
               fill: true,
+              borderWidth: 2
             }]
           };
           const options = {responsive: true, plugins:{legend:{display:false}, tooltip:{mode:'index', intersect:false}}, scales:{x:{display:false}, y:{display:false}}};
@@ -75,8 +77,8 @@ const MarketCharts = () => {
               </div>
               <div className="text-xs text-gray-400 mb-2">
                 Close: <span className="text-white/90">{formatNumber(td.close)}</span>
-                {pre!=null && <> • Pre: <span className="text-white/90">{formatNumber(pre)}</span></>}
-                {post!=null && <> • Post: <span className="text-white/90">{formatNumber(post)}</span></>}
+                {pre!=null && <> • Pre‑Mkt: <span className="text-white/90">{formatNumber(pre)}</span></>}
+                {post!=null && <> • Post‑Mkt: <span className="text-white/90">{formatNumber(post)}</span></>}
               </div>
               <div className="h-32"><Line data={chartData} options={options} /></div>
             </div>

@@ -49,11 +49,11 @@ const LoginForm = ({ onLogin }) => {
               <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
               <div className="relative">
                 <input type={showPassword ? 'text' : 'password'} value={credentials.password} onChange={(e) => setCredentials({ ...credentials, password: e.target.value })} className="w-full form-input pr-12 text-base" placeholder="Enter your password" required />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">{showPassword ? 'Hide' : 'Show'}</button>
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-200 hover:text-white">{showPassword ? 'Hide' : 'Show'}</button>
               </div>
             </div>
             {error && (<div className="bg-red-900/60 border border-red-700 rounded-lg p-3 text-red-300 text-sm">{error}</div>)}
-            <button type="submit" disabled={loading} className="w-full btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">{loading ? (<><FaSpinner className="animate-spin mr-2" />Signing In...</>) : ('Sign In')}</button>
+            <button type="submit" disabled={loading} className="w-full btn btn-primary-strong disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-base py-3">{loading ? (<><FaSpinner className="animate-spin mr-2" />Signing In...</>) : ('Sign In')}</button>
             <div className="text-center"><button type="button" onClick={handleForgotPassword} className="text-blue-400 hover:text-blue-300 text-sm underline">Forgot Password?</button></div>
           </form>
         </div>
@@ -119,7 +119,6 @@ function App() {
               </div>
             </div>
           )}
-
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
               <HeroBanner user={user} />

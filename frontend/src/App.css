@@ -25,7 +25,8 @@ html { scroll-behavior: smooth; }
 .btn { @apply px-4 py-2 rounded-lg font-medium transition-all duration-200; transform: translateZ(0); }
 .btn:hover { transform: translateY(-1px); }
 .btn:active { transform: translateY(0); }
-.btn-primary { @apply text-white; background: linear-gradient(135deg, var(--brand-start), var(--brand-end)); box-shadow: 0 8px 20px -12px rgba(0,212,255,0.45); }
+.btn-primary { @apply text-white; background: linear-gradient(135deg, var(--brand-start), var(--brand-end)); box-shadow: 0 10px 26px -12px rgba(0,212,255,0.55); border: 1px solid rgba(255,255,255,0.14); }
+.btn-primary-strong { @apply text-white; background: linear-gradient(135deg, #00f0ff, #8b5cf6); box-shadow: 0 16px 40px -10px rgba(0,212,255,0.65), 0 0 0 2px rgba(139,92,246,0.25) inset; border: 1px solid rgba(255,255,255,0.2); }
 .btn-secondary { @apply bg-white/10 hover:bg-white/15 text-white; }
 .btn-success { @apply bg-green-600 hover:bg-green-700 text-white; }
 .btn-danger { @apply bg-red-600 hover:bg-red-700 text-white; }

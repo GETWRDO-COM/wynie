@@ -14,7 +14,7 @@ const NewsTicker = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+  const BACKEND_URL = (typeof import !== 'undefined' && import.meta && import.meta.env && import.meta.env.REACT_APP_BACKEND_URL) || process.env.REACT_APP_BACKEND_URL || '';
 
   const fetchFeed = async (cat) => {
     setLoading(true);
@@ -24,6 +24,7 @@ const NewsTicker = () => {
       const parsed = (data && data.items) ? data.items.slice(0, 50) : [];
       setItems(parsed);
     } catch (e) {
+      console.error('News load failed', e);
       setItems([]);
     } finally {
       setLoading(false);
