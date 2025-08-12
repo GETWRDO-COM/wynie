@@ -1,21 +1,19 @@
 import React, { useEffect, useMemo, useState } from "react"
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
-import { Separator } from "../components/ui/separator"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import DataTable from "../components/DataTable"
 import ColumnSettings from "../components/ColumnSettings"
 import ScreenerPanel from "./ScreenerPanel"
 import { getBars, getLogo, getQuotes, computeRatings, getColumnSchema, getColumnPresets, saveColumnPreset, getFundamentals } from "../services/api"
-import { Settings2, ListPlus, List, Pencil, Eraser, LineChart, BellPlus } from "lucide-react"
+import { Settings2, ListPlus, Pencil, Eraser, BellPlus } from "lucide-react"
 import useQuotesWS from "../hooks/useQuotesWS"
 import { LS } from "../mock/mock"
 import TVToolbar from "../components/TVToolbar"
 import MiniListPanel from "../components/MiniListPanel"
 import NotificationsBell from "../components/NotificationsBell"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import axios from "axios"
 
 const BASE = (process.env.REACT_APP_BACKEND_URL || import.meta?.env?.REACT_APP_BACKEND_URL || "")
@@ -111,6 +109,7 @@ export default function Dashboard() {
   const [logos, setLogos] = useLocalState("logos", {})
   const [columnDefs, setColumnDefs] = useState([])
   const [tool, setTool] = useLocalState("tool", "line")
+  const [density, setDensity] = useLocalState("rowDensity", "compact")
 
   const quotesMap = useQuotesWS(watchSymbols)
 
@@ -236,6 +235,14 @@ export default function Dashboard() {
               </SelectContent>
             </Select>
           </div>
+          <Select value={density} onValueChange={setDensity}>
+            <SelectTrigger className="w-32"><SelectValue placeholder="Density" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="compact">Compact</SelectItem>
+              <SelectItem value="cozy">Cozy</SelectItem>
+              <SelectItem value="comfortable">Comfortable</SelectItem>
+            </SelectContent>
+          </Select>
           <Button size="sm" variant="secondary" onClick={()=> setOpenCol(true)}><Settings2 className="w-4 h-4 mr-1"/>Columns</Button>
         </div>
       </header>
@@ -260,7 +267,7 @@ export default function Dashboard() {
         <PanelResizeHandle className="h-1 bg-border" />
         <Panel defaultSize={42} minSize={30}>
           <div className="h-full p-3">
-            <DataTable rows={filteredRows} columnDefs={columnDefs} visibleColumns={visibleColumns} onColumnsClick={()=> setOpenCol(true)} sort={sort} setSort={setSort} onRowClick={(r)=> setSelected(r.symbol)} onEdit={onEdit} logos={logos} />
+            <DataTable rows={filteredRows} columnDefs={columnDefs} visibleColumns={visibleColumns} onColumnsClick={()=> setOpenCol(true)} sort={sort} setSort={setSort} onRowClick={(r)=> setSelected(r.symbol)} onEdit={onEdit} logos={logos} density={density} />
           </div>
         </Panel>
       </PanelGroup>

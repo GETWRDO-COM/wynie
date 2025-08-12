@@ -29,7 +29,7 @@ function formatValue(col, v){
   return v
 }
 
-export default function DataTable({ rows, columnDefs, visibleColumns, onColumnsClick, sort, setSort, onRowClick, onEdit, logos, selectable=false, selectedMap={}, onSelectChange }) {
+export default function DataTable({ rows, columnDefs, visibleColumns, onColumnsClick, sort, setSort, onRowClick, onEdit, logos, selectable=false, selectedMap={}, onSelectChange, density='compact' }) {
   const colMap = useMemo(()=>{
     const map = {}
     ;(columnDefs||[]).forEach(c => map[c.id] = c)
@@ -51,6 +51,8 @@ export default function DataTable({ rows, columnDefs, visibleColumns, onColumnsC
     return arr
   }, [rows, sort])
 
+  const padY = density==='comfortable' ? 'py-2' : density==='cozy' ? 'py-1.5' : 'py-1'
+
   return (
     <div className="w-full overflow-auto border rounded-md text-xs">
       <div className="flex items-center justify-between px-3 py-2 border-b bg-card sticky top-0 z-10">
@@ -61,7 +63,7 @@ export default function DataTable({ rows, columnDefs, visibleColumns, onColumnsC
         <TableHeader>
           <TableRow>
             {cols.map(col => (
-              <TableHead key={col.id} style={{minWidth: col.width || 110}} className="py-1">
+              <TableHead key={col.id} style={{minWidth: col.width || 110}} className={`${padY}`}>
                 <button className="flex items-center gap-1" onClick={()=> setSort(sort && sort.key===col.id ? { key: col.id, dir: sort.dir==='asc'?'desc':'asc'} : { key: col.id, dir: 'asc'})}>
                   {col.label || ''}
                   <ArrowUpDown className="w-3 h-3"/>
@@ -74,7 +76,7 @@ export default function DataTable({ rows, columnDefs, visibleColumns, onColumnsC
           {sortedRows.map((r)=> (
             <TableRow key={r.symbol} className="cursor-pointer hover:bg-muted/30" onClick={()=> onRowClick && onRowClick(r)}>
               {cols.map(col => (
-                <TableCell key={col.id} className="py-1">
+                <TableCell key={col.id} className={`${padY}`}>
                   {col.id === 'logo' ? (
                     <Avatar className="w-5 h-5 bg-white ring-1 ring-black/10 dark:ring-white/10 rounded-full overflow-hidden">
                       <AvatarImage className="object-contain p-0.5" src={logos?.[r.symbol] || ''} alt={r.symbol} />
