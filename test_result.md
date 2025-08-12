@@ -178,6 +178,9 @@
       - working: true
         agent: "testing"
         comment: "✅ Screener endpoint working correctly. Successfully tested with symbols [AAPL,MSFT,TSLA,NVDA] and filters [{field:'last',op:'>=',value:5},{field:'rsi14',op:'>=',value:30}] with sort by last desc. 'rows' field exists and contains proper data structure. Error handling validated for missing parameters."
+      - working: true
+        agent: "testing"
+        comment: "✅ Screener with fundamentals working perfectly. Successfully tested POST /api/screeners/run with symbols [AAPL,MSFT,TSLA] and fundamentals filters [{field:'marketCap',op:'>=',value:1000000000}]. Returns proper rows structure. Also tested multiple fundamentals filters including marketCap and peTTM."
   - task: "Streaming quotes WS"
     implemented: true
     working: true
