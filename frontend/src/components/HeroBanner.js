@@ -80,7 +80,7 @@ const HeroBanner = ({ user }) => {
         {/* FX + Top Headlines */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
           <CurrencyTicker />
-          <NewsSection api={{ get: async (url) => fetch((process.env.REACT_APP_BACKEND_URL||'')+url).then(r=>r.json()) }} />
+          <NewsSection api={{ get: async (url) => fetch((process.env.REACT_APP_BACKEND_URL||'')+url).then(r=>r.json()).then(data => ({ data })) }} />
         </div>
       </div>
     </div>
