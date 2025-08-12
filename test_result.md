@@ -435,6 +435,83 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "🏆 FINAL COMPREHENSIVE SYSTEM COMPLETION: Successfully implemented and tested ALL requested enhanced features. The ETF Intelligence System is now a complete, professional-grade trading platform with: (1) Full authentication system with JWT security (2) AI chat integration with OpenAI GPT-4.1 and model selection (3) Universal company search with logos and detailed information (4) TradingView integration with advanced charting (5) Interactive charts with multiple timeframes (6) Google Sheets-style spreadsheet interface with formula transparency (7) Enhanced watchlist management (8) Professional UI/UX with dark theme (9) Real-time market data integration (10) Comprehensive testing with 100% success rates. System screenshots showcase fully functional dashboard, analysis grid, AI assistant, spreadsheet interface, and AI chat. Ready for immediate production deployment."
+  - agent: "testing"
+    message: "🔍 PHASE 2-4 BACKEND ADDITIONS TESTING REPORT: Conducted comprehensive analysis of the backend codebase to test newly added features on emergent_branch1. CRITICAL FINDING: The specific Phase 2-4 endpoints mentioned in the review request are NOT IMPLEMENTED in the current backend code. Missing endpoints include: (1) POST /api/signals/etf-regime/simulate (2) GET/POST /api/universe (3) GET /api/screens/leaders and /api/screens/neglected-pre-earnings (4) POST/GET/PATCH /api/positions and POST/GET /api/trades (5) GET /api/exports/excel/daily and /api/exports/csv/daily (6) POST /api/formulas/preview, POST /api/formulas/config, POST /api/formulas/config/revert. These endpoints do not exist in server.py, server_routes.py, or server_enhanced.py. The current system contains the previously implemented Phase 1 features but lacks the Phase 2-4 additions. Main agent needs to implement these endpoints before testing can proceed."
+
+# Phase 2–4 Backend Additions Testing Results
+
+backend:
+  - task: "ETF Regime Simulation API"
+    implemented: false
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "❌ NOT IMPLEMENTED: POST /api/signals/etf-regime/simulate endpoint does not exist in backend code. Expected to return equity_curve, total_return, max_drawdown, sharpe, flips, pl_by_regime, decisions, params_version with date range parameters."
+
+  - task: "Universe Management API"
+    implemented: false
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "❌ NOT IMPLEMENTED: GET /api/universe and POST /api/universe/import endpoints do not exist. Expected to manage symbol universe with admin import functionality for AAPL, MSFT, NVDA sample data."
+
+  - task: "Stock Screening APIs"
+    implemented: false
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "❌ NOT IMPLEMENTED: GET /api/screens/leaders and GET /api/screens/neglected-pre-earnings endpoints do not exist. Expected leaders endpoint with top parameter and neglected-pre-earnings with WATCH/READY status controls."
+
+  - task: "Positions and Trades Management"
+    implemented: false
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "❌ NOT IMPLEMENTED: POST/GET/PATCH /api/positions and POST/GET /api/trades endpoints do not exist. Expected to handle live trailing stops, live R calculations, position updates, and trade history management."
+
+  - task: "Export APIs (Excel/CSV)"
+    implemented: false
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "❌ NOT IMPLEMENTED: GET /api/exports/excel/daily and GET /api/exports/csv/daily endpoints do not exist. Expected to return XLSX file and CSV stream respectively for daily data exports."
+
+  - task: "Formula Parameter Editor APIs"
+    implemented: false
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "❌ NOT IMPLEMENTED: POST /api/formulas/preview, POST /api/formulas/config, and POST /api/formulas/config/revert endpoints do not exist. Expected preview to return snapshot+signal, config to publish changes, and revert to mark active version."
 
 backend:
   - task: "Enhanced ETF Data API with SA greetings and real-time tracking"
