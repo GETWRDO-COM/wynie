@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom"
 import Dashboard from "./pages/Dashboard"
 import Settings from "./pages/Settings"
@@ -20,6 +20,10 @@ function Shell({children}){
 }
 
 function App() {
+  useEffect(()=>{
+    // Force dark theme to match Deepvue screenshots
+    try { document.documentElement.classList.add('dark') } catch {}
+  },[])
   return (
     <BrowserRouter>
       <Routes>
