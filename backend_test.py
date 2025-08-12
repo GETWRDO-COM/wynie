@@ -2403,6 +2403,21 @@ class ETFBackendTester:
             ("Spreadsheet Interface", self.test_spreadsheet_interface),
             ("Enhanced Watchlist Management", self.test_enhanced_watchlist_management),
             ("Historical Data Pruning", self.test_historical_data_pruning),
+            # Phase 1 ETF Regime Tests
+            ("Phase 1: ETF Regime Config", self.test_phase1_etf_regime_config),
+            ("Phase 1: All Formula Configs", self.test_phase1_all_formula_configs),
+            ("Phase 1: Market State", self.test_phase1_market_state),
+            ("Phase 1: Market History", self.test_phase1_market_history),
+            ("Phase 1: ETF Regime Signal", self.test_phase1_etf_regime_signal),
+            # NDX Admin Tests
+            ("NDX: Get Constituents", self.test_ndx_constituents_get),
+            ("NDX: Post Constituents", self.test_ndx_constituents_post),
+            ("NDX: Constituents Diff", self.test_ndx_constituents_diff),
+            ("NDX: Refresh Prices", self.test_ndx_refresh_prices),
+            # Legacy Compatibility Tests
+            ("Legacy: Formulas Config", self.test_legacy_formulas_config),
+            ("Sanity: Dashboard", self.test_sanity_dashboard),
+            # Existing Tests
             ("Enhanced Dashboard API", self.test_enhanced_dashboard_api),
             ("Live Market Data APIs", self.test_live_market_data_apis),
             ("Export & Integration APIs", self.test_export_integration_apis),
