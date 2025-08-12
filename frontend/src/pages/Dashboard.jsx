@@ -190,7 +190,7 @@ export default function Dashboard() {
   return (
     <div className="h-screen w-full flex flex-col">
       <header className="h-12 border-b px-4 flex items-center justify-between bg-card">
-        <div className="font-semibold">Deepvue Workstation (Live • Polygon + Finnhub)</div>
+        <div className="font-semibold">Market Workstation (Live • Polygon + Finnhub)</div>
         <div className="flex items-center gap-3 text-sm">
           <div className="flex items-center gap-2">
             <label>RS</label>
