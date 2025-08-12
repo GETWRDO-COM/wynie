@@ -13,6 +13,7 @@ export const searchSymbols = (q, limit = 25) => get('/marketdata/symbols/search'
 export const getBars = (symbol, interval = '1D', fr, to) => get('/marketdata/bars', { symbol, interval, fr, to })
 export const getQuotes = (symbolsCsv) => get('/marketdata/quotes', { symbols: symbolsCsv })
 export const getLogo = (symbol) => get('/marketdata/logo', { symbol })
+export const getFundamentals = (symbolsCsv) => get('/marketdata/fundamentals', { symbols: symbolsCsv })
 
 // Watchlists
 export const listWatchlists = () => get('/watchlists')

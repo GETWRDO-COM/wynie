@@ -97,6 +97,15 @@ COLUMN_SCHEMA: List[Dict[str, Any]] = [
     {"id": "atr14", "label": "ATR(14)", "category": "Technicals", "type": "number", "source": "computed"},
     {"id": "RS", "label": "RS", "category": "Proprietary Ratings", "type": "number", "source": "computed"},
     {"id": "AS", "label": "AS", "category": "Proprietary Ratings", "type": "number", "source": "computed"},
+    # Fundamentals (Finnhub)
+    {"id": "marketCap", "label": "Market Cap", "category": "Fundamentals", "type": "number", "source": "finnhub"},
+    {"id": "sharesOutstanding", "label": "Shares Out", "category": "Fundamentals", "type": "number", "source": "finnhub"},
+    {"id": "float", "label": "Float", "category": "Fundamentals", "type": "number", "source": "finnhub"},
+    {"id": "peTTM", "label": "P/E (ttm)", "category": "Fundamentals", "type": "number", "source": "finnhub"},
+    {"id": "psTTM", "label": "P/S (ttm)", "category": "Fundamentals", "type": "number", "source": "finnhub"},
+    {"id": "pb", "label": "P/B", "category": "Fundamentals", "type": "number", "source": "finnhub"},
+    {"id": "roe", "label": "ROE", "category": "Fundamentals", "type": "number", "source": "finnhub"},
+    {"id": "roa", "label": "ROA", "category": "Fundamentals", "type": "number", "source": "finnhub"},
 ]
 
 @api_router.get("/columns/schema")
@@ -136,18 +145,15 @@ class RatingsBody(BaseModel):
 async def ratings_compute(body: RatingsBody):
     if not poly_client:
         return {"RS": {}, "AS": {}}
-    # compute using daily bars percentile ranks
     RS: Dict[str, float] = {}
     AS: Dict[str, float] = {}
     returns_list: List[float] = []
     accel_list: List[float] = []
-    series: Dict[str, List[Dict[str, Any]]] = {}
     for s in body.symbols:
         try:
             from_date = (datetime.utcnow().date().replace(year=datetime.utcnow().year - 1)).isoformat()
             to_date = datetime.utcnow().date().isoformat()
             bars = poly_client.get_bars(s, 1, "day", from_date, to_date)
-            series[s] = bars
             if len(bars) < body.rsWindowDays + 2:
                 returns_list.append(0.0); accel_list.append(0.0); continue
             end = bars[-1]["c"]; start = bars[-(body.rsWindowDays+1)]["c"]
@@ -195,7 +201,7 @@ class ScreenerBody(BaseModel):
     symbols: List[str]
     filters: Optional[Any] = None
     sort: Optional[Dict[str, str]] = None
-    page: Optional[Dict[str, Any]] = None  # {limit: int, cursor: int}
+    page: Optional[Dict[str, Any]] = None
 
 @api_router.post("/screeners/run")
 async def run_screener_endpoint(body: ScreenerBody):
@@ -203,7 +209,6 @@ async def run_screener_endpoint(body: ScreenerBody):
         return {"rows": [], "nextCursor": None}
     syms = [s.strip().upper() for s in body.symbols if s.strip()]
     rows = run_screener(poly_client, finn_client, syms, body.filters or [], body.sort)
-    # simple offset pagination
     limit = int((body.page or {}).get('limit') or 100)
     cursor = int((body.page or {}).get('cursor') or 0)
     page_rows = rows[cursor: cursor + limit]
@@ -326,6 +331,35 @@ async def get_bars(symbol: str, interval: str = "1D", fr: Optional[str] = None, 
     except Exception as e:
         logging.warning("bars fetch failed: %s", e)
         return {"symbol": symbol, "bars": []}
+
+@api_router.get("/marketdata/quotes")
+async def get_quotes(symbols: str):
+    if not poly_client:
+        return {"quotes": []}
+    syms = [s.strip().upper() for s in symbols.split(',') if s.strip()]
+    data = poly_client.get_quotes_snapshot(syms)
+    return {"quotes": data}
+
+@api_router.get("/marketdata/fundamentals")
+async def get_fundamentals(symbols: str):
+    syms = [s.strip().upper() for s in symbols.split(',') if s.strip()]
+    if not finn_client or not syms:
+        return {"data": {}}
+    out: Dict[str, Dict[str, Any]] = {}
+    for s in syms:
+        prof = finn_client.company_profile(s) or {}
+        met = finn_client.metrics(s) or {}
+        out[s] = {
+            "marketCap": prof.get("marketCapitalization"),
+            "sharesOutstanding": met.get("sharesoutstanding"),
+            "float": met.get("floatShares"),
+            "peTTM": met.get("peBasicExclExtraTTM"),
+            "psTTM": met.get("psTTM"),
+            "pb": met.get("pbAnnual"),
+            "roe": met.get("roeTTM"),
+            "roa": met.get("roaTTM"),
+        }
+    return {"data": out}
 
 @api_router.get("/")
 async def root():

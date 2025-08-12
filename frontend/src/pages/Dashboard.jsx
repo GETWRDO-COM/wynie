@@ -8,7 +8,7 @@ import { Separator } from "../components/ui/separator"
 import DataTable from "../components/DataTable"
 import ColumnSettings from "../components/ColumnSettings"
 import ScreenerPanel from "./ScreenerPanel"
-import { getBars, getLogo, getQuotes, computeRatings, getColumnSchema, getColumnPresets, saveColumnPreset } from "../services/api"
+import { getBars, getLogo, getQuotes, computeRatings, getColumnSchema, getColumnPresets, saveColumnPreset, getFundamentals } from "../services/api"
 import { Settings2, ListPlus, List, Pencil, Eraser, LineChart } from "lucide-react"
 import useQuotesWS from "../hooks/useQuotesWS"
 import { LS } from "../mock/mock"
@@ -87,7 +87,7 @@ function CandleChart({ symbol, drawings, setDrawings }) {
 export default function Dashboard() {
   const [rows, setRows] = useState([])
   const [selected, setSelected] = useLocalState("selectedSymbol", "AAPL")
-  const [visibleColumns, setVisibleColumns] = useLocalState("visibleColumns", ["logo","symbol","last","changePct","volume","avgVol20d","runRate20d","sma20","sma50","sma200","rsi14","RS","AS"]) 
+  const [visibleColumns, setVisibleColumns] = useLocalState("visibleColumns", ["logo","symbol","last","changePct","volume","avgVol20d","runRate20d","sma20","sma50","sma200","rsi14","marketCap","peTTM","RS","AS"]) 
   const [sort, setSort] = useState({ key: "RS", dir: "desc" })
   const [rsWindow, setRsWindow] = useLocalState("rsWindow", 63)
   const [asShort, setAsShort] = useLocalState("asShort", 21)
@@ -100,21 +100,20 @@ export default function Dashboard() {
   const [logos, setLogos] = useLocalState("logos", {})
   const [columnDefs, setColumnDefs] = useState([])
 
-  // live quotes via WS
   const quotesMap = useQuotesWS(watchSymbols)
 
-  // Load column schema & presets
   useEffect(()=>{ (async()=>{
     try{ const s = await getColumnSchema(); const cols = s.categories.flatMap(g=> g.columns); setColumnDefs(cols) } catch {}
     try{ const p = await getColumnPresets(); setPresets(p) } catch {}
   })() }, [])
 
-  // Load initial quotes for table
   useEffect(()=>{
     (async()=>{
       try{
         const csv = watchSymbols.join(',')
         const q = await getQuotes(csv)
+        const fmap = await getFundamentals(csv).catch(()=>({data:{}}))
+        const f = fmap.data || {}
         const map = {}
         q.quotes.forEach(it => { map[it.symbol] = it })
         const data = watchSymbols.map(sym => ({
@@ -127,13 +126,14 @@ export default function Dashboard() {
           runRate20d: null,
           rsi14: null,
           sma20: null, sma50: null, sma200: null,
+          marketCap: f[sym]?.marketCap ?? null,
+          peTTM: f[sym]?.peTTM ?? null,
         }))
         setRows(data)
       } catch(e){ console.error(e) }
     })()
   }, [watchSymbols])
 
-  // Apply live quotes onto rows
   useEffect(()=>{
     if (!quotesMap || Object.keys(quotesMap).length===0) return
     setRows(prev => prev.map(r => {
@@ -143,7 +143,6 @@ export default function Dashboard() {
     }))
   }, [quotesMap])
 
-  // Fetch RS/AS when windows or symbols change
   useEffect(()=>{
     (async()=>{
       try{ const r = await computeRatings({ symbols: watchSymbols, rsWindowDays: rsWindow, asShortDays: asShort, asLongDays: asLong })
@@ -152,7 +151,6 @@ export default function Dashboard() {
     })()
   }, [rsWindow, asShort, asLong, watchSymbols])
 
-  // Lazy fetch logos
   useEffect(()=>{
     (async()=>{
       const next = {...logos}
@@ -177,7 +175,7 @@ export default function Dashboard() {
 
   const savePreset = async (name)=>{ if(!name) return; try { await saveColumnPreset(name, visibleColumns); setPresets(prev=> ({...prev, [name]: visibleColumns})) } catch { setPresets(prev=> ({...prev, [name]: visibleColumns})) } }
   const loadPreset = (name)=>{ if(!name) return; const cols = presets[name]; if (cols) setVisibleColumns(cols) }
-  const resetRecommended = ()=> setVisibleColumns(["logo","symbol","last","changePct","volume","avgVol20d","runRate20d","sma20","sma50","sma200","rsi14","RS","AS"])
+  const resetRecommended = ()=> setVisibleColumns(["logo","symbol","last","changePct","volume","avgVol20d","runRate20d","sma20","sma50","sma200","rsi14","marketCap","peTTM","RS","AS"])
 
   const onEdit = (symbol, key, value)=>{ setRows(prev => prev.map(r => r.symbol===symbol ? ({...r, [key]: value}) : r)) }
 
@@ -256,5 +254,4 @@ export default function Dashboard() {
 
       <ColumnSettings open={openCol} onOpenChange={setOpenCol} columnDefs={columnDefs} visibleColumns={visibleColumns} setVisibleColumns={setVisibleColumns} presets={presets} savePreset={savePreset} loadPreset={loadPreset} resetRecommended={resetRecommended} />
     </div>
-  )
-}
+  )}
