@@ -451,7 +451,7 @@ agent_communication:
 backend:
   - task: "ETF Regime Simulation API"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 2
     priority: "high"
@@ -466,6 +466,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "❌ ENDPOINT DECLARED BUT NOT IMPLEMENTED: POST /api/signals/etf-regime/simulate endpoint is declared at line 2400 but has no implementation function. The simulate_etf_regime function exists (lines 2508-2658) with correct return structure but is not connected to the endpoint. Missing async def function to handle the POST request."
+      - working: true
+        agent: "testing"
+        comment: "✅ FIXED AND TESTED: Connected the endpoint declaration to the simulate_etf_regime function. POST /api/signals/etf-regime/simulate now works correctly with all required fields: equity_curve, total_return, max_drawdown, sharpe, flips, pl_by_regime, decisions, params_version. Tested with date range 2024-01-01 to 2024-03-31 (requires minimum 60 days for technical indicators). Returns proper simulation results with 61 equity curve points, 61 decisions, 4 flips, and 1.47% total return."
 
   - task: "Universe Management API"
     implemented: true
