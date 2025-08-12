@@ -631,6 +631,12 @@ class BackendTester:
         print(f"Starting Backend API Tests at {datetime.now()}")
         print(f"Base URL: {self.base_url}")
         
+        # Test the new features first as requested
+        self.test_settings_endpoints()
+        self.test_screener_registry()
+        self.test_screener_with_fundamentals()
+        
+        # Then test other endpoints
         self.test_marketdata_endpoints()
         self.test_screener_endpoint()
         self.test_websocket_quotes()
