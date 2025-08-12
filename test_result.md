@@ -892,8 +892,10 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
-  stuck_tasks: []
+  current_focus:
+    - "MarketCharts frontend + NewsTicker via backend + Polygon Settings UI + GreedFear UI + Floating AI"
+  stuck_tasks:
+    - "MarketCharts frontend + NewsTicker via backend + Polygon Settings UI + GreedFear UI + Floating AI"
   test_all: false
   test_priority: "high_first"
 
