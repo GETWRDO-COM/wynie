@@ -123,11 +123,11 @@ function App() {
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
               <HeroBanner user={user} />
-              <MyPerformance api={api} />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 <GreedFearCard />
                 <MarketScoreCard marketScore={marketScore} />
               </div>
+              <MyPerformance api={api} />
               <MarketCharts />
               <DashboardQuickSections swingLeaders={swingLeaders} watchlists={watchlists} marketScore={marketScore} />
             </div>
