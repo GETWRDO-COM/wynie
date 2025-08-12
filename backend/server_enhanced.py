@@ -76,16 +76,16 @@ class LoginRequest(BaseModel):
 class PasswordReset(BaseModel):
     email: str
 
-def hash_password(password: str) -&gt; str:
+def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-def verify_password(password: str, hashed: str) -&gt; bool:
+def verify_password(password: str, hashed: str) -> bool:
     try:
         return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
     except Exception:
         return False
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -&gt; str:
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(hours=12))
     to_encode.update({"exp": expire})
@@ -108,7 +108,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
 
-async def get_polygon_api_key() -&gt; Optional[str]:
+async def get_polygon_api_key() -> Optional[str]:
     doc = await db.app_settings.find_one({"key": "polygon_api_key"})
     if doc and doc.get("encrypted_value"):
         try:
