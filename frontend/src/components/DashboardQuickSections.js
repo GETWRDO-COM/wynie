@@ -51,7 +51,10 @@ const DashboardQuickSections = ({ chartData, swingLeaders, watchlists, marketSco
           </div>
         </div>
         <div className="glass-panel p-4">
-          <div className="text-white/90 font-semibold mb-2">Watchlists</div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-white/90 font-semibold">Watchlists</div>
+            <button onClick={() => window.location.hash = '#/watchlists'} className="text-xs text-blue-400 hover:text-blue-300 underline">See more</button>
+          </div>
           <div className="grid grid-cols-2 gap-2">
             {(watchlists || []).slice(0, 6).map((wl) => (
               <div key={wl.id || wl.name} className="bg-white/5 border border-white/10 rounded-lg p-3">
