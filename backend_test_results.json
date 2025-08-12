@@ -1,261 +1,100 @@
 {
   "summary": {
-    "passed": 0,
-    "failed": 36
+    "passed": 2,
+    "failed": 9
   },
   "detailed_results": [
     {
       "test": "API Root",
-      "success": false,
-      "details": "HTTP 502: ",
-      "timestamp": "2025-08-12T09:11:15.893948",
+      "success": true,
+      "details": "Root endpoint accessible: ETF Intelligence System API - Enhanced Version",
+      "timestamp": "2025-08-12T09:29:22.793987",
       "response_data": null
     },
     {
       "test": "Authentication System",
-      "success": false,
-      "details": "Login failed: HTTP 502: ",
-      "timestamp": "2025-08-12T09:11:15.904437",
-      "response_data": null
-    },
-    {
-      "test": "AI Chat Integration",
-      "success": false,
-      "details": "No auth token available - run authentication test first",
-      "timestamp": "2025-08-12T09:11:15.904486",
-      "response_data": null
-    },
-    {
-      "test": "Enhanced Company Search",
-      "success": false,
-      "details": "Search by ticker failed: HTTP 502",
-      "timestamp": "2025-08-12T09:11:15.912616",
-      "response_data": null
-    },
-    {
-      "test": "TradingView Integration",
-      "success": false,
-      "details": "No auth token available - run authentication test first",
-      "timestamp": "2025-08-12T09:11:15.912660",
-      "response_data": null
-    },
-    {
-      "test": "Interactive Charts",
-      "success": false,
-      "details": "Indices chart 1d failed: HTTP 502",
-      "timestamp": "2025-08-12T09:11:15.919568",
-      "response_data": null
-    },
-    {
-      "test": "Spreadsheet Interface",
-      "success": false,
-      "details": "Spreadsheet ETFs failed: HTTP 502",
-      "timestamp": "2025-08-12T09:11:15.929750",
-      "response_data": null
-    },
-    {
-      "test": "Enhanced Watchlist Management",
-      "success": false,
-      "details": "No auth token available - run authentication test first",
-      "timestamp": "2025-08-12T09:11:15.929796",
-      "response_data": null
-    },
-    {
-      "test": "Historical Data Pruning",
-      "success": false,
-      "details": "No auth token available - run authentication test first",
-      "timestamp": "2025-08-12T09:11:15.929805",
+      "success": true,
+      "details": "Complete authentication system working: login, JWT tokens, user info, password updates, forgot password",
+      "timestamp": "2025-08-12T09:29:24.332008",
       "response_data": null
     },
     {
       "test": "Phase 1: ETF Regime Config",
-      "success": false,
-      "details": "HTTP 502: ",
-      "timestamp": "2025-08-12T09:11:15.938538",
+      "success": true,
+      "details": "ETF regime config returned with correct kind and default params",
+      "timestamp": "2025-08-12T09:29:24.394212",
       "response_data": null
     },
     {
       "test": "Phase 1: All Formula Configs",
       "success": false,
-      "details": "HTTP 502: ",
-      "timestamp": "2025-08-12T09:11:15.946106",
+      "details": "HTTP 404: {\"detail\":\"Not Found\"}",
+      "timestamp": "2025-08-12T09:29:24.443125",
       "response_data": null
     },
     {
       "test": "Phase 1: Market State",
       "success": false,
-      "details": "HTTP 502: ",
-      "timestamp": "2025-08-12T09:11:15.953228",
+      "details": "HTTP 503: {\"detail\":\"Data unavailable for QQQ\"}",
+      "timestamp": "2025-08-12T09:29:24.996975",
       "response_data": null
     },
     {
       "test": "Phase 1: Market History",
       "success": false,
       "details": "Failed to create market state snapshot",
-      "timestamp": "2025-08-12T09:11:15.959256",
+      "timestamp": "2025-08-12T09:29:25.172358",
       "response_data": null
     },
     {
       "test": "Phase 1: ETF Regime Signal",
       "success": false,
-      "details": "HTTP 502: ",
-      "timestamp": "2025-08-12T09:11:15.966230",
+      "details": "HTTP 503: {\"detail\":\"Data unavailable for QQQ\"}",
+      "timestamp": "2025-08-12T09:29:25.302426",
       "response_data": null
     },
     {
       "test": "NDX: Get Constituents",
       "success": false,
-      "details": "HTTP 502: ",
-      "timestamp": "2025-08-12T09:11:15.973279",
+      "details": "HTTP 404: {\"detail\":\"Not Found\"}",
+      "timestamp": "2025-08-12T09:29:25.351689",
       "response_data": null
     },
     {
       "test": "NDX: Post Constituents",
       "success": false,
-      "details": "No auth token available - run authentication test first",
-      "timestamp": "2025-08-12T09:11:15.973320",
+      "details": "Failed to get current constituents",
+      "timestamp": "2025-08-12T09:29:25.359490",
       "response_data": null
     },
     {
       "test": "NDX: Constituents Diff",
       "success": false,
       "details": "Failed to get current constituents",
-      "timestamp": "2025-08-12T09:11:15.979257",
+      "timestamp": "2025-08-12T09:29:25.367603",
       "response_data": null
     },
     {
       "test": "NDX: Refresh Prices",
       "success": false,
-      "details": "HTTP 502: ",
-      "timestamp": "2025-08-12T09:11:15.985856",
+      "details": "HTTP 404: {\"detail\":\"Not Found\"}",
+      "timestamp": "2025-08-12T09:29:25.418503",
       "response_data": null
     },
     {
       "test": "Legacy: Formulas Config",
       "success": false,
-      "details": "HTTP 502: ",
-      "timestamp": "2025-08-12T09:11:15.993170",
+      "details": "HTTP 500: Internal Server Error",
+      "timestamp": "2025-08-12T09:29:25.430255",
       "response_data": null
     },
     {
       "test": "Sanity: Dashboard",
-      "success": false,
-      "details": "HTTP 502: ",
-      "timestamp": "2025-08-12T09:11:15.998949",
-      "response_data": null
-    },
-    {
-      "test": "Enhanced Dashboard API",
-      "success": false,
-      "details": "HTTP 502: ",
-      "timestamp": "2025-08-12T09:11:16.006687",
-      "response_data": null
-    },
-    {
-      "test": "Live Market Data APIs",
-      "success": false,
-      "details": "Live indices failed: HTTP 502",
-      "timestamp": "2025-08-12T09:11:16.013566",
-      "response_data": null
-    },
-    {
-      "test": "Export & Integration APIs",
-      "success": false,
-      "details": "ETF export failed: HTTP 502",
-      "timestamp": "2025-08-12T09:11:16.019824",
-      "response_data": null
-    },
-    {
-      "test": "Formula Configuration APIs",
-      "success": false,
-      "details": "Get config failed: HTTP 502",
-      "timestamp": "2025-08-12T09:11:16.026467",
-      "response_data": null
-    },
-    {
-      "test": "ETF Data Update",
-      "success": false,
-      "details": "HTTP 502: ",
-      "timestamp": "2025-08-12T09:11:16.032922",
-      "response_data": null
-    },
-    {
-      "test": "Get ETFs",
-      "success": false,
-      "details": "HTTP 502: ",
-      "timestamp": "2025-08-12T09:11:16.038662",
-      "response_data": null
-    },
-    {
-      "test": "Enhanced Calculations",
-      "success": false,
-      "details": "HTTP 502",
-      "timestamp": "2025-08-12T09:11:16.045250",
-      "response_data": null
-    },
-    {
-      "test": "MSAE and ETF Regime Engine",
-      "success": false,
-      "details": "GET /api/formulas/config failed: HTTP 502",
-      "timestamp": "2025-08-12T09:11:16.050961",
-      "response_data": null
-    },
-    {
-      "test": "Swing Leaders",
-      "success": false,
-      "details": "HTTP 502: ",
-      "timestamp": "2025-08-12T09:11:16.056384",
-      "response_data": null
-    },
-    {
-      "test": "Universal Stock Lookup",
-      "success": false,
-      "details": "Failed for AAPL: HTTP 502",
-      "timestamp": "2025-08-12T09:11:16.062619",
-      "response_data": null
-    },
-    {
-      "test": "Watchlist Management",
-      "success": false,
-      "details": "Create failed: HTTP 502",
-      "timestamp": "2025-08-12T09:11:16.070569",
-      "response_data": null
-    },
-    {
-      "test": "Custom Watchlist Lists",
-      "success": false,
-      "details": "Create failed: HTTP 502",
-      "timestamp": "2025-08-12T09:11:16.076437",
-      "response_data": null
-    },
-    {
-      "test": "Market Score",
-      "success": false,
-      "details": "Get failed: HTTP 502",
-      "timestamp": "2025-08-12T09:11:16.082722",
-      "response_data": null
-    },
-    {
-      "test": "Chart Analysis",
-      "success": false,
-      "details": "HTTP 502 for SPY: ",
-      "timestamp": "2025-08-12T09:11:16.088292",
-      "response_data": null
-    },
-    {
-      "test": "Journal Management",
-      "success": false,
-      "details": "Create failed: HTTP 502",
-      "timestamp": "2025-08-12T09:11:16.095191",
-      "response_data": null
-    },
-    {
-      "test": "Historical Data",
-      "success": false,
-      "details": "HTTP 502: ",
-      "timestamp": "2025-08-12T09:11:16.101406",
+      "success": true,
+      "details": "Dashboard endpoint responding correctly",
+      "timestamp": "2025-08-12T09:29:27.130052",
       "response_data": null
     }
   ],
-  "timestamp": "2025-08-12T09:11:16.101624"
+  "timestamp": "2025-08-12T09:29:27.130268"
 }
