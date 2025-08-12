@@ -10,19 +10,11 @@ const GreedFearCard = () => {
   const [updatedAt, setUpdatedAt] = useState(null);
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
-  const load = async () => {
-    try { const res = await fetch(`${BACKEND_URL}/api/greed-fear`); const js = await res.json(); setData(js); setUpdatedAt(js.last_updated ? new Date(js.last_updated) : new Date()); } catch (e) {}
-  };
+  const load = async () => { try { const res = await fetch(`${BACKEND_URL}/api/greed-fear`); const js = await res.json(); setData(js); setUpdatedAt(js.last_updated ? new Date(js.last_updated) : new Date()); } catch (e) {} };
 
   useEffect(() => { load(); const id = setInterval(load, 6*60*60*1000); return () => clearInterval(id); }, []);
 
-  const spark = useMemo(() => {
-    const ts = data?.timeseries; if(!Array.isArray(ts)) return null;
-    const series = ts.slice(-60); if(!series.length) return null;
-    const labels = series.map((_, i) => i+1);
-    const values = series.map((p) => (typeof p === 'number' ? p : (p.value || p.score || 0)));
-    return { labels, datasets:[{ data: values, borderColor: 'rgba(255,255,255,0.9)', backgroundColor: 'rgba(255,255,255,0.08)', tension: 0.25, pointRadius: 0, fill: true }] };
-  }, [data]);
+  const spark = useMemo(() => { const ts = data?.timeseries; if(!ArrayList || !Array.isArray(ts)) return null; const series = ts.slice(-60); if(!series.length) return null; const labels = series.map((_, i) => i+1); const values = series.map((p) => (typeof p === 'number' ? p : (p.value || p.score || 0))); return { labels, datasets:[{ data: values, borderColor: 'rgba(255,255,255,0.9)', backgroundColor: 'rgba(255,255,255,0.08)', tension: 0.25, pointRadius: 0, fill: true }] }; }, [data]);
 
   const now = data?.now ?? null; const prev = data?.previous_close ?? null; const w = data?.one_week_ago ?? null; const m = data?.one_month_ago ?? null; const y = data?.one_year_ago ?? null;
   const circleColor = colorForScore(now); const face = emojiForScore(now);
@@ -31,10 +23,13 @@ const GreedFearCard = () => {
     <div className="rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl p-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <img src="https://logo.clearbit.com/cnn.com" alt="CNN" className="h-6 w-auto" />
+          <img src="https://logo.clearbit.com/cnn.com" alt="CNN" className="h-7 w-auto" />
           <div className="text-white/90 font-semibold">Fear & Greed Sentiment</div>
         </div>
-        <div className="text-xs text-gray-400">Updated {rel(updatedAt)}</div>
+        <div className="flex items-center gap-2 text-xs text-gray-400">
+          <span>Updated {rel(updatedAt)}</span>
+          <button onClick={load} className="btn btn-outline text-[10px] py-0.5 px-2">Reload</button>
+        </div>
       </div>
       <div className="flex items-center gap-4">
         <div className="relative flex items-center justify-center w-20 h-20 rounded-full" style={{ background: 'rgba(255,255,255,0.06)', border: '2px solid rgba(255,255,255,0.2)'}}>

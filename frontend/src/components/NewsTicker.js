@@ -1,72 +1,41 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-const FEEDS = {
-  All: 'All',
-  USA: 'USA',
-  World: 'World',
-  'South Africa': 'South Africa',
-  'Stock Market': 'Stock Market',
-  'Finance News': 'Finance News',
-};
+const FEEDS = { All:'All', USA:'USA', World:'World', 'South Africa':'South Africa', 'Stock Market':'Stock Market', 'Finance News':'Finance News' };
 
 const NewsTicker = () => {
   const [category, setCategory] = useState('All');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
   const fetchFeed = async (cat) => {
     setLoading(true); setError('');
-    try {
-      const resp = await fetch(`${BACKEND_URL}/api/news?category=${encodeURIComponent(cat)}`);
-      const data = await resp.json();
-      const parsed = (data && data.items) ? data.items.slice(0, 80) : [];
-      setItems(parsed);
-      if (!parsed.length) setError('No headlines available');
-    } catch (e) {
-      console.error('News load failed', e);
-      setError('Cannot reach news service');
-      setItems([]);
-    } finally { setLoading(false); }
+    try { const resp = await fetch(`${BACKEND_URL}/api/news?category=${encodeURIComponent(cat)}`); const data = await resp.json(); const parsed = (data && data.items) ? data.items.slice(0, 80) : []; setItems(parsed); if (!parsed.length) setError('No headlines available'); }
+    catch (e) { setError('Cannot reach news service'); setItems([]); }
+    finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    fetchFeed(category);
-    const id = setInterval(() => fetchFeed(category), 180000);
-    return () => clearInterval(id);
-  }, [category]);
+  useEffect(() => { fetchFeed(category); const id = setInterval(() => fetchFeed(category), 180000); return () => clearInterval(id); }, [category]);
 
-  const parts = useMemo(() => {
-    const arr = loading ? ['Loading news…'] : items.length ? items.map((it) => it.title) : [error || 'No headlines available'];
-    return [...arr, ...arr, ...arr, ...arr, ...arr, ...arr, ...arr, ...arr];
-  }, [items, loading, error]);
+  const parts = useMemo(() => { const arr = loading ? ['Loading news…'] : items.length ? items.map((it) => it.title) : [error || 'No headlines available']; return [...arr, ...arr, ...arr, ...arr, ...arr, ...arr]; }, [items, loading, error]);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[60]">
+    <div className="fixed bottom-0 left-0 right-0 z-[5000]">
       <div className="mx-auto max-w-7xl">
-        <div className="rounded-xl flex items-center gap-3 px-3 py-1.5 mb-3" style={{ background: 'rgba(10,10,12,0.9)', border: '1px solid rgba(255,255,255,0.12)' }}>
-          <div className="flex items-center gap-2 min-w-[220px] text-xs text-white">
+        <div className="rounded-xl flex items-center gap-3 px-3 py-1.5 mb-3" style={{ background: 'rgba(10,10,12,0.95)', border: '1px solid rgba(255,255,255,0.12)' }}>
+          <div className="flex items-center gap-2 min-w-[280px] text-xs text-white">
             Breaking News
             <select value={category} onChange={(e) => setCategory(e.target.value)} className="text-white text-xs py-0.5 px-2 rounded bg-black/80 border border-white/20">
-              {Object.keys(FEEDS).map((k) => (
-                <option key={k} value={k} className="bg-black text-white">{k}</option>
-              ))}
+              {Object.keys(FEEDS).map((k) => (<option key={k} value={k} className="bg-black text-white">{k}</option>))}
             </select>
+            <button onClick={()=>fetchFeed(category)} className="btn btn-outline text-[10px] py-0.5 px-2">Reload</button>
           </div>
           <div className="relative flex-1 overflow-hidden h-6">
             <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-black/80 via-transparent to-black/80" />
             <div className="absolute whitespace-nowrap will-change-transform animate-[ticker_1500s_linear_infinite] text-xs text-white">
-              {items.length === 0 ? (
-                <span className="inline-flex items-center">{loading ? 'Loading news…' : (error || 'No headlines available')}</span>
-              ) : (
-                items.concat(items).map((it, i) => (
-                  <span key={i} className="inline-flex items-center">
-                    {i > 0 && <span className="mx-4 text-white/50">|</span>}
-                    <a href={it.link} target="_blank" rel="noopener noreferrer" className="hover:text-white underline-offset-2 hover:underline">{it.title}</a>
-                  </span>
-                ))
+              {items.length === 0 ? (<span className="inline-flex items-center">{loading ? 'Loading news…' : (error || 'No headlines available')}</span>) : (
+                items.concat(items).map((it, i) => (<span key={i} className="inline-flex items-center">{i > 0 && <span className="mx-4 text-white/50">|</span>}{it.title}</span>))
               )}
             </div>
           </div>
