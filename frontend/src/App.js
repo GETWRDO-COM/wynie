@@ -17,7 +17,7 @@ import GreedFearCard from './components/GreedFearCard';
 import FloatingChat from './components/FloatingChat';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 const api = axios.create({ baseURL: BACKEND_URL });
 api.interceptors.request.use((config) => { const token = localStorage.getItem('authToken'); if (token) config.headers.Authorization = `Bearer ${token}`; return config; }, (e) => Promise.reject(e));
 api.interceptors.response.use((r) => r, (e) => { if (e.response?.status === 401) { localStorage.removeItem('authToken'); localStorage.removeItem('user'); window.location.reload(); } return Promise.reject(e); });
