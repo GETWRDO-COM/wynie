@@ -21,13 +21,32 @@ const NewsSection = ({ api }) => {
         const r = await api.get('/api/watchlists/custom');
         const all = r.data || [];
         const symbols = new Set();
-        all.forEach(wl => (wl.stocks||[]).forEach(s => { if (s?.symbol) symbols.add(s.symbol.toUpperCase()); }));
+        all.forEach(wl => (wl.stocks||[]).forEach(s => { if (s?.symbol) symbols.add((s.symbol||s.ticker||'').toUpperCase()); }));
         const list = Array.from(symbols).slice(0, 20);
         setWlTickers(list);
-        const er = await fetch(`${BACKEND_URL}/api/earnings?tickers=${encodeURIComponent(list.join(','))}`);
-        const ej = await er.json();
-        setEarnings(ej.items || []);
-      } catch {}
+        // Load earnings with fallback if empty
+        const loadEarnings = async () => {
+          try {
+            let url;
+            if (list.length) {
+              url = `${BACKEND_URL}/api/earnings?tickers=${encodeURIComponent(list.join(','))}`;
+            } else {
+              url = `${BACKEND_URL}/api/earnings?days_ahead=14`;
+            }
+            const er = await fetch(url);
+            const ej = await er.json();
+            const items = Array.isArray(ej.items) ? ej.items : [];
+            if (items.length === 0 && list.length) {
+              const ef = await fetch(`${BACKEND_URL}/api/earnings?days_ahead=14`);
+              const jf = await ef.json();
+              setEarnings(Array.isArray(jf.items) ? jf.items : []);
+            } else {
+              setEarnings(items);
+            }
+          } catch { setEarnings([]); }
+        };
+        await loadEarnings();
+      } catch { /* ignore */ }
     })();
   }, []);
 
