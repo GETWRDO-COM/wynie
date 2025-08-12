@@ -129,8 +129,8 @@ def test_auth_and_news_endpoints():
             aggregates_data = aggregates_response.json()
             expected_tickers = ['SPY', 'QQQ', 'I:DJI', 'TQQQ', 'SQQQ']
             
-            if 'tickers' in aggregates_data:
-                tickers_data = aggregates_data['tickers']
+            if 'data' in aggregates_data:
+                tickers_data = aggregates_data['data']
                 found_tickers = list(tickers_data.keys())
                 missing_tickers = [ticker for ticker in expected_tickers if ticker not in found_tickers]
                 
