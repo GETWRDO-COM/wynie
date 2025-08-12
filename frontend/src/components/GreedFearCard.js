@@ -47,7 +47,7 @@ const GreedFearCard = () => {
     <div className="rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl p-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <img src="https://logo.clearbit.com/cnn.com" alt="CNN" className="h-5 w-auto" />
+          <img src="https://logo.clearbit.com/cnn.com" alt="CNN" className="h-6 w-auto" />
           <div className="text-white/90 font-semibold">Fear & Greed Sentiment</div>
         </div>
         <div className="text-xs text-gray-400">Updated {updated}</div>
