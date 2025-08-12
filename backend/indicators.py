@@ -99,6 +99,34 @@ def bollinger(series: List[float], n: int = 20, k: float = 2.0):
   return out_mid, out_b, out_t, out_bw
 
 
+def macd(series: List[float], fast: int = 12, slow: int = 26, signal: int = 9):
+  ema_fast = ema(series, fast)
+  ema_slow = ema(series, slow)
+  line = [None if (a is None or b is None) else (a - b) for a, b in zip(ema_fast, ema_slow)]
+  # For signal, filter out None progressively
+  seq = []
+  for v in line:
+    seq.append(0.0 if v is None else v)
+  sig = ema(seq, signal)
+  hist = [None if (l is None or s is None) else (l - s) for l, s in zip(line, sig)]
+  return line, sig, hist
+
+
+def stochastic_kd(highs: List[float], lows: List[float], closes: List[float], k_period: int = 14, d_period: int = 3):
+  k_vals: List[float] = [None] * len(closes)
+  for i in range(len(closes)):
+    if i < k_period - 1:
+      continue
+    hh = max(highs[i - k_period + 1 : i + 1])
+    ll = min(lows[i - k_period + 1 : i + 1])
+    denom = hh - ll
+    k = ((closes[i] - ll) / denom * 100.0) if denom else None
+    k_vals[i] = k
+  # D is SMA of K
+  d_vals = sma([0.0 if v is None else v for v in k_vals], d_period)
+  return k_vals, d_vals
+
+
 def compute_all_daily(bars: List[Dict[str, float]]) -> Dict[str, Any]:
   # compute a selection of indicators; return latest values
   if not bars:
@@ -106,6 +134,7 @@ def compute_all_daily(bars: List[Dict[str, float]]) -> Dict[str, Any]:
   closes = _values(bars, "c")
   highs = _values(bars, "h")
   lows = _values(bars, "l")
+  opens = _values(bars, "o")
   vols = _values(bars, "v")
   res: Dict[str, Any] = {}
 
@@ -130,6 +159,15 @@ def compute_all_daily(bars: List[Dict[str, float]]) -> Dict[str, Any]:
   res["bb_lb"] = last_valid(lb)
   res["bb_ub"] = last_valid(ub)
   res["bb_bw"] = last_valid(bw)
+  # MACD
+  macd_line, macd_sig, macd_hist = macd(closes)
+  res["macd_line"] = last_valid(macd_line)
+  res["macd_signal"] = last_valid(macd_sig)
+  res["macd_hist"] = last_valid(macd_hist)
+  # Stochastic
+  k_vals, d_vals = stochastic_kd(highs, lows, closes, 14, 3)
+  res["stoch_k"] = last_valid(k_vals)
+  res["stoch_d"] = last_valid(d_vals)
   # 52w high/low
   hi52 = max(highs[-252:]) if len(highs) >= 2 else None
   lo52 = min(lows[-252:]) if len(lows) >= 2 else None
@@ -145,10 +183,14 @@ def compute_all_daily(bars: List[Dict[str, float]]) -> Dict[str, Any]:
     res["avgVol20d"] = avg20
     res["runRate20d"] = vols[-1] / avg20 if avg20 else None
     res["relVol"] = vols[-1] / avg20 if avg20 else None
-  # gap % (today open vs prev close) if we had opens; fallback using h/l and prev close not available in bars; skip.
   # ADR20: average daily range of last 20 sessions
   if len(highs) >= 20:
     ranges = [highs[i]-lows[i] for i in range(max(0, len(highs)-20), len(highs))]
     adr20 = sum(ranges)/len(ranges) if ranges else None
     res["adr20"] = adr20
+  # Gap % today vs previous close
+  if len(closes) >= 2 and len(opens) >= 1:
+    prev_close = closes[-2]
+    today_open = opens[-1]
+    res["gapPct"] = ((today_open - prev_close) / prev_close * 100.0) if prev_close else None
   return res

@@ -31,13 +31,20 @@ COMPUTED_FIELDS = {
   "rsi14":("daily", lambda m:m.get("rsi14")),
   "atr14":("daily", lambda m:m.get("atr14")),
   "bb_bw":("daily", lambda m:m.get("bb_bw")),
+  "macd_line":("daily", lambda m:m.get("macd_line")),
+  "macd_signal":("daily", lambda m:m.get("macd_signal")),
+  "macd_hist":("daily", lambda m:m.get("macd_hist")),
   "stoch_k":("daily", lambda m:m.get("stoch_k")),
+  "stoch_d":("daily", lambda m:m.get("stoch_d")),
   "avgVol20d":("daily", lambda m:m.get("avgVol20d")),
   "runRate20d":("daily", lambda m:m.get("runRate20d")),
   "relVol":("daily", lambda m:m.get("relVol")),
   "pct_to_hi52":("daily", lambda m:m.get("pct_to_hi52")),
   "pct_above_lo52":("daily", lambda m:m.get("pct_above_lo52")),
+  "hi52":("daily", lambda m:m.get("hi52")),
+  "lo52":("daily", lambda m:m.get("lo52")),
   "adr20": ("daily", lambda m:m.get("adr20")),
+  "gapPct": ("daily", lambda m:m.get("gapPct")),
 }
 
 FUND_FIELDS = {
@@ -90,6 +97,8 @@ def eval_condition(value, op: str, target):
   if op in (">=", "gte"): return value >= target
   if op in ("<", "lt"): return value < target
   if op in ("<=", "lte"): return value <= target
+  if op in ("==", "eq"): return value == target
+  if op in ("!=", "ne"): return value != target
   if op == "between" and isinstance(target, list) and len(target) == 2: return target[0] <= value <= target[1]
   if op == "in" and isinstance(target, list): return value in target
   return False
@@ -97,6 +106,12 @@ def eval_condition(value, op: str, target):
 
 def get_field_value(symbol: str, row: Dict[str, Any], field: str, poly: PolygonClient, fin: FinnhubClient | None):
   if field in row: return row.get(field)
+  if field == "liquidity":
+    last = row.get("last"); vol = row.get("volume")
+    try:
+      return (last or 0) * (vol or 0)
+    except Exception:
+      return None
   if field in COMPUTED_FIELDS:
     _, fn = COMPUTED_FIELDS[field]
     return fn(compute_metrics_daily(poly, symbol))
@@ -108,13 +123,28 @@ def get_field_value(symbol: str, row: Dict[str, Any], field: str, poly: PolygonC
     m = compute_metrics_daily(poly, symbol); a = m.get("sma50"); b = m.get("sma200"); return (a is not None and b is not None and a > b)
   if field == "ema8_above_ema21":
     m = compute_metrics_daily(poly, symbol); a = m.get("ema8"); b = m.get("ema21"); return (a is not None and b is not None and a > b)
+  if field == "macd_cross_up":
+    m = compute_metrics_daily(poly, symbol); a = m.get("macd_line"); b = m.get("macd_signal"); return (a is not None and b is not None and a > b)
+  if field == "macd_cross_down":
+    m = compute_metrics_daily(poly, symbol); a = m.get("macd_line"); b = m.get("macd_signal"); return (a is not None and b is not None and a < b)
   return None
 
 
 def eval_filters(symbol: str, row: Dict[str, Any], flt: Dict[str, Any], poly: PolygonClient, fin: FinnhubClient | None) -> bool:
   if "field" in flt:
     v = get_field_value(symbol, row, flt["field"], poly, fin)
-    return eval_condition(v, flt.get("op"), flt.get("value"))
+    op = flt.get("op")
+    val = flt.get("value")
+    # cast string inputs to numbers when possible
+    try:
+      if isinstance(val, str) and val.strip() != "":
+        if "." in val or "e" in val.lower():
+          val = float(val)
+        else:
+          val = int(val)
+    except Exception:
+      pass
+    return eval_condition(v, op, val)
   logic = (flt.get("logic") or "AND").upper()
   subs = flt.get("filters") or []
   if not subs: return True

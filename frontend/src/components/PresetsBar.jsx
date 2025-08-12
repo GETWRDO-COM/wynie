@@ -11,6 +11,9 @@ export default function PresetsBar({ onApply }){
       <Button size="sm" variant="secondary" onClick={()=> onApply('breakouts')}>Breakouts</Button>
       <Button size="sm" variant="secondary" onClick={()=> onApply('pullbacks')}>Pullbacks</Button>
       <Button size="sm" variant="secondary" onClick={()=> onApply('earnings')}>Earnings</Button>
+      <Button size="sm" variant="secondary" onClick={()=> onApply('meanRev')}>Mean Reversion</Button>
+      <Button size="sm" variant="secondary" onClick={()=> onApply('highATR')}>High ATR</Button>
+      <Button size="sm" variant="secondary" onClick={()=> onApply('highRelVol')}>High RelVol</Button>
     </div>
   )
 }

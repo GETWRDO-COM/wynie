@@ -13,8 +13,12 @@ REGISTRY: List[Dict] = [
   {"id": "avgVol20d", "label": "Avg Vol (20d)", "category": "Price & Volume", "type": "number", "source": "computed"},
   {"id": "runRate20d", "label": "Run Rate (20d)", "category": "Price & Volume", "type": "number", "source": "computed"},
   {"id": "relVol", "label": "Relative Volume", "category": "Price & Volume", "type": "number", "source": "computed"},
+  {"id": "liquidity", "label": "$ Liquidity (Last x Vol)", "category": "Price & Volume", "type": "number", "source": "computed"},
+  {"id": "gapPct", "label": "Gap %", "category": "Price & Volume", "type": "number", "source": "computed"},
   {"id": "pct_to_hi52", "label": "% to 52w High", "category": "Price & Volume", "type": "number", "source": "computed"},
   {"id": "pct_above_lo52", "label": "% above 52w Low", "category": "Price & Volume", "type": "number", "source": "computed"},
+  {"id": "hi52", "label": "52w High", "category": "Price & Volume", "type": "number", "source": "computed"},
+  {"id": "lo52", "label": "52w Low", "category": "Price & Volume", "type": "number", "source": "computed"},
   {"id": "adr20", "label": "ADR(20)", "category": "Price & Volume", "type": "number", "source": "computed"},
 
   # Technicals
@@ -27,11 +31,17 @@ REGISTRY: List[Dict] = [
   {"id": "rsi14", "label": "RSI 14", "category": "Technicals", "type": "number", "source": "computed"},
   {"id": "atr14", "label": "ATR 14", "category": "Technicals", "type": "number", "source": "computed"},
   {"id": "bb_bw", "label": "Bollinger BW", "category": "Technicals", "type": "number", "source": "computed"},
+  {"id": "macd_line", "label": "MACD Line", "category": "Technicals", "type": "number", "source": "computed"},
+  {"id": "macd_signal", "label": "MACD Signal", "category": "Technicals", "type": "number", "source": "computed"},
+  {"id": "macd_hist", "label": "MACD Hist", "category": "Technicals", "type": "number", "source": "computed"},
   {"id": "stoch_k", "label": "Stoch %K", "category": "Technicals", "type": "number", "source": "computed"},
+  {"id": "stoch_d", "label": "Stoch %D", "category": "Technicals", "type": "number", "source": "computed"},
 
-  # Signals
+  # Signals (booleans - can use equals operator)
   {"id": "sma50_above_sma200", "label": "SMA50 > SMA200", "category": "Signals", "type": "boolean", "source": "computed"},
   {"id": "ema8_above_ema21", "label": "EMA8 > EMA21", "category": "Signals", "type": "boolean", "source": "computed"},
+  {"id": "macd_cross_up", "label": "MACD Cross Up", "category": "Signals", "type": "boolean", "source": "computed"},
+  {"id": "macd_cross_down", "label": "MACD Cross Down", "category": "Signals", "type": "boolean", "source": "computed"},
 
   # Proprietary
   {"id": "RS", "label": "RS", "category": "Proprietary Ratings", "type": "number", "source": "computed"},

@@ -3,7 +3,7 @@ import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 
-const OPS = [">=","<=",">","<","between","in"]
+const OPS = [">=","<=",">","<","==","!=","between","in"]
 
 function CondRow({ idx, fields, cond, onChange, onRemove }){
   const field = fields.find(f=> f.id===cond.field) || fields[0]
@@ -33,7 +33,7 @@ function CondRow({ idx, fields, cond, onChange, onRemove }){
             <Input placeholder="Max" value={cond.value?.[1] ?? ''} onChange={(e)=> onChange(idx, { ...cond, value: [cond.value?.[0] ?? '', e.target.value] })} />
           </div>
         ) : (
-          <Input placeholder="Value" value={cond.value ?? ''} onChange={(e)=> onChange(idx, { ...cond, value: e.target.value })} />
+          <Input placeholder={type==='boolean'? 'true/false' : 'Value'} value={cond.value ?? ''} onChange={(e)=> onChange(idx, { ...cond, value: e.target.value })} />
         )}
       </div>
       <div className="col-span-1">
