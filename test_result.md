@@ -472,7 +472,7 @@ backend:
 
   - task: "Universe Management API"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 2
     priority: "high"
@@ -487,6 +487,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "❌ PARAMETER BINDING ISSUE: POST /api/universe/import fails with HTTP 422 'Field required' error for 'query' parameter. The endpoint expects a 'payload' parameter but FastAPI is looking for 'query'. The endpoint implementation exists (lines 2369-2395) but has incorrect parameter binding."
+      - working: true
+        agent: "testing"
+        comment: "✅ FIXED AND TESTED: Fixed the active field default value issue in universe import. POST /api/universe/import now correctly imports symbols with active=True by default when not specified. Successfully tested with [{'symbol':'AAPL'},{'symbol':'MSFT'},{'symbol':'NVDA'}] → returns {imported:3}. GET /api/universe correctly returns the imported symbols. Universe management fully functional."
 
   - task: "Stock Screening APIs"
     implemented: true
