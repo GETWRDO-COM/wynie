@@ -20,7 +20,9 @@ const GreedFearCard = () => {
   useEffect(() => { load(); const id = setInterval(load, 6*60*60*1000); return () => clearInterval(id); }, []);
 
   const spark = useMemo(() => {
-    const series = (data && (data.timeseries || [])).slice(-60); // last 60 points if present
+    const timeseries = data?.timeseries;
+    if (!timeseries || !Array.isArray(timeseries)) return null;
+    const series = timeseries.slice(-60); // last 60 points if present
     if (!series || !series.length) return null;
     const labels = series.map((p, i) => i + 1);
     const values = series.map((p) => (typeof p === 'number' ? p : (p.value || p.score || 0)));
