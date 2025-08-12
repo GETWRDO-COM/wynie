@@ -89,8 +89,11 @@ SA_TZ = pytz.timezone('Africa/Johannesburg')
 NY_TZ = pytz.timezone('America/New_York')
 
 # Available OpenAI Models with latest auto-selection
+# Updated to include 2025 models per user request. "latest" points to GPT-5 by default.
 OPENAI_MODELS = {
-    "latest": "gpt-4.1",  # Auto-latest model
+    "latest": "gpt-5",
+    "gpt-5": "gpt-5",
+    "gpt-5-think": "gpt-5-think",
     "gpt-4.1": "gpt-4.1",
     "gpt-4.1-mini": "gpt-4.1-mini", 
     "gpt-4.1-nano": "gpt-4.1-nano",
