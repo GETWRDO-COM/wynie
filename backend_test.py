@@ -55,6 +55,168 @@ class BackendTester:
             self.test_results[category]['errors'].append(f"{test_name}: {error_msg}")
             print(f"❌ {test_name}: {error_msg}")
     
+    def test_settings_endpoints(self):
+        print("\n=== Testing Settings Endpoints ===")
+        
+        # Test 1: GET /api/settings returns booleans
+        try:
+            response = self.session.get(f"{self.base_url}/api/settings")
+            if response.status_code == 200:
+                data = response.json()
+                if 'polygon' in data and 'finnhub' in data:
+                    if isinstance(data['polygon'], bool) and isinstance(data['finnhub'], bool):
+                        self.log_result('settings', 'GET /api/settings returns booleans', True)
+                    else:
+                        self.log_result('settings', 'GET /api/settings returns booleans', False, f"Values are not booleans: polygon={type(data['polygon'])}, finnhub={type(data['finnhub'])}")
+                else:
+                    self.log_result('settings', 'GET /api/settings returns booleans', False, f"Missing polygon or finnhub keys: {data}")
+            else:
+                self.log_result('settings', 'GET /api/settings returns booleans', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('settings', 'GET /api/settings returns booleans', False, str(e))
+        
+        # Test 2: POST /api/settings with new finnhub key
+        try:
+            # First get current settings
+            initial_response = self.session.get(f"{self.base_url}/api/settings")
+            initial_data = initial_response.json() if initial_response.status_code == 200 else {}
+            
+            # Update with new finnhub key
+            payload = {"finnhub": "new-test-finnhub-key-123"}
+            response = self.session.post(f"{self.base_url}/api/settings", json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                if 'ok' in data and data['ok']:
+                    # Verify the update worked by checking GET endpoint
+                    verify_response = self.session.get(f"{self.base_url}/api/settings")
+                    if verify_response.status_code == 200:
+                        verify_data = verify_response.json()
+                        if verify_data.get('finnhub') == True:
+                            self.log_result('settings', 'POST /api/settings updates finnhub key and shows finnhub: true', True)
+                        else:
+                            self.log_result('settings', 'POST /api/settings updates finnhub key and shows finnhub: true', False, f"finnhub not true after update: {verify_data}")
+                    else:
+                        self.log_result('settings', 'POST /api/settings updates finnhub key and shows finnhub: true', False, f"Failed to verify update: HTTP {verify_response.status_code}")
+                else:
+                    self.log_result('settings', 'POST /api/settings updates finnhub key and shows finnhub: true', False, f"Invalid response: {data}")
+            else:
+                self.log_result('settings', 'POST /api/settings updates finnhub key and shows finnhub: true', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('settings', 'POST /api/settings updates finnhub key and shows finnhub: true', False, str(e))
+        
+        # Test 3: POST /api/settings with polygon key
+        try:
+            payload = {"polygon": "new-test-polygon-key-456"}
+            response = self.session.post(f"{self.base_url}/api/settings", json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                if 'ok' in data and data['ok']:
+                    self.log_result('settings', 'POST /api/settings updates polygon key', True)
+                else:
+                    self.log_result('settings', 'POST /api/settings updates polygon key', False, f"Invalid response: {data}")
+            else:
+                self.log_result('settings', 'POST /api/settings updates polygon key', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('settings', 'POST /api/settings updates polygon key', False, str(e))
+
+    def test_screener_registry(self):
+        print("\n=== Testing Screener Registry ===")
+        
+        # Test 1: GET /api/screeners/filters returns categories and fields including fundamentals
+        try:
+            response = self.session.get(f"{self.base_url}/api/screeners/filters")
+            if response.status_code == 200:
+                data = response.json()
+                if 'categories' in data and isinstance(data['categories'], list):
+                    # Look for fundamentals category with marketCap field
+                    fundamentals_found = False
+                    marketcap_found = False
+                    
+                    for category in data['categories']:
+                        if category.get('name') == 'Fundamentals':
+                            fundamentals_found = True
+                            fields = category.get('fields', [])
+                            for field in fields:
+                                if field.get('id') == 'marketCap':
+                                    marketcap_found = True
+                                    break
+                            break
+                    
+                    if fundamentals_found and marketcap_found:
+                        self.log_result('screener_registry', 'GET /api/screeners/filters returns categories with fundamentals including marketCap', True)
+                    else:
+                        self.log_result('screener_registry', 'GET /api/screeners/filters returns categories with fundamentals including marketCap', False, f"Missing fundamentals category or marketCap field. Fundamentals found: {fundamentals_found}, MarketCap found: {marketcap_found}")
+                else:
+                    self.log_result('screener_registry', 'GET /api/screeners/filters returns categories with fundamentals including marketCap', False, f"Invalid response structure: {data}")
+            else:
+                self.log_result('screener_registry', 'GET /api/screeners/filters returns categories with fundamentals including marketCap', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('screener_registry', 'GET /api/screeners/filters returns categories with fundamentals including marketCap', False, str(e))
+        
+        # Test 2: Verify all expected categories exist
+        try:
+            response = self.session.get(f"{self.base_url}/api/screeners/filters")
+            if response.status_code == 200:
+                data = response.json()
+                categories = data.get('categories', [])
+                category_names = [cat.get('name') for cat in categories]
+                
+                expected_categories = ['Price & Volume', 'Technicals', 'Signals', 'Fundamentals']
+                missing_categories = [cat for cat in expected_categories if cat not in category_names]
+                
+                if not missing_categories:
+                    self.log_result('screener_registry', 'All expected categories present', True)
+                else:
+                    self.log_result('screener_registry', 'All expected categories present', False, f"Missing categories: {missing_categories}")
+            else:
+                self.log_result('screener_registry', 'All expected categories present', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('screener_registry', 'All expected categories present', False, str(e))
+
+    def test_screener_with_fundamentals(self):
+        print("\n=== Testing Screener with Fundamentals ===")
+        
+        # Test 1: Screener run with fundamentals filter (marketCap >= 1B)
+        try:
+            payload = {
+                "symbols": ["AAPL", "MSFT", "TSLA"],
+                "filters": [
+                    {"field": "marketCap", "op": ">=", "value": 1000000000}
+                ]
+            }
+            response = self.session.post(f"{self.base_url}/api/screeners/run", json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                if 'rows' in data and isinstance(data['rows'], list):
+                    self.log_result('screener', 'Screener run with marketCap fundamentals filter', True)
+                else:
+                    self.log_result('screener', 'Screener run with marketCap fundamentals filter', False, f"Missing 'rows' field or invalid structure: {data}")
+            else:
+                self.log_result('screener', 'Screener run with marketCap fundamentals filter', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('screener', 'Screener run with marketCap fundamentals filter', False, str(e))
+        
+        # Test 2: Screener with multiple fundamentals filters
+        try:
+            payload = {
+                "symbols": ["AAPL", "MSFT", "TSLA"],
+                "filters": [
+                    {"field": "marketCap", "op": ">=", "value": 500000000},
+                    {"field": "peTTM", "op": "<=", "value": 50}
+                ]
+            }
+            response = self.session.post(f"{self.base_url}/api/screeners/run", json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                if 'rows' in data and isinstance(data['rows'], list):
+                    self.log_result('screener', 'Screener with multiple fundamentals filters', True)
+                else:
+                    self.log_result('screener', 'Screener with multiple fundamentals filters', False, f"Invalid response structure: {data}")
+            else:
+                self.log_result('screener', 'Screener with multiple fundamentals filters', False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_result('screener', 'Screener with multiple fundamentals filters', False, str(e))
+
     def test_marketdata_endpoints(self):
         print("\n=== Testing Market Data Endpoints ===")
         
