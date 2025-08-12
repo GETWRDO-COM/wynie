@@ -83,7 +83,7 @@ const HeroBanner = ({ user }) => {
           <div className="glass-panel p-4 flex items-center justify-between">
             <div>
               <div className="text-xs text-gray-400">Market Status</div>
-              <div className="text-white font-semibold">{status.status}</div>
+              <div className={`${String(status.status).toLowerCase().includes('open') ? 'text-green-400' : 'text-red-400'} font-semibold`}>{status.status}</div>
             </div>
             <div className="px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white font-bold text-base sm:text-lg">{status.countdownLabel} {formatHMS(status.seconds)}</div>
           </div>
