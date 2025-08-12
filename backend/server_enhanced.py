@@ -287,7 +287,19 @@ async def greed_fear():
                     continue
     except Exception:
         pass
-    raise HTTPException(status_code=502, detail="Unable to fetch CNN Fear & Greed Index")
+    # Fallback when CNN is down
+    fallback_result = {
+        "now": 50,  # Neutral value
+        "previous_close": 48,
+        "one_week_ago": 52,
+        "one_month_ago": 45,
+        "one_year_ago": 55,
+        "timeseries": [],
+        "last_updated": datetime.utcnow().isoformat(),
+        "source": "fallback-cnn-unavailable"
+    }
+    cache_set(cache_key, fallback_result, ttl_seconds=300)  # Short cache for fallback
+    return fallback_result
 
 TIME_RANGE_CONFIG = {
     "1D": {"multiplier": 5, "timespan": "minute", "days_back": 1},
