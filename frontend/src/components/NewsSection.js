@@ -52,7 +52,7 @@ const NewsSection = ({ api }) => {
 
   useEffect(() => { fetchNews(category); }, [category, wlTickers.join(',')]);
 
-  const top = items.slice(0,8);
+  const top = items.slice(0,6);
   const more = items.slice(6,20);
   const updatedRel = rel(updatedAt);
 
