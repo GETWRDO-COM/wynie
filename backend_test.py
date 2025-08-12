@@ -1238,6 +1238,180 @@ class ETFBackendTester:
             self.log_test("Legacy: Formulas Config", False, f"Error: {str(e)}")
             return False
 
+    def test_phase2_universe_import(self):
+        """Test Phase 2: POST /api/universe/import with AAPL, MSFT, NVDA"""
+        try:
+            if not self.auth_token:
+                self.log_test("Phase 2: Universe Import", False, "No auth token available - run authentication test first")
+                return False
+            
+            auth_headers = {"Authorization": f"Bearer {self.auth_token}"}
+            
+            # Test import with the specific symbols mentioned in review request
+            import_data = [
+                {"symbol": "AAPL"},
+                {"symbol": "MSFT"},
+                {"symbol": "NVDA"}
+            ]
+            
+            response = self.session.post(f"{API_BASE}/universe/import", json=import_data, headers=auth_headers)
+            if response.status_code != 200:
+                self.log_test("Phase 2: Universe Import", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            result = response.json()
+            
+            # Validate response structure
+            if 'imported' not in result:
+                self.log_test("Phase 2: Universe Import", False, "Response missing 'imported' field")
+                return False
+            
+            imported_count = result.get('imported', 0)
+            if imported_count != 3:
+                self.log_test("Phase 2: Universe Import", False, f"Expected 3 imported, got {imported_count}")
+                return False
+            
+            # Verify by getting universe
+            get_response = self.session.get(f"{API_BASE}/universe")
+            if get_response.status_code != 200:
+                self.log_test("Phase 2: Universe Import", False, f"GET universe failed: HTTP {get_response.status_code}")
+                return False
+            
+            universe = get_response.json()
+            if not isinstance(universe, list):
+                self.log_test("Phase 2: Universe Import", False, f"Universe should be array, got {type(universe)}")
+                return False
+            
+            # Check if our imported symbols are present
+            universe_symbols = {item.get('symbol', '').upper() for item in universe}
+            expected_symbols = {'AAPL', 'MSFT', 'NVDA'}
+            
+            if not expected_symbols.issubset(universe_symbols):
+                missing = expected_symbols - universe_symbols
+                self.log_test("Phase 2: Universe Import", False, f"Missing imported symbols in universe: {missing}")
+                return False
+            
+            self.log_test("Phase 2: Universe Import", True, f"Successfully imported {imported_count} symbols and verified in universe")
+            return True
+            
+        except Exception as e:
+            self.log_test("Phase 2: Universe Import", False, f"Error: {str(e)}")
+            return False
+
+    def test_phase2_screens_neglected_pre_earnings(self):
+        """Test Phase 2: GET /api/screens/neglected-pre-earnings"""
+        try:
+            response = self.session.get(f"{API_BASE}/screens/neglected-pre-earnings")
+            if response.status_code != 200:
+                self.log_test("Phase 2: Screens Neglected Pre-Earnings", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            result = response.json()
+            
+            # Should be an array (can be empty)
+            if not isinstance(result, list):
+                self.log_test("Phase 2: Screens Neglected Pre-Earnings", False, f"Expected array, got {type(result)}")
+                return False
+            
+            # If not empty, validate structure
+            if len(result) > 0:
+                sample_item = result[0]
+                required_fields = ['symbol', 'ret_21d', 'slope_63d', 'atrp_percentile', 'near_20dma', 'trigger', 'label']
+                missing_fields = [field for field in required_fields if field not in sample_item]
+                if missing_fields:
+                    self.log_test("Phase 2: Screens Neglected Pre-Earnings", False, f"Screen item missing fields: {missing_fields}")
+                    return False
+                
+                # Validate label is WATCH or READY
+                label = sample_item.get('label')
+                if label not in ['WATCH', 'READY']:
+                    self.log_test("Phase 2: Screens Neglected Pre-Earnings", False, f"Invalid label: {label}, expected WATCH or READY")
+                    return False
+            
+            self.log_test("Phase 2: Screens Neglected Pre-Earnings", True, f"Screen returned {len(result)} items with valid structure")
+            return True
+            
+        except Exception as e:
+            self.log_test("Phase 2: Screens Neglected Pre-Earnings", False, f"Error: {str(e)}")
+            return False
+
+    def test_phase2_etf_regime_simulate(self):
+        """Test Phase 2: POST /api/signals/etf-regime/simulate with required fields"""
+        try:
+            # Test with a short date range for faster execution
+            simulate_data = {
+                "start": "2024-01-01",
+                "end": "2024-01-31"
+            }
+            
+            response = self.session.post(f"{API_BASE}/signals/etf-regime/simulate", json=simulate_data)
+            if response.status_code != 200:
+                self.log_test("Phase 2: ETF Regime Simulate", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            result = response.json()
+            
+            # Validate all required fields from review request
+            required_fields = [
+                'equity_curve', 'total_return', 'max_drawdown', 'sharpe', 
+                'flips', 'pl_by_regime', 'decisions', 'params_version'
+            ]
+            missing_fields = [field for field in required_fields if field not in result]
+            if missing_fields:
+                self.log_test("Phase 2: ETF Regime Simulate", False, f"Missing required fields: {missing_fields}")
+                return False
+            
+            # Validate equity_curve structure
+            equity_curve = result.get('equity_curve', [])
+            if not isinstance(equity_curve, list) or len(equity_curve) == 0:
+                self.log_test("Phase 2: ETF Regime Simulate", False, "equity_curve should be non-empty array")
+                return False
+            
+            # Validate equity curve item structure
+            sample_curve_item = equity_curve[0]
+            if 'ts' not in sample_curve_item or 'equity' not in sample_curve_item:
+                self.log_test("Phase 2: ETF Regime Simulate", False, "equity_curve items missing ts or equity")
+                return False
+            
+            # Validate decisions structure
+            decisions = result.get('decisions', [])
+            if not isinstance(decisions, list) or len(decisions) == 0:
+                self.log_test("Phase 2: ETF Regime Simulate", False, "decisions should be non-empty array")
+                return False
+            
+            # Validate decision item structure
+            sample_decision = decisions[0]
+            if 'ts' not in sample_decision or 'decision' not in sample_decision:
+                self.log_test("Phase 2: ETF Regime Simulate", False, "decision items missing ts or decision")
+                return False
+            
+            # Validate pl_by_regime structure
+            pl_by_regime = result.get('pl_by_regime', {})
+            if not isinstance(pl_by_regime, dict):
+                self.log_test("Phase 2: ETF Regime Simulate", False, "pl_by_regime should be dict")
+                return False
+            
+            # Validate numeric fields
+            numeric_fields = ['total_return', 'max_drawdown', 'sharpe', 'flips']
+            for field in numeric_fields:
+                value = result.get(field)
+                if not isinstance(value, (int, float)):
+                    self.log_test("Phase 2: ETF Regime Simulate", False, f"{field} should be numeric, got {type(value)}")
+                    return False
+            
+            # Validate params_version is string
+            params_version = result.get('params_version')
+            if not isinstance(params_version, str):
+                self.log_test("Phase 2: ETF Regime Simulate", False, f"params_version should be string, got {type(params_version)}")
+                return False
+            
+            self.log_test("Phase 2: ETF Regime Simulate", True, f"Simulation returned all required fields: {len(equity_curve)} equity points, {len(decisions)} decisions, {result['flips']} flips")
+            return True
+            
+        except Exception as e:
+            self.log_test("Phase 2: ETF Regime Simulate", False, f"Error: {str(e)}")
+            return False
+
     def test_sanity_dashboard(self):
         """Test Sanity: GET /api/dashboard (should respond 200)"""
         try:
