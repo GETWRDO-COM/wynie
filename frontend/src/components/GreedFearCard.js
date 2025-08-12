@@ -14,7 +14,7 @@ const GreedFearCard = () => {
 
   useEffect(() => { load(); const id = setInterval(load, 6*60*60*1000); return () => clearInterval(id); }, []);
 
-  const spark = useMemo(() => { const ts = data?.timeseries; if(!ArrayList || !Array.isArray(ts)) return null; const series = ts.slice(-60); if(!series.length) return null; const labels = series.map((_, i) => i+1); const values = series.map((p) => (typeof p === 'number' ? p : (p.value || p.score || 0))); return { labels, datasets:[{ data: values, borderColor: 'rgba(255,255,255,0.9)', backgroundColor: 'rgba(255,255,255,0.08)', tension: 0.25, pointRadius: 0, fill: true }] }; }, [data]);
+  const spark = useMemo(() => { const ts = data?.timeseries; if(!Array.isArray(ts)) return null; const series = ts.slice(-60); if(!series.length) return null; const labels = series.map((_, i) => i+1); const values = series.map((p) => (typeof p === 'number' ? p : (p.value || p.score || 0))); return { labels, datasets:[{ data: values, borderColor: 'rgba(255,255,255,0.9)', backgroundColor: 'rgba(255,255,255,0.08)', tension: 0.25, pointRadius: 0, fill: true }] }; }, [data]);
 
   const now = data?.now ?? null; const prev = data?.previous_close ?? null; const w = data?.one_week_ago ?? null; const m = data?.one_month_ago ?? null; const y = data?.one_year_ago ?? null;
   const circleColor = colorForScore(now); const face = emojiForScore(now);
