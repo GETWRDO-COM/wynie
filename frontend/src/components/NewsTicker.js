@@ -33,7 +33,7 @@ const NewsTicker = () => {
           </div>
           <div className="relative flex-1 overflow-hidden h-6">
             <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-black/80 via-transparent to-black/80" />
-            <div className="absolute whitespace-nowrap will-change-transform animate-[ticker_1500s_linear_infinite] text-xs text-white">
+            <div className="absolute whitespace-nowrap will-change-transform animate-[ticker_1200s_linear_infinite] text-sm text-white">
               {items.length === 0 ? (<span className="inline-flex items-center">{loading ? 'Loading news…' : (error || 'No headlines available')}</span>) : (
                 items.concat(items).map((it, i) => (<span key={i} className="inline-flex items-center">{i > 0 && <span className="mx-4 text-white/50">|</span>}{it.title}</span>))
               )}
