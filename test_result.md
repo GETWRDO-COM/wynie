@@ -493,7 +493,7 @@ backend:
 
   - task: "Stock Screening APIs"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 2
     priority: "high"
@@ -508,6 +508,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "❌ JSON SERIALIZATION ERROR: GET /api/screens/neglected-pre-earnings fails with HTTP 500 due to numpy.bool serialization issue. Backend logs show 'numpy.bool object is not iterable' error. The endpoint implementation exists (lines 2439-2506) with WATCH/READY labels but returns numpy boolean values that can't be JSON serialized."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED AND WORKING: GET /api/screens/neglected-pre-earnings now returns 200 with proper array structure. The endpoint correctly returns items with valid WATCH/READY labels when data is available. JSON serialization issues have been resolved. Screen functionality is working correctly."
 
   - task: "Positions and Trades Management"
     implemented: false
