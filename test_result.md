@@ -132,15 +132,18 @@
         comment: "Company profile and metrics wired with TTL cache and backoff."
   - task: "Screener registry expansion"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/screener_registry.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "Added fundamentals and more technical fields in registry."
+      - working: true
+        agent: "testing"
+        comment: "✅ Screener registry working perfectly. GET /api/screeners/filters returns categories and fields including fundamentals like marketCap. All expected categories present: Price & Volume, Technicals, Signals, and Fundamentals with proper field definitions."
   - task: "Polygon adapter + marketdata endpoints"
     implemented: true
     working: true
