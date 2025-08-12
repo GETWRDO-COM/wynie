@@ -19,10 +19,6 @@ const DashboardQuickSections = ({ chartData, swingLeaders, watchlists, marketSco
   const updatedFmt = updated ? new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(updated) : null;
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="text-white/90 font-semibold text-lg">Market Snapshot</div>
-        {updatedFmt && <div className="text-xs text-gray-400">Updated {updatedFmt}</div>}
-      </div>
       {/* Indices */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <MiniChart title="S&P 500" data={indices.sp500 || indices.SPY} />
