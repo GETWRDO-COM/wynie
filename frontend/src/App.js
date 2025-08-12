@@ -80,14 +80,14 @@ function App() {
   useEffect(() => { const token = localStorage.getItem('authToken'); const userData = localStorage.getItem('user'); if (token && userData) { try { setUser(JSON.parse(userData)); } catch { localStorage.removeItem('authToken'); localStorage.removeItem('user'); } } setLoading(false); }, []);
   useEffect(() => { if (user) { fetchInitialData(); const i = setInterval(fetchInitialData, 30000); return () => clearInterval(i); } }, [user]);
 
-  const fetchInitialData = async () =&gt; { try { await Promise.all([fetchDashboardData(), fetchETFs(), fetchSectors(), fetchMarketScore(), fetchSwingLeaders(), fetchWatchlists(), fetchChartData()]); } catch (e) { console.error('Failed to fetch initial data:', e); } };
-  const fetchDashboardData = async () =&gt; { try { const r = await api.get('/api/dashboard'); setDashboardData(r.data); } catch (e) { console.error('Failed to fetch dashboard data:', e); } };
-  const fetchETFs = async () =&gt; { try { const r = await api.get('/api/etfs?limit=200'); setEtfs(r.data); } catch (e) { console.error('Failed to fetch ETFs:', e); } };
-  const fetchSectors = async () =&gt; { try { const r = await api.get('/api/etfs/sectors'); setSectors(r.data.sectors); } catch (e) { console.error('Failed to fetch sectors:', e); } };
-  const fetchMarketScore = async () =&gt; { try { const r = await api.get('/api/market-score'); setMarketScore(r.data); } catch (e) { console.error('Failed to fetch market score:', e); } };
-  const fetchSwingLeaders = async () =&gt; { try { const r = await api.get('/api/etfs/swing-leaders'); setSwingLeaders(r.data); } catch (e) { console.error('Failed to fetch swing leaders:', e); } };
-  const fetchWatchlists = async () =&gt; { try { const r = await api.get('/api/watchlists/custom'); setWatchlists(r.data); } catch (e) { console.error('Failed to fetch watchlists:', e); } };
-  const fetchChartData = async (timeframe = '1m') =&gt; { try { const r = await api.get(`/api/charts/indices?timeframe=${timeframe}`); setChartData(r.data.data); } catch (e) { console.error('Failed to fetch chart data:', e); } };
+  const fetchInitialData = async () => { try { await Promise.all([fetchDashboardData(), fetchETFs(), fetchSectors(), fetchMarketScore(), fetchSwingLeaders(), fetchWatchlists(), fetchChartData()]); } catch (e) { console.error('Failed to fetch initial data:', e); } };
+  const fetchDashboardData = async () => { try { const r = await api.get('/api/dashboard'); setDashboardData(r.data); } catch (e) { console.error('Failed to fetch dashboard data:', e); } };
+  const fetchETFs = async () => { try { const r = await api.get('/api/etfs?limit=200'); setEtfs(r.data); } catch (e) { console.error('Failed to fetch ETFs:', e); } };
+  const fetchSectors = async () => { try { const r = await api.get('/api/etfs/sectors'); setSectors(r.data.sectors); } catch (e) { console.error('Failed to fetch sectors:', e); } };
+  const fetchMarketScore = async () => { try { const r = await api.get('/api/market-score'); setMarketScore(r.data); } catch (e) { console.error('Failed to fetch market score:', e); } };
+  const fetchSwingLeaders = async () => { try { const r = await api.get('/api/etfs/swing-leaders'); setSwingLeaders(r.data); } catch (e) { console.error('Failed to fetch swing leaders:', e); } };
+  const fetchWatchlists = async () => { try { const r = await api.get('/api/watchlists/custom'); setWatchlists(r.data); } catch (e) { console.error('Failed to fetch watchlists:', e); } };
+  const fetchChartData = async (timeframe = '1m') => { try { const r = await api.get(`/api/charts/indices?timeframe=${timeframe}`); setChartData(r.data.data); } catch (e) { console.error('Failed to fetch chart data:', e); } };
 
   const handleLogin = (u) =&gt; setUser(u);
   const handleLogout = () =&gt; { localStorage.removeItem('authToken'); localStorage.removeItem('user'); setUser(null); setActiveTab('dashboard'); };
