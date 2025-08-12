@@ -52,6 +52,8 @@ const NewsSection = ({ api }) => {
 
   useEffect(() => { fetchNews(category); }, [category, wlTickers.join(',')]);
 
+  const top = items.slice(0,6);
+  const more = items.slice(6,20);
   return (
     <div className="glass-panel p-4">
       <div className="flex items-center justify-between mb-3">
@@ -65,15 +67,43 @@ const NewsSection = ({ api }) => {
       {err && <div className="text-xs text-amber-300 mb-2">{err}</div>}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
-          <ul className="space-y-2">
-            {loading && <li className="text-gray-400 text-sm">Loading headlines…</li>}
-            {!loading && items.map((it, idx) => (
-              <li key={idx} className="text-sm">
-                <a href={it.link} target="_blank" rel="noopener noreferrer" className="text-white/90 hover:text-white underline-offset-2 hover:underline">{it.title}</a>
+          <ul className="divide-y divide-white/10">
+            {loading && <li className="text-gray-400 text-sm py-2">Loading headlines…</li>}
+            {!loading && top.map((it, idx) => (
+              <li key={idx} className="py-2 flex items-center gap-3">
+                {it.thumb && <img src={it.thumb} alt="thumb" className="w-16 h-12 object-cover rounded border border-white/10" />}
+                <div className="min-w-0">
+                  <a href={it.link} target="_blank" rel="noopener noreferrer" className="text-white/90 hover:text-white underline-offset-2 hover:underline line-clamp-2">{it.title}</a>
+                  <div className="text-[11px] text-gray-400 mt-1">
+                    {it.source && <span className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 mr-2">{it.source}</span>}
+                    {it.published && <span>{new Date(it.published).toLocaleString()}</span>}
+                  </div>
+                </div>
               </li>
             ))}
-            {!loading && items.length === 0 && <li className="text-gray-400 text-sm">No headlines available.</li>}
+            {!loading && top.length === 0 && <li className="text-gray-400 text-sm py-2">No headlines available.</li>}
           </ul>
+          {more.length>0 && (
+            <div className="mt-3">
+              <details>
+                <summary className="cursor-pointer text-xs text-blue-400 hover:text-blue-300">See more</summary>
+                <ul className="divide-y divide-white/10 mt-2">
+                  {more.map((it, idx) => (
+                    <li key={idx} className="py-2 flex items-center gap-3">
+                      {it.thumb && <img src={it.thumb} alt="thumb" className="w-12 h-10 object-cover rounded border border-white/10" />}
+                      <div className="min-w-0">
+                        <a href={it.link} target="_blank" rel="noopener noreferrer" className="text-white/90 hover:text-white underline-offset-2 hover:underline line-clamp-2">{it.title}</a>
+                        <div className="text-[11px] text-gray-400 mt-1">
+                          {it.source && <span className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 mr-2">{it.source}</span>}
+                          {it.published && <span>{new Date(it.published).toLocaleString()}</span>}
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            </div>
+          )}
         </div>
         <div>
           <div className="text-xs text-gray-400 mb-2">Earnings announcements</div>
