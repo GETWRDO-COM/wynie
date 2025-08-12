@@ -303,10 +303,10 @@
 
 ## test_plan:
   current_focus:
-    - "Backend API connectivity issues - all endpoints returning ERR_ABORTED"
-    - "WebSocket connections failing with 403 errors"
-  stuck_tasks:
-    - "Frontend wired to backend (Polygon quotes/bars/logos)"
+    - "Watchlists v2 drag-and-drop and combo builder UI"
+    - "Screener run + QueryBuilder integration"
+    - "Columns dialog + density controls"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
