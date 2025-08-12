@@ -606,6 +606,13 @@ backend:
         comment: "✅ TESTED: Spreadsheet interface working: Excel-style formulas, formula transparency, sector filtering. All spreadsheet endpoints functional with proper formula display."
 
   - task: "Manual Stock/ETF Management and Watchlists"
+      - working: false
+        agent: "user"
+        comment: "Runtime error on login: ReferenceError ArrayList is not defined originating from GreedFearCard useMemo."
+      - working: true
+        agent: "main"
+        comment: "Fixed GreedFearCard sparkline guard: removed stray 'ArrayList' reference and now check only Array.isArray(timeseries)."
+
     implemented: true
     working: true
     file: "/app/backend/server.py"
