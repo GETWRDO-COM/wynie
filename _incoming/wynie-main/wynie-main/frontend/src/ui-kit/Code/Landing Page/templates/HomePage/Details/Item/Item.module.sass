@@ -1,0 +1,180 @@
+@import @/styles/variables
+
+.item
+    position: relative
+    &:before
+        content: ""
+        position: absolute
+        inset: 0
+        z-index: 3
+        border-width: 1.5px 0
+        border-style: solid
+        border-color: rgba($n2, .02)
+        pointer-events: none
+        +t
+            left: -40px
+            right: -40px
+    &:nth-child(2n)
+        .row
+            flex-direction: row-reverse
+            background: linear-gradient(236deg, rgba(248, 248, 248, 0.03) 0%, rgba(248, 248, 248, 0.00) 46.5%), linear-gradient(180deg, rgba(248, 248, 248, 0.02) 0%, rgba(248, 248, 248, 0.00) 100%)
+    &:not(:last-child)
+        margin-bottom: 20px
+
+.row
+    position: relative
+    display: flex
+    justify-content: space-between
+    align-items: center
+    max-width: 1280px
+    margin: 0 auto
+    padding: 60px
+    border-radius: 108px
+    background: linear-gradient(124deg, rgba(248, 248, 248, 0.03) 0%, rgba(248, 248, 248, 0.00) 46.5%), linear-gradient(180deg, rgba(248, 248, 248, 0.02) 0%, rgba(248, 248, 248, 0.00) 100%)
+    +xl
+        max-width: 1120px
+    +d
+        padding: 48px
+        border-radius: 96px
+    +t
+        display: block
+        border-radius: 80px
+    +m
+        padding: 24px 12px
+        border-radius: 48px
+    &:after
+        content: ""
+        position: absolute
+        inset: 0
+        border: 1.5px solid rgba(255, 255, 255, 0.05)
+        border-radius: 108px
+        mask-image: linear-gradient(160deg, black, transparent 50%)
+        pointer-events: none
+        +d
+            border-radius: 96px
+        +t
+            border-radius: 80px
+        +m
+            border-radius: 48px
+
+.details
+    flex-shrink: 0
+    width: 360px
+    +d
+        width: 320px
+    +t
+        position: relative
+        width: 100%
+        margin-bottom: 48px
+        padding-top: 8px
+    +m
+        margin-bottom: 40px
+        padding: 0 12px
+
+.iconPreview
+    position: relative
+    display: flex
+    justify-content: center
+    align-items: center
+    width: 64px
+    height: 64px
+    margin-bottom: 48px
+    border-radius: 16px
+    background: linear-gradient(0deg, rgba(248, 248, 248, 0.10) 0%, rgba(248, 248, 248, 0.10) 100%)
+    box-shadow: 0px 0px 0px 2px rgba(24, 24, 24, 0.75)
+    backdrop-filter: blur(50px)
+    +t
+        position: absolute
+        top: 0
+        right: 0
+        border-radius: 50%
+    +m
+        position: relative
+        top: auto
+        right: auto
+        margin-bottom: 24px
+    &:after
+        content: ""
+        position: absolute
+        inset: 0
+        border: 1.5px solid rgba(255, 255, 255, 0.1)
+        border-radius: 16px
+        mask-image: linear-gradient(160deg, black, transparent 50%)
+        pointer-events: none
+        +t
+            border-radius: 50%
+    img
+        width: 24px
+    .image
+        opacity: 1
+
+.title
+    margin-bottom: 24px
+    +gradient-text
+    opacity: .8
+    +t
+        margin-bottom: 32px
+        padding-right: 80px
+    +m
+        margin-bottom: 16px
+        padding: 0
+        font-size: 24px
+        letter-spacing: 0
+
+.content
+    +info
+    color: rgba($n2, .4)
+
+.preview,
+.preview:after,
+.overlay,
+.in
+    border-radius: 48px
+    +m
+        border-radius: 44px
+
+.preview
+    position: relative
+    flex-shrink: 0
+    width: 512px
+    padding: 24px
+    cursor: default
+    +d
+        width: 440px
+    +t
+        width: 100%
+    +m
+        padding: 12px
+    &:after
+        content: ""
+        position: absolute
+        inset: 0
+        border: 1.5px solid rgba(255, 255, 255, 0.1)
+        mask-image: linear-gradient(-25deg, black, transparent 30%, transparent 50%, rgba(black, .3))
+        pointer-events: none
+
+.in,
+.gradient
+    position: absolute
+    inset: 0
+
+.in
+    overflow: hidden
+    background: linear-gradient(180deg, rgba(248, 248, 248, 0.03) 0%, rgba(248, 248, 248, 0.01) 79.79%)
+
+.gradient
+    .image
+        transform: scale(1.4)
+        object-fit: cover
+        opacity: 1
+
+.overlay
+    position: absolute
+    inset: 0
+    z-index: 1
+    background: #181818
+    opacity: .15
+
+.inner
+    position: relative
+    z-index: 2

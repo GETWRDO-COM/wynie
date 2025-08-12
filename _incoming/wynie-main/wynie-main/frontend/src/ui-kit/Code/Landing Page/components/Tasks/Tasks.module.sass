@@ -1,0 +1,265 @@
+@import @/styles/variables
+
+.tasks
+    position: relative
+    &:before,
+    &:after
+        content: ""
+        position: absolute
+        inset: 0
+        border-radius: 32px
+    &:before
+        background: rgba(40, 40, 40, 0.70)
+        box-shadow: inset 2px 4px 16px 0px rgba(248, 248, 248, 0.06), 0px 24px 24px -16px rgba(5, 5, 5, 0.09), 0px 6px 13px 0px rgba(5, 5, 5, 0.10), 0px 6px 4px -4px rgba(5, 5, 5, 0.10), 0px 5px 1.5px -4px rgba(5, 5, 5, 0.25)
+        backdrop-filter: blur(50px)
+    &:after
+        border: 1.5px solid rgba(255, 255, 255, 0.05)
+        mask-image: linear-gradient(160deg, black, transparent 50%)
+        pointer-events: none
+    &.animation
+        .task
+            &:nth-child(2)
+                z-index: 2
+                .in
+                    transform: rotate(-2deg)
+                    top: 0
+                    right: -28px
+                    animation: moveDown 4s 1s ease-in-out infinite
+                    +m
+                        right: -40px
+                .cursor
+                    top: 60%
+                    left: 80%
+                    transform: rotate(2deg)
+                    +m
+                        top: 70%
+                        left: 60%
+            &:nth-child(3)
+                .in
+                    animation: moveUp 4s 1s ease-in-out infinite
+    &.completed
+        .inner
+            display: flex
+            flex-direction: column
+            height: 480px
+            +m
+                height: 448px
+
+@keyframes moveDown
+    0%
+        transform: translateY(0) rotate(-2deg)
+    15%,50%
+        transform: translateY(calc(100% + 8px)) rotate(-2deg)
+    65%,100%
+        transform: translateY(0) rotate(-2deg)
+
+@keyframes moveUp
+    0%
+        transform: translateY(0)
+    15%,50%
+        transform: translateY(calc(-100% - 8px))
+    65%,100%
+        transform: translateY(0)
+
+.inner
+    position: relative
+    z-index: 2
+    padding: 12px
+
+.head
+    display: flex
+    align-items: center
+    margin-bottom: 24px
+
+.back
+    display: flex
+    align-items: center
+    margin-right: auto
+    +title
+    color: $text-primary
+    .icon
+        margin-right: 12px
+
+.icon
+    position: relative
+    display: flex
+    justify-content: center
+    align-items: center
+    flex-shrink: 0
+    width: 44px
+    height: 44px
+    gap: 4.5px
+    border-radius: 50%
+    overflow: hidden
+    background: rgba(40, 40, 40, 0.70)
+    box-shadow: inset 2px 4px 16px 0px rgba(248, 248, 248, 0.06)
+    backdrop-filter: blur(50px)
+    svg
+        fill: $text-secondary
+    &:after
+        content: ""
+        position: absolute
+        inset: 0
+        border: 1.5px solid rgba(255, 255, 255, 0.1)
+        border-radius: 50%
+        mask-image: linear-gradient(160deg, black, transparent 50%)
+        pointer-events: none
+    span
+        position: relative
+        width: 3.5px
+        height: 3.5px
+        border-radius: 50%
+        border: 1.5px solid $text-secondary
+
+.wrap
+    flex-grow: 1
+
+.previewCompletedTasks
+    top: 53.8%
+
+.body
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+.task
+    position: relative
+    &.isActions
+        .in
+            padding-right: 120px
+        .drag
+            svg
+                fill: rgba($n2, .35)
+    &.isSelected
+        .in
+            background: rgba($n2, .02)
+        .title
+            color: $text-tertiary
+        .radio
+            &:before
+                opacity: 1
+    &.isHover
+        .in
+            background: rgba($n2, .1)
+        .drag
+            svg
+                fill: rgba($n2, .5)
+    &:nth-child(2)
+        z-index: 2
+        .in
+            transform: rotate(-2deg)
+            top: 13px
+            right: -52px
+            background: rgba(248, 248, 248, 0.10)
+            box-shadow: 0px 32px 60px 0px rgba(40, 40, 40, 0.50)
+            backdrop-filter: blur(16px)
+            +m
+                top: 0px
+                right: -40px
+        .cursor
+            top: 63%
+            left: 65%
+            transform: rotate(2deg)
+            +m
+                top: 75%
+                left: 50%
+
+.in
+    position: relative
+    display: flex
+    align-items: center
+    height: 56px
+    padding: 0 48px
+    background: rgba($n2, .05)
+    border-radius: 12px
+
+.radio
+    position: absolute
+    top: 16px
+    left: 12px
+    width: 24px
+    height: 24px
+    border: 3px solid rgba($n2, .25)
+    border-radius: 50%
+    cursor: pointer
+    transition: border-color .2s
+    &:before
+        content: ""
+        position: absolute
+        inset: 3px
+        border-radius: 50%
+        background: linear-gradient(180deg, rgba(248, 248, 248, 0.90) 0%, rgba(248, 248, 248, 0.30) 100%)
+        opacity: 0
+        transition: opacity .2s
+
+.title
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+    +base-2m
+    color: $text-secondary
+
+.actions,
+.drag
+    position: absolute
+    top: 50%
+    transform: translateY(-50%)
+
+.actions
+    right: 48px
+    display: flex
+    align-items: center
+    gap: 12px
+
+.action
+    font-size: 0
+    opacity: .8
+    svg
+        fill: $text-secondary
+
+.drag
+    right: 12px
+    font-size: 0
+    svg
+        fill: rgba($n2, .125)
+
+.foot
+    display: flex
+    align-items: center
+    margin-top: 24px
+    padding-left: 8px
+
+.progress
+    display: flex
+    align-items: center
+    margin-right: auto
+    +caption-sm
+    text-transform: uppercase
+    letter-spacing: .05em
+    color: rgba($n2, .25)
+    .circle
+        margin-right: 12px
+    .image
+        opacity: 1
+    span
+        margin-left: 8px
+        color: rgba($n2, .4)
+
+.cursor
+    position: absolute
+    z-index: 5
+    img
+        opacity: 1
+
+.tooltip
+    position: absolute
+    top: calc(100% - 10px)
+    left: calc(100% - 6px)
+    padding: 8px 16px
+    border-radius: 32px
+    background: rgba(#353DF4, .95)
+    box-shadow: 0px 24px 32px -12px rgba(18, 18, 18, 0.10), inset 2px 4px 16px 0px rgba(248, 248, 248, 0.06)
+    backdrop-filter: blur(16px)
+    white-space: nowrap
+    +base-2m
+    color: rgba($n2, .76)

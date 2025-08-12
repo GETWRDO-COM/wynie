@@ -1,0 +1,52 @@
+@import @/styles/variables
+
+.stars
+    position: absolute
+    inset: 0
+    opacity: .6
+
+.star
+    position: absolute
+    border-radius: 50%
+    background: #919191
+    &:before
+        content: ""
+        position: absolute
+        inset: 0
+        border-radius: 50%
+        background: #919191
+
+
+.star1
+    &:before
+        animation: 5s linear 1s infinite backwards twinkle
+
+.star2
+    &:before
+        animation: 5s linear 3s infinite backwards twinkle
+
+.star3
+    &:before
+        animation: 5s linear 5s infinite backwards twinkle
+
+.star4
+    &:before
+        animation: 5s linear 7s infinite backwards twinkle
+
+.star5
+    &:before
+        animation: 5s linear 9s infinite backwards twinkle
+
+@keyframes twinkle
+    0%
+        opacity: 1
+        transform: scale(1)
+    10%
+        opacity: 0
+        transform: scale(5)
+    20%
+        opacity: 0
+        transform: scale(1)
+    30%
+        opacity: 1
+        transform: scale(1)

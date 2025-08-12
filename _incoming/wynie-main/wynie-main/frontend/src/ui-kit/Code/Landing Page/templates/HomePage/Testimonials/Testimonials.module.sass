@@ -1,0 +1,225 @@
+@import @/styles/variables
+
+.wrapper
+    position: relative
+
+.stars
+    position: absolute
+    top: 50%
+    left: 50%
+    transform: translate(-50%,-50%)
+    width: 776px
+
+.wrap
+    position: relative
+    z-index: 2
+    max-width: 872px
+    margin: 0 auto
+    padding: 24px
+    border-radius: 48px
+    overflow: hidden
+    &:before,
+    &:after
+        content: ""
+        position: absolute
+        inset: 0
+        border-radius: 48px
+    &:before
+        z-index: 1
+        background: rgba(#181818, .2)
+    &:after
+        z-index: 2
+        border: 1.5px solid rgba(255, 255, 255, 0.05)
+        mask-image: linear-gradient(20deg, black, transparent 30%, transparent 70%, black)
+        pointer-events: none
+
+.gradient
+    position: absolute
+    inset: 0
+    background: linear-gradient(0deg, rgba(24, 24, 24, 0.20) 0%, rgba(24, 24, 24, 0.20) 100%)
+    backdrop-filter: blur(50px)
+
+.parallax
+    position: absolute
+    inset: 0
+
+.background
+    object-fit: cover
+    transform: scale(1.4)
+    background: linear-gradient(180deg, rgba(248, 248, 248, 0.03) 0%, rgba(248, 248, 248, 0.01) 79.79%)
+
+.inner
+    position: relative
+    padding: 12px
+    overflow: hidden
+    border-radius: 32px
+    &:before,
+    &:after
+        content: ""
+        position: absolute
+        inset: 0
+        border-radius: 32px
+    &:before
+        background: rgba(40, 40, 40, 0.70)
+        box-shadow: inset 2px 4px 16px 0px rgba(248, 248, 248, 0.06), 0px 24px 24px -16px rgba(5, 5, 5, 0.09), 0px 6px 13px 0px rgba(5, 5, 5, 0.10), 0px 6px 4px -4px rgba(5, 5, 5, 0.10), 0px 5px 1.5px -4px rgba(5, 5, 5, 0.25)
+        backdrop-filter: blur(50px)
+    &:after
+        border: 1.5px solid rgba(255, 255, 255, 0.1)
+        mask-image: linear-gradient(172deg, black, transparent 50%)
+        pointer-events: none
+
+.top,
+.body
+    position: relative
+    z-index: 2
+
+.top
+    // padding: 0 40px
+    +t
+        margin: 0 -80px
+    +m
+        margin: 0
+        padding: 0 12px
+
+.body
+    pointer-events: none
+
+.user
+    position: relative
+    display: flex
+    align-items: center
+    padding: 12px 50px 12px 12px
+    background: rgba(248, 248, 248, 0.02)
+    border-radius: 20px
+    box-sizing: border-box
+    transition: all .2s
+    &:before,
+    &:after
+        content: ""
+        position: absolute
+    &:before
+        top: 22px
+        right: 16px
+        z-index: 2
+        width: 24px
+        height: 24px
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='12' fill='%23282828' fill-opacity='.5'/%3E%3Cpath d='M10 11l1.47 1.47a.75.75 0 0 0 1.061 0L14 11' stroke='%23f8f8f8' stroke-opacity='.8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+        opacity: 0
+        transition: opacity .2s
+    &:after
+        inset: 0
+        border-radius: 20px
+        z-index: 1
+        border: 1px solid rgba(255, 255, 255, 0.1)
+        mask-image: linear-gradient(172deg, black, transparent 50%)
+        pointer-events: none
+
+.avatar
+    flex-shrink: 0
+    width: 44px
+    height: 44px
+    border-radius: 50%
+    overflow: hidden
+    img
+        transform: scale(1.05)
+        border-radius: 50%
+        object-fit: cover
+        opacity: 1
+
+.details
+    width: calc(100% - 44px)
+    padding-left: 16px
+
+.author,
+.post
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+.author
+    margin-bottom: 2px
+    +base-2m
+
+.post
+    +caption-r
+    color: rgba($n2, .4)
+
+.description
+    display: flex
+    flex-direction: column
+    justify-content: center
+    align-items: center
+    height: 176px
+    text-align: center
+    +title
+    +m
+        height: 272px
+
+.review
+    padding: 0 24px
+    +m
+        padding: 0 12px
+
+.content
+    color: $text-tertiary
+
+.foot
+    display: flex
+    justify-content: center
+
+.control
+    position: relative
+    display: flex
+    align-items: center
+    margin-top: 64px
+    padding: 8px
+    +m
+        margin-top: 40px
+    &:before,
+    &:after
+        content: ""
+        position: absolute
+        inset: 0
+        border-radius: 28px
+    &:before
+        background: rgba(40, 40, 40, 0.70)
+        box-shadow: inset 2px 4px 16px 0px rgba(248, 248, 248, 0.06)
+        backdrop-filter: blur(50px)
+    &:after
+        border: 1.5px solid rgba(255, 255, 255, 0.05)
+        mask-image: linear-gradient(172deg, black, transparent 50%)
+        pointer-events: none
+
+.arrow
+    position: relative
+    z-index: 2
+    display: flex
+    justify-content: center
+    align-items: center
+    width: 40px
+    height: 40px
+    &:before,
+    &:after
+        content: ""
+        position: absolute
+        inset: 0
+        border-radius: 50%
+        opacity: 0
+        transition: opacity .2s
+    &:before
+        background: rgba(248, 248, 248, 0.10)
+        box-shadow: inset 2px 4px 16px 0px rgba(248, 248, 248, 0.06)
+        backdrop-filter: blur(50px)
+    &:after
+        border: 1.5px solid rgba(255, 255, 255, 0.1)
+        mask-image: linear-gradient(172deg, black, transparent 50%)
+        pointer-events: none
+    svg
+        position: relative
+        z-index: 2
+        fill: $text-secondary
+    &:hover
+        &:before,
+        &:after
+            opacity: 1
+        

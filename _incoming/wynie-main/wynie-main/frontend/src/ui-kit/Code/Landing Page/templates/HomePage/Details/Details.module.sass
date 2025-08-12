@@ -1,0 +1,92 @@
+@import @/styles/variables
+
+.details
+    overflow: hidden
+    +t
+        margin-top: -32px
+    +m
+        margin-top: -132px
+
+.container
+    max-width: 1680px
+    +d
+        padding: 0 40px
+    +m
+        padding: 0 12px
+
+.head
+    max-width: 960px
+    margin: 0 auto 112px
+    text-align: center
+    +d
+        max-width: 688px
+        margin-bottom: 80px
+    +m
+        padding: 0 12px
+
+.check
+    position: relative
+    height: 354px
+    +d
+        height: 322px
+    +m
+        height: 356px
+    .image
+        opacity: 1
+        +m
+            width: 262px
+
+.circle
+    position: absolute
+    top: 61px
+    left: 50%
+    width: 240px
+    height: 240px
+    transform: translateX(-50%)
+    border-radius: 50%
+    border: 1.5px solid rgba($n2, .014)
+    animation: rotate 50s linear infinite
+    +m
+        top: 150px
+        width: 171px
+        height: 171px
+
+@keyframes rotate
+    0%
+        transform: translateX(-50%) rotate(0)
+    100%
+        transform: translateX(-50%) rotate(360deg)
+
+.dot
+    position: absolute
+    right: 5.3%
+    bottom: 24.5%
+    z-index: 1
+    width: 4px
+    height: 4px
+    border-radius: 50%
+    background: rgba(255, 255, 255, 0.60)
+    box-shadow: 0px 0px 12px rgba(255, 255, 255, 0.60)
+
+.title
+    margin-bottom: 40px
+    +gradient-text
+    +m
+        margin-bottom: 16px
+        font-size: 24px
+        line-height: 1.2
+        letter-spacing: 0
+
+.info
+    +title
+    opacity: .8
+    +m
+        font-size: 16px
+
+.item
+    &:nth-child(2)
+        .overlay
+            opacity: .4
+    &:nth-child(3)
+        .overlay
+            opacity: .2

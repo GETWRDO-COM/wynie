@@ -1,0 +1,85 @@
+@import @/styles/variables
+
+.hero
+    position: relative
+    overflow: hidden
+
+.container
+    position: relative
+    &:before
+        content: ""
+        position: absolute
+        top: 0
+        left: 40px
+        right: 40px
+        bottom: 84px
+        border-width: 0 1.5px
+        border-style: solid
+        border-color: rgba($n2, .02)
+        mask-image: linear-gradient(to bottom, transparent, black 50%, transparent 100%)
+        +t
+            left: 32px
+            right: 32px
+        +m
+            left: 24px
+            right: 24px
+
+.head
+    margin-bottom: 128px
+    text-align: center
+    +t
+        margin-bottom: 120px
+    +m
+        margin-bottom: 58px
+
+.title
+    opacity: .8
+
+.info
+    margin-bottom: 40px
+    +info
+    color: $text-secondary
+    +t
+        margin-bottom: 32px
+
+.button
+    margin-bottom: 12px
+
+.version
+    font-size: 10px
+    line-height: 1.2
+    color: $text-tertiary
+
+.images
+    position: relative
+    margin-bottom: 164px
+
+.foot
+    text-align: center
+
+.description
+    margin-bottom: 24px
+    opacity: .8
+    color: $text-tertiary
+    span
+        font-weight: 700
+        color: $text-primary
+
+.avatars
+    display: flex
+    justify-content: center
+    align-items: center
+
+.avatar
+    position: relative
+    z-index: 1
+    margin: -2px 0
+    border-radius: 50%
+    border: 2px solid #202020
+    overflow: hidden
+    img
+        position: relative
+        z-index: 2
+        transform: scale(1.05)
+    &:not(:first-child)
+        margin-left: -17px

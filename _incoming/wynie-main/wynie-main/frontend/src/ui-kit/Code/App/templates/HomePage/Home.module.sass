@@ -1,0 +1,158 @@
+@import @/styles/variables
+
+.outer
+    position: relative
+    display: flex
+    justify-content: center
+    align-items: center
+    min-height: 100svh
+    padding: 40px 8px
+    background-color: #444444
+    @media only screen and (max-width: "767px")
+        padding: 0
+
+.simpleList
+    position: relative
+    z-index: 3
+    max-width: 414px
+    max-height: 604px
+    @media only screen and (max-width: "767px")
+        max-width: 100%
+        max-height: 100svh
+        height: 100svh
+
+.background
+    position: fixed
+    inset: 0
+    visibility: hidden
+    opacity: 0
+    transition: all .2s
+    &:after
+        content: ""
+        position: absolute
+        inset: 0
+        background: rgba(#000, .35)
+    .image
+        object-fit: cover
+    &.visible
+        visibility: visible
+        opacity: 1
+
+.logo
+    position: absolute
+    top: 32px
+    left: 32px
+    z-index: 3
+    @media only screen and (max-width: "767px")
+        display: none
+    
+.link
+    position: absolute
+    right: 32px
+    z-index: 3
+    display: flex
+    justify-content: center
+    align-items: center
+    width: 52px
+    height: 52px
+    border-radius: 50%
+    overflow: hidden
+    @media only screen and (max-width: "767px")
+        display: none
+    &:before,
+    &::after
+        content: ""
+        position: absolute
+        inset: 0
+        border-radius: 50%
+    &:before
+        background: rgba(40, 40, 40, 0.70)
+        box-shadow: 2px 4px 16px 0px rgba(248, 248, 248, 0.06)
+        backdrop-filter: blur(50px)
+        transition: background .2s
+    &:after
+        z-index: 1
+        border: 1.5px solid rgba(255, 255, 255, 0.2)
+        mask-image: linear-gradient(160deg, black, transparent 50%)
+    &:hover
+        &:before
+            background: rgba($n3, 0.9)
+        svg
+            fill: rgba($n2, .8)
+    &:nth-child(1)
+        top: 32px
+    &:nth-child(2)
+        bottom: 32px
+    svg
+        position: relative
+        z-index: 2
+        fill: rgba($n2, .56)
+        transition: fill .2s
+
+.options
+    position: absolute
+    left: 32px
+    bottom: 32px
+    display: flex
+    gap: 12px
+    @media only screen and (max-width: "767px")
+        display: none
+
+.option
+    display: flex
+    justify-content: center
+    align-items: center
+    width: 52px
+    height: 52px
+    flex-shrink: 0
+    border: none
+    border-radius: 50%
+    cursor: pointer
+    font-size: 0
+    outline: none
+    background: none
+    border: 3px solid transparent
+    transition: border-color .2s
+    img
+        transition: transform .3s
+    &:hover
+        .circle,
+        img
+            transform: scale(1.08)
+    &.active
+        border-color: rgba($n2, .6)
+        .circle,
+        img
+            transform: scale(0.9)
+        .circle
+            &:before
+                background: rgba($n3, .8)
+            &:after
+                opacity: 0
+
+.circle
+    position: relative
+    flex-shrink: 0
+    width: 44px
+    height: 44px
+    border-radius: 50%
+    overflow: hidden
+    transition: all .2s
+    &:before,
+    &::after
+        content: ""
+        position: absolute
+        inset: 0
+        border-radius: 50%
+    &:before
+        background: rgba($n3, .7)
+        background-image: linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.05) 100%)
+        box-shadow: 2px 4px 16px 0px rgba(248, 248, 248, 0.06)
+        backdrop-filter: blur(50px)
+        transition: background .2s
+    &:after
+        z-index: 1
+        border: 1.5px solid rgba(255, 255, 255, 0.2)
+        mask-image: linear-gradient(160deg, black, transparent 50%)
+        transition: opacity .2s
+    
