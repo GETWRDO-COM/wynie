@@ -817,12 +817,14 @@ async def create_position(payload: PositionCreate, current_user: User = Depends(
     msae_score = float(latest_state[0].get("msae_score")) if latest_state else None
 
     # get ATR if missing
-    atr = payload.atr_at_entry
+    payload_dict = payload.dict()
+    atr = payload_dict.get('atr_at_entry')
     if atr is None:
         la = await _latest_close_and_atr(payload.symbol)
         atr = la.get("atr")
+        payload_dict['atr_at_entry'] = atr
 
-    pos = Position(**payload.dict(), atr_at_entry=atr)
+    pos = Position(**payload_dict)
     pos.entry_date = pos.entry_date or datetime.utcnow()
     pos.initial_stop = _compute_initial_stop(pos)
 
