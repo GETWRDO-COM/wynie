@@ -6,7 +6,7 @@ const CATS = ['Watchlist','All','USA','South Africa','Stock Market','Finance New
 
 const NewsSection = ({ api }) => {
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
-  const [category, setCategory] = useState('Watchlist');
+  const [category, setCategory] = useState('All');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
