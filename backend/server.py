@@ -370,6 +370,7 @@ async def market_fundamentals(symbols: str):
             prof = data.get('profile', {}) or {}
             met = data.get('metrics', {}) or {}
             out[s] = {
+                "companyName": prof.get('name') or prof.get('ticker') or None,
                 "marketCap": prof.get('marketCapitalization'),
                 "sharesOutstanding": met.get('sharesoutstanding'),
                 "float": met.get('floatShares'),
@@ -397,7 +398,8 @@ async def columns_schema():
         cats[cat]["columns"].append(col)
     for f in SCREENER_REGISTRY:
         cat = f.get('category') or 'General'
-        add(cat, {"id": f['id'], "label": f.get('label') or f['id'], "type": f.get('type') or 'number', "category": cat})
+        cats.setdefault(cat, {"name": cat, "columns": []})
+        cats[cat]["columns"].append({"id": f['id'], "label": f.get('label') or f['id'], "type": f.get('type') or 'number', "category": cat})
     categories = list(cats.values())
     return {"categories": categories}
 

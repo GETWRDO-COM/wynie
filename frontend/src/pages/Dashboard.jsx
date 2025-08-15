@@ -26,7 +26,7 @@ function useLocalState(key, initial) {
   return [v, setV]
 }
 
-function CandleChart({ symbol, drawings, setDrawings, tool, setTool }) {
+function CandleChart({ symbol, companyName, drawings, setDrawings, tool, setTool }) {
   const [bars, setBars] = useState([])
   useEffect(()=>{
     let cancelled = false
@@ -63,7 +63,7 @@ function CandleChart({ symbol, drawings, setDrawings, tool, setTool }) {
             <AvatarImage className="object-contain p-0.5" src={`${BASE}/api/marketdata/logo_image?symbol=${symbol}`} alt={symbol} />
             <AvatarFallback className="text-[10px] text-black bg-white">{symbol?.slice(0,2)}</AvatarFallback>
           </Avatar>
-          {symbol} • Chart
+          {symbol} {companyName ? `— ${companyName}` : ''} • Chart
         </CardTitle>
         <div className="flex items-center gap-2">
           <Button size="sm" variant={tool==='line'? 'default':'secondary'} onClick={()=> setTool('line')}><Pencil className="w-4 h-4 mr-1"/>Line</Button>
@@ -115,6 +115,7 @@ export default function Dashboard() {
   const [presets, setPresets] = useState({})
   const [drawings, setDrawings] = useLocalState("drawings", {})
   const [logos, setLogos] = useLocalState("logos", {})
+  const [names, setNames] = useLocalState("companyNames", {})
   const [columnDefs, setColumnDefs] = useState([])
   const [tool, setTool] = useLocalState("tool", "line")
   const [density, setDensity] = useLocalState("rowDensity", "compact")
@@ -134,6 +135,7 @@ export default function Dashboard() {
         const fmap = await getFundamentals(csv).catch(()=>({data:{}}))
         const f = fmap.data || {}
         const map = {}
+        const nextNames = {...names}
         q.quotes.forEach(it => { map[it.symbol] = it })
         const data = watchSymbols.map(sym => ({
           symbol: sym,
@@ -148,6 +150,8 @@ export default function Dashboard() {
           marketCap: f[sym]?.marketCap ?? null,
           peTTM: f[sym]?.peTTM ?? null,
         }))
+        Object.keys(f).forEach(s => { if (f[s]?.companyName) nextNames[s] = f[s].companyName })
+        setNames(nextNames)
         setRows(data)
       } catch(e){ console.error(e) }
     })()
@@ -263,9 +267,9 @@ export default function Dashboard() {
                 <Button size="sm" variant="secondary" onClick={()=> createAlert('price_below')}><BellPlus className="w-4 h-4 mr-1"/>Price Below</Button>
                 <Button size="sm" variant="secondary" onClick={()=> createAlert('pct_change_ge')}><BellPlus className="w-4 h-4 mr-1"/>% Change ≥</Button>
               </div>
-              <CandleChart symbol={selected} drawings={drawings} setDrawings={setDrawings} tool={tool} setTool={setTool} />
+              <CandleChart symbol={selected} companyName={names[selected]} drawings={drawings} setDrawings={setDrawings} tool={tool} setTool={setTool} />
             </div>
-            <div className="col-span-4 h-full space-y-3">
+            <div className="col-span-4 h-full space-y-3 overflow-auto pr-1">
               <ScreenerPanel onResults={(rows)=> setRows(rows)} />
               <WatchlistsPanel onUseSymbols={(syms)=> setWatchSymbols(syms)} />
               <MiniListPanel title="Live List" rows={filteredRows} columnDefs={columnDefs} visibleColumns={miniColumns} onColumnsClick={()=> setOpenCol(true)} sort={miniSort} setSort={setMiniSort} onRowClick={(r)=> setSelected(r.symbol)} onEdit={onEdit} logos={logos} />

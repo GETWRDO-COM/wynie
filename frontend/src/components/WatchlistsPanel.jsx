@@ -92,6 +92,14 @@ export default function WatchlistsPanel({ onUseSymbols }){
     await updateWatchlist(active.id, { sections }); await load()
   }
 
+  async function removeSymbol(sym, secId){
+    if (!active) return
+    const ok = confirm(`Remove ${sym} from ${ (active.sections||[]).find(s=> s.id===secId)?.name || 'section' }?`)
+    if (!ok) return
+    const sections = (active.sections||[]).map(x=> x.id===secId ? ({...x, symbols: (x.symbols||[]).filter(z=> z!==sym)}) : x)
+    await updateWatchlist(active.id, { sections }); await load()
+  }
+
   async function setColor(secId, color){
     const sections = (active.sections||[]).map(x=> x.id===secId? ({...x, color}) : x)
     await updateWatchlist(active.id, { sections }); await load()
@@ -192,15 +200,23 @@ export default function WatchlistsPanel({ onUseSymbols }){
                              onDragStart={(e)=> { onDragStartSym(e, s, sec.id, idx); try { const el = e.currentTarget.cloneNode(true); el.style.position='absolute'; el.style.left='-9999px'; document.body.appendChild(el); e.dataTransfer.setDragImage(el, 10, 10); setTimeout(()=> document.body.removeChild(el), 0) } catch {} }}
                              onDragOver={onDragOverSymbol}
                              onDrop={(e)=> onDropIntoSection(e, sec.id, idx)}>
-                          <span className="flex items-center gap-1"><span className="text-muted-foreground"><svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' class='inline-block' viewBox='0 0 24 24' fill='currentColor'><path d='M9 3h6v2H9zm-6 8h18v2H3zm4 8h10v2H7z'></path></svg></span>{s}</span>
-                          <Select onValueChange={(to)=> moveSymbol(s, sec.id, to)}>
-                            <SelectTrigger className="w-32"><SelectValue placeholder="Move"/></SelectTrigger>
-                            <SelectContent>
-                              {(active.sections||[]).filter(x=> x.id!==sec.id).map(x=> (
-                                <SelectItem key={x.id} value={x.id}>→ {x.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <span className="flex items-center gap-1">
+                            <GripVertical className="w-3 h-3 text-muted-foreground" />
+                            {s}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <Select onValueChange={(to)=> moveSymbol(s, sec.id, to)}>
+                              <SelectTrigger className="w-32"><SelectValue placeholder="Move"/></SelectTrigger>
+                              <SelectContent>
+                                {(active.sections||[]).filter(x=> x.id!==sec.id).map(x=> (
+                                  <SelectItem key={x.id} value={x.id}>→ {x.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600" title="Remove" onClick={()=> removeSymbol(s, sec.id)}>
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
