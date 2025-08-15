@@ -25,6 +25,15 @@ import base64
 from cryptography.fernet import Fernet
 from urllib.parse import quote, urlparse
 
+# Import deepvue screener functionality
+try:
+    from polygon_client import PolygonClient
+    from finnhub_client import FinnhubClient  
+    from screener_engine import run_screener
+    SCREENER_AVAILABLE = True
+except ImportError:
+    SCREENER_AVAILABLE = False
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
@@ -116,6 +125,15 @@ async def get_polygon_api_key() -> Optional[str]:
         except Exception:
             pass
     return os.environ.get("POLYGON_API_KEY")
+
+async def get_finnhub_api_key() -> Optional[str]:
+    doc = await db.app_settings.find_one({"key": "finnhub_api_key"})
+    if doc and doc.get("encrypted_value"):
+        try:
+            return fernet.decrypt(doc["encrypted_value"]).decode()
+        except Exception:
+            pass
+    return os.environ.get("FINNHUB_API_KEY")
 
 # =====================
 # Auth routes (fix login 404)
@@ -495,6 +513,194 @@ async def get_market_score_normalized():
         normalized = {**doc, "score": score, "trend": trend, "last_updated": last_updated, "recommendation": recommendation}
         normalized.pop('_id', None)
         return normalized
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# =====================
+# Screener endpoints (from deepvue branch)
+# =====================
+class ScreenerRequest(BaseModel):
+    symbols: List[str]
+    filters: List[Dict[str, Any]] = []
+    sort: Optional[Dict[str, str]] = None
+
+@api_router.post("/screener/run")
+async def run_stock_screener(request: ScreenerRequest, user: dict = Depends(get_current_user)):
+    """Run stock screener with filters and sorting"""
+    if not SCREENER_AVAILABLE:
+        raise HTTPException(status_code=501, detail="Screener functionality not available")
+    
+    try:
+        polygon_key = await get_polygon_api_key()
+        if not polygon_key:
+            raise HTTPException(status_code=400, detail="Polygon API key not configured")
+        
+        finnhub_key = await get_finnhub_api_key()
+        
+        poly_client = PolygonClient(polygon_key)
+        finn_client = FinnhubClient(finnhub_key) if finnhub_key else None
+        
+        results = run_screener(
+            poly_client, 
+            finn_client, 
+            request.symbols, 
+            request.filters, 
+            request.sort
+        )
+        
+        return {
+            "results": results,
+            "total": len(results),
+            "filters_applied": request.filters,
+            "sort_applied": request.sort
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/screener/symbols/search")
+async def search_symbols(q: str, limit: int = 25, user: dict = Depends(get_current_user)):
+    """Search for stock symbols using Polygon API"""
+    if not SCREENER_AVAILABLE:
+        raise HTTPException(status_code=501, detail="Symbol search not available")
+    
+    try:
+        polygon_key = await get_polygon_api_key()
+        if not polygon_key:
+            raise HTTPException(status_code=400, detail="Polygon API key not configured")
+        
+        poly_client = PolygonClient(polygon_key)
+        results = poly_client.search_symbols(q, limit)
+        
+        return {"symbols": results}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/screener/fields")
+async def get_screener_fields():
+    """Get available fields for screening"""
+    basic_fields = ["symbol", "last", "changePct", "volume", "liquidity"]
+    technical_fields = [
+        "sma20", "sma50", "sma200", "ema8", "ema21", "ema50",
+        "rsi14", "atr14", "bb_bw", "macd_line", "macd_signal", 
+        "macd_hist", "stoch_k", "stoch_d", "avgVol20d", "runRate20d",
+        "relVol", "pct_to_hi52", "pct_above_lo52", "adr20", "gapPct"
+    ]
+    fundamental_fields = [
+        "marketCap", "sharesOutstanding", "float", "peTTM", "psTTM", 
+        "pb", "roe", "roa", "grossMarginTTM", "operatingMarginTTM", "netMarginTTM"
+    ]
+    computed_fields = [
+        "sma50_above_sma200", "ema8_above_ema21", "macd_cross_up", "macd_cross_down"
+    ]
+    
+    return {
+        "basic": basic_fields,
+        "technical": technical_fields,
+        "fundamental": fundamental_fields,
+        "computed": computed_fields,
+        "operators": [">", ">=", "<", "<=", "==", "!=", "between", "in"]
+    }
+
+# =====================  
+# Trading Journal endpoints (from trading-journal branch)
+# =====================
+class JournalEntry(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    content: str
+    tags: List[str] = []
+    date: datetime = Field(default_factory=datetime.utcnow)
+    trades_mentioned: List[str] = []
+    mood: str = "neutral"
+    market_score: Optional[int] = None
+
+class TradeEntry(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    symbol: str
+    entry_time: datetime
+    exit_time: Optional[datetime] = None
+    entry_price: float
+    exit_price: Optional[float] = None
+    quantity: float
+    side: str  # "long" or "short"
+    status: str = "open"  # "open", "closed"
+    notes: str = ""
+    tags: List[str] = []
+
+@api_router.post("/journal/entries")
+async def create_journal_entry(entry: JournalEntry, user: dict = Depends(get_current_user)):
+    """Create a new journal entry"""
+    try:
+        entry_doc = entry.model_dump()
+        entry_doc["user_id"] = user.get("email")
+        entry_doc["created_at"] = datetime.utcnow()
+        result = await db.journal_entries.insert_one(entry_doc)
+        entry_doc["_id"] = str(result.inserted_id)
+        return entry_doc
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/journal/entries")
+async def get_journal_entries(limit: int = 50, skip: int = 0, user: dict = Depends(get_current_user)):
+    """Get journal entries for the user"""
+    try:
+        cursor = db.journal_entries.find({"user_id": user.get("email")}).sort("date", -1).skip(skip).limit(limit)
+        entries = await cursor.to_list(length=limit)
+        for entry in entries:
+            entry["_id"] = str(entry["_id"])
+        return {"entries": entries}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/journal/trades")
+async def create_trade_entry(trade: TradeEntry, user: dict = Depends(get_current_user)):
+    """Create a new trade entry"""
+    try:
+        trade_doc = trade.model_dump()
+        trade_doc["user_id"] = user.get("email")
+        trade_doc["created_at"] = datetime.utcnow()
+        result = await db.trade_entries.insert_one(trade_doc)
+        trade_doc["_id"] = str(result.inserted_id)
+        return trade_doc
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/journal/trades")
+async def get_trade_entries(
+    limit: int = 50, 
+    skip: int = 0, 
+    status: Optional[str] = None, 
+    user: dict = Depends(get_current_user)
+):
+    """Get trade entries for the user"""
+    try:
+        query = {"user_id": user.get("email")}
+        if status:
+            query["status"] = status
+        cursor = db.trade_entries.find(query).sort("entry_time", -1).skip(skip).limit(limit)
+        trades = await cursor.to_list(length=limit)
+        for trade in trades:
+            trade["_id"] = str(trade["_id"])
+        return {"trades": trades}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.put("/journal/trades/{trade_id}")
+async def update_trade_entry(trade_id: str, trade: TradeEntry, user: dict = Depends(get_current_user)):
+    """Update an existing trade entry"""
+    try:
+        trade_doc = trade.model_dump()
+        trade_doc["user_id"] = user.get("email")
+        trade_doc["updated_at"] = datetime.utcnow()
+        result = await db.trade_entries.update_one(
+            {"id": trade_id, "user_id": user.get("email")}, 
+            {"$set": trade_doc}
+        )
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Trade not found")
+        return {"message": "Trade updated successfully"}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
