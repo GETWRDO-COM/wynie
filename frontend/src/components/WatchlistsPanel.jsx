@@ -233,7 +233,7 @@ export default function WatchlistsPanel({ onUseSymbols }){
                           </span>
                           <div className="flex items-center gap-2">
                             <Select onValueChange={(to)=> moveSymbol(s, sec.id, to)}>
-                              <SelectTrigger className="w-32"><SelectValue placeholder="Move"/></SelectTrigger>
+                              <SelectTrigger className="w-32" style={{ pointerEvents: 'auto' }}><SelectValue placeholder="Move"/></SelectTrigger>
                               <SelectContent>
                                 {(active.sections||[]).filter(x=> x.id!==sec.id).map(x=> (
                                   <SelectItem key={x.id} value={x.id}>→ {x.name}</SelectItem>
