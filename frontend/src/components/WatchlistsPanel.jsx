@@ -35,7 +35,7 @@ export default function WatchlistsPanel({ onUseSymbols }){
       }
     }
     return arr
-  }, [lists, rev])
+  }, [lists])
 
   async function load(){ try { const r = await listWatchlists(); setLists(r||[]) } catch {} }
   useEffect(()=>{ load() }, [])
