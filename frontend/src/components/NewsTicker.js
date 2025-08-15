@@ -9,11 +9,39 @@ const NewsTicker = () => {
   const [error, setError] = useState('');
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
+  const cacheKey = (cat) => `ticker:${cat}`;
+
+  const setCached = (cat, arr) => {
+    try { localStorage.setItem(cacheKey(cat), JSON.stringify({ t: Date.now(), items: arr })); } catch {}
+  };
+  const getCached = (cat) => {
+    try { const raw = localStorage.getItem(cacheKey(cat)); if (!raw) return null; const js = JSON.parse(raw); return js?.items || null; } catch { return null; }
+  };
+
   const fetchFeed = async (cat) => {
     setLoading(true); setError('');
-    try { const resp = await fetch(`${BACKEND_URL}/api/news?category=${encodeURIComponent(cat)}`); const data = await resp.json(); const parsed = (data && data.items) ? data.items.slice(0, 80) : []; if (parsed.length === 0 && cat !== 'All') { await fetchFeed('All'); return; } setItems(parsed); if (!parsed.length) setError('No headlines available'); }
-    catch (e) { setError('Cannot reach news service'); setItems([]); }
-    finally { setLoading(false); }
+    try {
+      const resp = await fetch(`${BACKEND_URL}/api/news?category=${encodeURIComponent(cat)}`);
+      const data = await resp.json();
+      const parsed = (data && data.items) ? data.items.slice(0, 80) : [];
+      if (parsed.length === 0 && cat !== 'All') {
+        // fallback to All feed
+        await fetchFeed('All');
+        return;
+      }
+      setItems(parsed);
+      setCached(cat, parsed);
+      if (!parsed.length) setError('No headlines available');
+    } catch (e) {
+      // fallback to cache, then All, then show error
+      const cached = getCached(cat) || getCached('All');
+      if (cached && cached.length) {
+        setItems(cached);
+      } else {
+        setError('Cannot reach news service');
+        setItems([]);
+      }
+    } finally { setLoading(false); }
   };
 
   useEffect(() => { fetchFeed(category); const id = setInterval(() => fetchFeed(category), 180000); return () => clearInterval(id); }, [category]);

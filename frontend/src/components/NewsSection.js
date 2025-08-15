@@ -12,8 +12,15 @@ const NewsSection = ({ api }) => {
   const [err, setErr] = useState('');
   const [wlTickers, setWlTickers] = useState([]);
   const [earnings, setEarnings] = useState([]);
+  const [earningsUpdatedAt, setEarningsUpdatedAt] = useState(null);
   const [showMore, setShowMore] = useState(false);
   const [updatedAt, setUpdatedAt] = useState(null);
+  const [compact, setCompact] = useState(true);
+
+  // Cache helpers
+  const cacheKey = (cat) => `news:${cat}`;
+  const setCached = (cat, arr) => { try { localStorage.setItem(cacheKey(cat), JSON.stringify({ t: Date.now(), items: arr })); } catch {} };
+  const getCached = (cat) => { try { const raw = localStorage.getItem(cacheKey(cat)); if (!raw) return null; const js = JSON.parse(raw); return js?.items || null; } catch { return null; } };
 
   useEffect(() => {
     (async () => {
@@ -40,10 +47,12 @@ const NewsSection = ({ api }) => {
               const ef = await fetch(`${BACKEND_URL}/api/earnings?days_ahead=14`);
               const jf = await ef.json();
               setEarnings(Array.isArray(jf.items) ? jf.items : []);
+              setEarningsUpdatedAt(new Date());
             } else {
               setEarnings(items);
+              setEarningsUpdatedAt(new Date());
             }
-          } catch { setEarnings([]); }
+          } catch { setEarnings([]); setEarningsUpdatedAt(new Date()); }
         };
         await loadEarnings();
       } catch { /* ignore */ }
@@ -62,10 +71,26 @@ const NewsSection = ({ api }) => {
       const resp = await fetch(url);
       const data = await resp.json();
       const parsed = (data && data.items) ? data.items : [];
-      setItems(parsed);
+      // Fallback if empty
+      if (!parsed.length && cat !== 'All') {
+        const r = await fetch(`${BACKEND_URL}/api/news?category=${encodeURIComponent('All')}`);
+        const d = await r.json();
+        const p2 = d?.items || [];
+        setItems(p2);
+        setCached('All', p2);
+      } else {
+        setItems(parsed);
+        setCached(cat, parsed);
+      }
       setUpdatedAt(new Date());
     } catch (e) {
-      setErr('News unavailable'); setItems([]);
+      const cached = getCached(cat) || getCached('All');
+      if (cached) {
+        setItems(cached);
+      } else {
+        setErr('News unavailable'); setItems([]);
+      }
+      setUpdatedAt(new Date());
     } finally { setLoading(false); }
   };
 
@@ -74,6 +99,7 @@ const NewsSection = ({ api }) => {
   const top = items.slice(0,6);
   const more = items.slice(6,20);
   const updatedRel = rel(updatedAt);
+  const earningsUpdatedRel = rel(earningsUpdatedAt);
 
   const renderThumb = (it, size='lg') => {
     const thumb = it.thumb || (it.source ? `https://logo.clearbit.com/${it.source}` : null);
@@ -86,17 +112,17 @@ const NewsSection = ({ api }) => {
       <div className="flex items-center justify-between mb-3">
         <div className="text-white/90 font-semibold">Top Headlines</div>
         <div className="flex items-center gap-2">
-          <button onClick={()=>{ setShowMore(false); fetchNews(category); }} className="btn btn-outline text-xs py-1">Reload</button>
+          <button onClick={()=> setCompact(v=>!v)} className="btn btn-outline text-xs py-1">{compact? 'Expanded' : 'Compact'}</button>
           <div className="flex flex-wrap gap-2">
             {CATS.map(c => (
-              <button key={c} onClick={() => { setShowMore(false); setCategory(c); }} className={`px-3 py-1.5 rounded-lg text-xs ${category===c?'text-white bg-white/10 border border-white/10':'text-gray-300 hover:text-white hover:bg-white/5'}`}>{c}</button>
+              <button key={c} onClick={() => { setShowMore(false); setCategory(c); }} className={`px-3 py-1.5 rounded-lg text-xs ${category===c?'text:white bg-white/10 border border-white/10':'text-gray-300 hover:text-white hover:bg-white/5'}`}>{c}</button>
             ))}
           </div>
         </div>
       </div>
       <div className="text-[11px] text-gray-500 mb-2">{updatedRel ? `Updated ${updatedRel}` : ''}</div>
       {err && <div className="text-xs text-amber-300 mb-2">{err}</div>}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className={`grid grid-cols-1 ${compact? 'md:grid-cols-2' : 'md:grid-cols-2'} gap-3`}>
         <div>
           <ul className="divide-y divide-white/10">
             {loading && <li className="text-gray-400 text-sm py-2">Loading headlines…</li>}
@@ -119,35 +145,36 @@ const NewsSection = ({ api }) => {
             ))}
             {!loading && top.length === 0 && <li className="text-gray-400 text-sm py-2">No headlines available.</li>}
           </ul>
-          {more.length>0 && (
-            <div className="mt-3">
-              <button onClick={()=>setShowMore(v=>!v)} className="btn btn-outline text-xs py-1">{showMore?'Hide':'See more'}</button>
-              {showMore && (
-                <ul className="divide-y divide-white/10 mt-2">
-                  {more.map((it, idx) => (
-                    <li key={idx} className="py-2 flex items-center gap-3">
-                      {renderThumb(it,'sm')}
-                      <div className="min-w-0">
-                        <a href={it.link} target="_blank" rel="noopener noreferrer" className="text-white/90 hover:text-white underline-offset-2 hover:underline line-clamp-2">{it.title}</a>
-                        <div className="text-[11px] text-gray-400 mt-1 flex items-center gap-2">
-                          {it.source && (
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/5 border border-white/10 mr-1">
-                              <img src={`https://logo.clearbit.com/${it.source}`} alt="src" className="w-3 h-3 rounded" onError={(e)=>{e.currentTarget.style.display='none';}} />
-                              <span>{it.source}</span>
-                            </span>
-                          )}
-                          {it.published && <span>{rel(it.published)}</span>}
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+          <div className="flex items-center justify-end mt-3">
+            <button onClick={()=>{ setShowMore(v=>!v); }} className="btn btn-outline text-xs py-1">{showMore?'Hide':'See more'}</button>
+          </div>
+          {showMore && (
+            <ul className="divide-y divide-white/10 mt-2">
+              {more.map((it, idx) => (
+                <li key={idx} className="py-2 flex items-center gap-3">
+                  {renderThumb(it,'sm')}
+                  <div className="min-w-0">
+                    <a href={it.link} target="_blank" rel="noopener noreferrer" className="text-white/90 hover:text-white underline-offset-2 hover:underline line-clamp-2">{it.title}</a>
+                    <div className="text-[11px] text-gray-400 mt-1 flex items-center gap-2">
+                      {it.source && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/5 border border-white/10 mr-1">
+                          <img src={`https://logo.clearbit.com/${it.source}`} alt="src" className="w-3 h-3 rounded" onError={(e)=>{e.currentTarget.style.display='none';}} />
+                          <span>{it.source}</span>
+                        </span>
+                      )}
+                      {it.published && <span>{rel(it.published)}</span>}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
         <div>
-          <div className="text-xs text-white/90 mb-2 font-semibold flex items-center gap-2"><span className="px-2 py-0.5 rounded bg-gradient-to-r from-green-500/80 to-blue-500/80 text-black">Earnings</span><span className="text-gray-400 font-normal">announcements</span></div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xs text-white/90 font-semibold flex items-center gap-2"><span className="px-2 py-0.5 rounded bg-gradient-to-r from-green-500/80 to-blue-500/80 text-black">Earnings</span><span className="text-gray-400 font-normal">announcements</span></div>
+            <div className="text-[11px] text-gray-500">{earningsUpdatedRel ? `Updated ${earningsUpdatedRel}` : ''}</div>
+          </div>
           <ul className="space-y-2 bg-white/5 border border-white/10 rounded-lg p-3">
             {(earnings||[]).slice(0,8).map((e, i) => (
               <li key={i} className="text-sm">
@@ -157,6 +184,9 @@ const NewsSection = ({ api }) => {
             ))}
             {(earnings||[]).length===0 && <li className="text-gray-400 text-sm">No earnings data yet.</li>}
           </ul>
+          <div className="flex items-center justify-end mt-3">
+            <button onClick={()=>{ setShowMore(false); fetchNews(category); }} className="btn btn-outline text-xs py-1">Reload</button>
+          </div>
         </div>
       </div>
     </div>

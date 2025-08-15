@@ -18,6 +18,7 @@ import FloatingChat from './components/FloatingChat';
 import MyPerformance from './components/MyPerformance';
 import MarketScoreCard from './components/MarketScoreCard';
 import BackendStatus from './components/BackendStatus';
+import NewsSection from './components/NewsSection';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
@@ -131,6 +132,7 @@ function App() {
               <MyPerformance api={api} />
               <MarketCharts />
               <DashboardQuickSections swingLeaders={swingLeaders} watchlists={watchlists} marketScore={marketScore} />
+              <NewsSection api={api} />
             </div>
           )}
           {activeTab === 'swing-grid' && (<div className="glass-panel p-6 animate-fade-in"><SwingAnalysisGrid api={api} etfs={selectedSector ? etfs.filter(e => e.sector === selectedSector) : etfs} sectors={sectors} selectedSector={selectedSector} setSelectedSector={setSelectedSector} analyzeChart={() => {}} addToWatchlist={() => {}} /></div>)}

@@ -10,10 +10,25 @@ const MarketCharts = () => {
   const [range, setRange] = useState('1M');
   const [data, setData] = useState({});
   const [updatedAt, setUpdatedAt] = useState(null);
+  const [error, setError] = useState('');
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
   const load = async (r) => {
-    try { const tickers = TICKERS.map(t => t.id).join(','); const res = await fetch(`${BACKEND_URL}/api/market/aggregates?tickers=${encodeURIComponent(tickers)}&range=${encodeURIComponent(r)}`); const js = await res.json(); setData(js.data || {}); setUpdatedAt(js.last_updated ? new Date(js.last_updated) : new Date()); } catch (e) { console.error('Chart load failed', e); }
+    try {
+      setError('');
+      const tickers = TICKERS.map(t => t.id).join(',');
+      const res = await fetch(`${BACKEND_URL}/api/market/aggregates?tickers=${encodeURIComponent(tickers)}&range=${encodeURIComponent(r)}`);
+      const js = await res.json();
+      if (!res.ok) {
+        throw new Error(js?.detail || 'Failed to load market data');
+      }
+      setData(js.data || {});
+      setUpdatedAt(js.last_updated ? new Date(js.last_updated) : new Date());
+    } catch (e) {
+      setError(e.message || 'Failed to load market data');
+      setData({});
+      setUpdatedAt(new Date());
+    }
   };
 
   useEffect(() => { load(range); const id = setInterval(() => load(range), 5*60*1000); return () => clearInterval(id); }, [range]);
@@ -24,12 +39,22 @@ const MarketCharts = () => {
     <div className="glass-panel p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="text-white/90 font-semibold">Market Snapshot</div>
-        <div className="flex items-center gap-2"><button onClick={()=>load(range)} className="btn btn-outline text-xs py-1">Reload</button>
-          {RANGES.map(r => (
-            <button key={r} onClick={() => setRange(r)} className={`px-3 py-1.5 rounded-lg text-sm ${range===r?'text-white bg-white/10 border border-white/10':'text-gray-300 hover:text-white hover:bg-white/5'}`}>{r}</button>
-          ))}
-        </div>
         <div className="text-xs text-gray-400">Updated {rel(updatedAt)}</div>
+      </div>
+      {error && (
+        <div className="text-xs text-amber-300 mb-2">
+          {error.includes('Polygon API key not configured') ? (
+            <>
+              Polygon key missing. Set it in <a href="#open-settings" className="underline">Settings → Integrations</a>.
+            </>
+          ) : error}
+        </div>
+      )}
+      <div className="flex items-center justify-end gap-2 mb-2">
+        <button onClick={()=>load(range)} className="btn btn-outline text-xs py-1">Reload</button>
+        {RANGES.map(r => (
+          <button key={r} onClick={() => setRange(r)} className={`px-3 py-1.5 rounded-lg text-sm ${range===r?'text-white bg-white/10 border border-white/10':'text-gray-300 hover:text-white hover:bg-white/5'}`}>{r}</button>
+        ))}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {TICKERS.map(t => {
