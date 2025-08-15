@@ -426,7 +426,8 @@ metadata:
   production_ready: true
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Positions and Trades Management"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
