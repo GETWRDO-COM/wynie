@@ -209,7 +209,7 @@ export default function WatchlistsPanel({ onUseSymbols }){
                     </div>
                   </div>
                   {(sec.symbols||[]).length>0 && (
-                    <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
+                    <div className="mt-2 grid grid-cols-3 gap-2 text-xs" data-testid={`section-${sec.id}-grid`}>
                       {sec.symbols.map((s, idx) => (
                         <div key={s+idx} className="flex items-center justify-between border rounded px-2 py-1 select-none"
                              style={{ pointerEvents: 'none' }}
