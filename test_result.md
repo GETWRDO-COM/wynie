@@ -516,9 +516,9 @@ backend:
     priority: "high"
     needs_retesting: true
     status_history:
-      - working: "NA"
-        agent: "testing"
-        comment: "❌ NOT IMPLEMENTED: POST/GET/PATCH /api/positions and POST/GET /api/trades endpoints do not exist. Expected to handle live trailing stops, live R calculations, position updates, and trade history management."
+      - working: false
+        agent: "main"
+        comment: "Partially implemented Positions & Trades: Added models, GET/POST/PATCH for /api/positions with server-computed initial/trailing stops, live R, breach flags; and GET/POST for /api/trades. Admin-only on mutating routes. Needs backend testing."
 
   - task: "Export APIs (Excel/CSV)"
     implemented: false
