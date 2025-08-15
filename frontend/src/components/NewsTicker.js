@@ -44,7 +44,7 @@ const NewsTicker = () => {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchFeed(category); const id = setInterval(() => fetchFeed(category), 180000); return () => clearInterval(id); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [category]);
+  useEffect(() => { fetchFeed(category); const id = setInterval(() => fetchFeed(category), 180000); return () => clearInterval(id); }, [category]);
 
   const parts = useMemo(() => { const arr = loading ? ['Loading news…'] : (items && items.length) ? items.map((it) => it?.title || '') : [error || 'No headlines available']; return arr.filter(Boolean).length ? [...arr, ...arr, ...arr] : ['Loading news…']; }, [items, loading, error]);
 
