@@ -94,12 +94,23 @@ export default function WatchlistsPanel({ onUseSymbols }){
 
   function removeSymbol(sym, secId){
     setLists(prev => {
-      const li = prev.find(l => l.id === activeId)
-      if (!li) return prev
-      const sections = (li.sections || []).map(x => x.id === secId ? ({ ...x, symbols: (x.symbols || []).filter(z => z !== sym) }) : x)
-      // persist in background
-      updateWatchlist(li.id, { sections }).catch(()=>{})
-      return prev.map(l => l.id === li.id ? ({ ...l, sections }) : l)
+      let idx = -1
+      let sections = null
+      for (let i=0;i<prev.length;i++){
+        const l = prev[i]
+        const hit = (l.sections||[]).some(s=> s.id===secId)
+        if (hit){
+          idx = i
+          sections = (l.sections||[]).map(x => x.id === secId ? ({ ...x, symbols: (x.symbols || []).filter(z => z !== sym) }) : x)
+          // persist in background
+          updateWatchlist(l.id, { sections }).catch(()=>{})
+          break
+        }
+      }
+      if (idx === -1 || !sections) return prev
+      const next = [...prev]
+      next[idx] = { ...prev[idx], sections }
+      return next
     })
   }
 
