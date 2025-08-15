@@ -96,8 +96,8 @@ const NewsSection = ({ api }) => {
 
   useEffect(() => { fetchNews(category); }, [category, wlTickers.join(',')]);
 
-  const top = items.slice(0,6);
-  const more = items.slice(6,20);
+  const top = items.slice(0,3);
+  const more = items.slice(3,20);
   const updatedRel = rel(updatedAt);
   const earningsUpdatedRel = rel(earningsUpdatedAt);
 
