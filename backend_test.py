@@ -3377,9 +3377,14 @@ if __name__ == "__main__":
         elif sys.argv[1] == "phase2":
             passed, failed = tester.run_phase2_targeted_tests()
             results = tester.test_results
+        elif sys.argv[1] == "targeted":
+            tester.run_targeted_tests()
+            results = tester.test_results
+            passed = sum(1 for r in results if r['success'])
+            failed = sum(1 for r in results if not r['success'])
         else:
             print(f"Unknown test suite: {sys.argv[1]}")
-            print("Available options: phase1, phase2")
+            print("Available options: phase1, phase2, targeted")
             sys.exit(1)
     else:
         passed, failed, results = tester.run_all_tests()
