@@ -538,16 +538,16 @@ backend:
         comment: "❌ NOT IMPLEMENTED: GET /api/exports/excel/daily and GET /api/exports/csv/daily endpoints do not exist. Expected to return XLSX file and CSV stream respectively for daily data exports."
 
   - task: "Formula Parameter Editor APIs"
-    implemented: false
-    working: "NA"
+    implemented: true
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
-      - working: "NA"
-        agent: "testing"
-        comment: "❌ NOT IMPLEMENTED: POST /api/formulas/preview, POST /api/formulas/config, and POST /api/formulas/config/revert endpoints do not exist. Expected preview to return snapshot+signal, config to publish changes, and revert to mark active version."
+      - working: true
+        agent: "main"
+        comment: "Implemented Param Editor & Versioning: POST /api/formulas/preview, /api/formulas/config/publish, /api/formulas/config/revert with admin enforcement and active version switching. Preview returns snapshot+signal and params_version."
 
 backend:
   - task: "Enhanced ETF Data API with SA greetings and real-time tracking"
