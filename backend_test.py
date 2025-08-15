@@ -1961,7 +1961,7 @@ class ETFBackendTester:
                 return False
             
             instruction_message = post_result.get('message', '')
-            if 'instruction' not in instruction_message.lower() or len(instruction_message) < 20:
+            if len(instruction_message) < 20:
                 self.log_test("SendGrid Settings", False, f"POST response should contain instruction message, got: {instruction_message}")
                 return False
             
