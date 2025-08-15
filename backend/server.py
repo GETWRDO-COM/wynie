@@ -3282,6 +3282,9 @@ async def set_sendgrid_settings(body: SendgridSettings, current_user: User = Dep
         "next": "sudo supervisorctl restart backend"
     }
 
+# Mount the router at the end after all endpoints are defined
+app.include_router(api_router)
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
