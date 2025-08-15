@@ -239,16 +239,16 @@ export default function WatchlistsPanel({ onUseSymbols }){
                                 ))}
                               </SelectContent>
                             </Select>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-500 hover:text-red-600"
+                            <button
+                              type="button"
+                              className="text-red-500 hover:text-red-600 px-1 py-0.5 rounded"
                               title="Remove"
+                              aria-label="Remove"
                               onMouseDown={(e)=> { e.preventDefault(); e.stopPropagation() }}
                               onClick={(e)=> { e.preventDefault(); e.stopPropagation(); removeSymbol(s, sec.id) }}
                             >
                               <X className="w-4 h-4" />
-                            </Button>
+                            </button>
                           </div>
                         </div>
                       ))}
