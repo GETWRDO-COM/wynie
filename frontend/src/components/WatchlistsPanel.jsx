@@ -221,6 +221,7 @@ export default function WatchlistsPanel({ onUseSymbols }){
                               aria-label="Drag"
                               title="Drag"
                               className="cursor-grab"
+                              style={{ pointerEvents: 'auto' }}
                               draggable
                               onDragStart={(e)=> {
                                 onDragStartSym(e, s, sec.id, idx);
