@@ -510,16 +510,19 @@ backend:
         comment: "✅ TESTED AND WORKING: GET /api/screens/neglected-pre-earnings now returns 200 with proper array structure. The endpoint correctly returns items with valid WATCH/READY labels when data is available. JSON serialization issues have been resolved. Screen functionality is working correctly."
 
   - task: "Positions and Trades Management"
-    implemented: false
-    working: "NA"
+    implemented: true
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "Partially implemented Positions & Trades: Added models, GET/POST/PATCH for /api/positions with server-computed initial/trailing stops, live R, breach flags; and GET/POST for /api/trades. Admin-only on mutating routes. Needs backend testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED AND WORKING: All Positions & Trades APIs fully functional. (1) GET /api/positions returns positions with all computed fields: initial_stop, trailing_stop, r_multiple, breached_initial_stop, breached_trailing_stop, status. (2) POST /api/positions creates AAPL LONG position with entry_price=100, shares=10, correctly computes initial_stop <= entry_price for LONG positions, creates entry trade. (3) PATCH /api/positions closes position with status=CLOSED, exit_price=110, calculates positive PnL ($100), computes r_exit (0.552), creates exit trade. (4) GET /api/trades returns trades in correct order (most recent first), includes both entry (BUY) and exit (SELL) trades. (5) POST /api/trades creates standalone trades successfully. Authentication with beetge@mwebbiz.co.za working, admin permissions enforced. Fixed minor backend issue with atr_at_entry parameter conflict."
 
   - task: "Export APIs (Excel/CSV)"
     implemented: false
