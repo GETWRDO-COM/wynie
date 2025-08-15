@@ -2034,6 +2034,32 @@ class ETFBackendTester:
             self.log_test("Scheduler Smoke Test", False, f"Error: {str(e)}")
             return False
 
+    def print_test_summary(self):
+        """Print a summary of all test results"""
+        print("\n" + "=" * 80)
+        print("📊 TARGETED BACKEND TEST SUMMARY")
+        print("=" * 80)
+        
+        passed = sum(1 for result in self.test_results if result['success'])
+        failed = sum(1 for result in self.test_results if not result['success'])
+        
+        print(f"✅ Passed: {passed}")
+        print(f"❌ Failed: {failed}")
+        print(f"📈 Success Rate: {(passed/(passed+failed)*100):.1f}%" if (passed+failed) > 0 else "No tests run")
+        
+        if failed > 0:
+            print("\n❌ FAILED TESTS:")
+            for result in self.test_results:
+                if not result['success']:
+                    print(f"   • {result['test']}: {result['details']}")
+        
+        print("\n✅ PASSED TESTS:")
+        for result in self.test_results:
+            if result['success']:
+                print(f"   • {result['test']}: {result['details']}")
+        
+        print("=" * 80)
+
     def run_targeted_tests(self):
         """Run targeted backend tests as requested in review"""
         print("🎯 Starting Targeted Backend Tests for Review Request")
