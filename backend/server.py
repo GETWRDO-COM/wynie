@@ -798,6 +798,151 @@ class Trade(BaseModel):
     setup_tag: Optional[str] = None
     notes: Optional[str] = None
 
+# Positions & Trades Routes
+@api_router.get("/positions")
+async def list_positions(current_user: User = Depends(get_current_user)):
+    items = await db.positions.find({}).sort("last_updated", -1).to_list(length=500)
+    for it in items:
+        it.pop("_id", None)
+    return items
+
+@api_router.post("/positions")
+async def create_position(payload: PositionCreate, current_user: User = Depends(get_current_user)):
+    # Admin enforcement for mutating route
+    if not _is_admin(current_user):
+        raise HTTPException(status_code=403, detail="Admin only")
+    # enrich from market state
+    latest_state = await db.market_state.find({}).sort("ts", -1).limit(1).to_list(1)
+    regime = latest_state[0].get("regime") if latest_state else None
+    msae_score = float(latest_state[0].get("msae_score")) if latest_state else None
+
+    # get ATR if missing
+    atr = payload.atr_at_entry
+    if atr is None:
+        la = await _latest_close_and_atr(payload.symbol)
+        atr = la.get("atr")
+
+    pos = Position(**payload.dict(), atr_at_entry=atr)
+    pos.entry_date = pos.entry_date or datetime.utcnow()
+    pos.initial_stop = _compute_initial_stop(pos)
+
+    # get last price for live stats
+    la = await _latest_close_and_atr(pos.symbol)
+    cur_price = la.get("price") or pos.entry_price
+    cur_atr = la.get("atr") or pos.atr_at_entry or 0.0
+    pos.trailing_stop = _compute_trailing_stop(pos, cur_price, cur_atr)
+    pos.last_price = cur_price
+    pos.r_multiple = _compute_r_multiple(pos, cur_price)
+    pos.breached_initial_stop = bool(cur_price <= pos.initial_stop) if pos.side == "LONG" else bool(cur_price >= pos.initial_stop)
+    pos.breached_trailing_stop = bool(cur_price <= pos.trailing_stop) if pos.side == "LONG" else bool(cur_price >= pos.trailing_stop)
+
+    await db.positions.insert_one(pos.dict())
+
+    # also create a Trade entry for the opening fill
+    tr = Trade(
+        symbol=pos.symbol,
+        side="BUY" if pos.side == "LONG" else "SELL",
+        price=pos.entry_price,
+        shares=pos.shares,
+        position_id=pos.id,
+        regime_at_entry=regime,
+        msae_score_at_entry=msae_score,
+        setup_tag=pos.strategy_tag,
+        notes=pos.notes or ""
+    )
+    await db.trades.insert_one(tr.dict())
+    return {"position": pos, "entry_trade": tr}
+
+class PositionPatch(BaseModel):
+    shares: Optional[int] = None
+    status: Optional[str] = None
+    exit_price: Optional[float] = None
+    notes: Optional[str] = None
+    hard_stop: Optional[float] = None
+    trail_mult: Optional[float] = None
+    pct_stop: Optional[float] = None
+    stop_type: Optional[str] = None
+
+@api_router.patch("/positions/{position_id}")
+async def update_position(position_id: str, payload: PositionPatch, current_user: User = Depends(get_current_user)):
+    if not _is_admin(current_user):
+        raise HTTPException(status_code=403, detail="Admin only")
+    doc = await db.positions.find_one({"id": position_id})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Position not found")
+    pos = Position(**{k: v for k, v in doc.items() if k != "_id"})
+
+    # apply updates
+    for field, value in payload.dict(exclude_unset=True).items():
+        setattr(pos, field, value)
+
+    # refresh live data
+    la = await _latest_close_and_atr(pos.symbol)
+    cur_price = la.get("price") or pos.last_price or pos.entry_price
+    cur_atr = la.get("atr") or pos.atr_at_entry or 0.0
+
+    # recompute stops and R
+    pos.initial_stop = _compute_initial_stop(pos)
+    pos.trailing_stop = _compute_trailing_stop(pos, cur_price, cur_atr)
+    pos.last_price = cur_price
+    pos.r_multiple = _compute_r_multiple(pos, cur_price)
+    pos.breached_initial_stop = bool(cur_price <= pos.initial_stop) if pos.side == "LONG" else bool(cur_price >= pos.initial_stop)
+    pos.breached_trailing_stop = bool(cur_price <= pos.trailing_stop) if pos.side == "LONG" else bool(cur_price >= pos.trailing_stop)
+    pos.last_updated = datetime.utcnow()
+
+    # if closing
+    if pos.status == "CLOSED" and not pos.exit_date:
+        pos.exit_date = datetime.utcnow()
+        pos.exit_price = pos.exit_price or cur_price
+        # compute realized stats
+        risk_per_share = abs(pos.entry_price - (pos.initial_stop or pos.entry_price))
+        if risk_per_share > 0 and pos.exit_price:
+            if pos.side == "LONG":
+                pos.r_exit = round((pos.exit_price - pos.entry_price) / risk_per_share, 3)
+                pos.pnl = round((pos.exit_price - pos.entry_price) * pos.shares, 2)
+            else:
+                pos.r_exit = round((pos.entry_price - pos.exit_price) / risk_per_share, 3)
+                pos.pnl = round((pos.entry_price - pos.exit_price) * pos.shares, 2)
+        # add an exit trade
+        tr = Trade(
+            symbol=pos.symbol,
+            side="SELL" if pos.side == "LONG" else "BUY",
+            price=pos.exit_price,
+            shares=pos.shares,
+            position_id=pos.id,
+            notes=payload.notes or "Exit"
+        )
+        await db.trades.insert_one(tr.dict())
+
+    await db.positions.replace_one({"id": pos.id}, pos.dict(), upsert=True)
+    return pos
+
+# Trades
+@api_router.get("/trades")
+async def list_trades(limit: int = Query(200)):
+    items = await db.trades.find({}).sort("ts", -1).limit(limit).to_list(length=limit)
+    for it in items:
+        it.pop("_id", None)
+    return items
+
+class TradeCreate(BaseModel):
+    symbol: str
+    side: str
+    price: float
+    shares: int
+    fee: float = 0.0
+    position_id: Optional[str] = None
+    notes: Optional[str] = None
+
+@api_router.post("/trades")
+async def create_trade(payload: TradeCreate, current_user: User = Depends(get_current_user)):
+    if not _is_admin(current_user):
+        raise HTTPException(status_code=403, detail="Admin only")
+    # attach to position if provided and update running PnL fields if needed
+    tr = Trade(**payload.dict())
+    await db.trades.insert_one(tr.dict())
+    return tr
+
 # ==================== Positions & Trades Helpers ====================
 async def _latest_close_and_atr(symbol: str, atr_period: int = 14) -> Dict[str, float]:
     try:
