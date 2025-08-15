@@ -2143,6 +2143,7 @@ async def _ensure_etf_regime_config() -> Dict[str, Any]:
         "created_at": datetime.utcnow().isoformat(),
         "comment": "Initial ETF regime defaults"
     }
+    default["active"] = True
     await db.formula_configs.insert_one(default)
     return default
 
