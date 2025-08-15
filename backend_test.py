@@ -1238,6 +1238,195 @@ class ETFBackendTester:
             self.log_test("Legacy: Formulas Config", False, f"Error: {str(e)}")
             return False
 
+    def test_positions_and_trades_management(self):
+        """Test Positions & Trades Management APIs"""
+        try:
+            if not self.auth_token:
+                self.log_test("Positions & Trades Management", False, "No auth token available - run authentication test first")
+                return False
+            
+            auth_headers = {"Authorization": f"Bearer {self.auth_token}"}
+            
+            # 1. Test GET /api/positions (auth required) - should return [] or existing items
+            positions_response = self.session.get(f"{API_BASE}/positions", headers=auth_headers)
+            if positions_response.status_code != 200:
+                self.log_test("Positions & Trades Management", False, f"GET positions failed: HTTP {positions_response.status_code}: {positions_response.text}")
+                return False
+            
+            positions = positions_response.json()
+            if not isinstance(positions, list):
+                self.log_test("Positions & Trades Management", False, f"Positions should be array, got {type(positions)}")
+                return False
+            
+            # Validate computed fields if positions exist
+            if positions:
+                sample_position = positions[0]
+                required_computed_fields = ['initial_stop', 'trailing_stop', 'r_multiple', 'breached_initial_stop', 'breached_trailing_stop', 'status']
+                missing_fields = [field for field in required_computed_fields if field not in sample_position]
+                if missing_fields:
+                    self.log_test("Positions & Trades Management", False, f"Position missing computed fields: {missing_fields}")
+                    return False
+            
+            # 2. Test POST /api/positions (admin required) - create position for AAPL
+            position_data = {
+                "symbol": "AAPL",
+                "side": "LONG",
+                "entry_price": 100.0,
+                "shares": 10,
+                "strategy_tag": "Test Swing Trade",
+                "risk_perc": 1.0,
+                "stop_type": "ATR_TRAIL",
+                "trail_mult": 3.0,
+                "notes": "Test position for backend testing"
+            }
+            
+            create_position_response = self.session.post(f"{API_BASE}/positions", json=position_data, headers=auth_headers)
+            if create_position_response.status_code != 200:
+                self.log_test("Positions & Trades Management", False, f"POST position failed: HTTP {create_position_response.status_code}: {create_position_response.text}")
+                return False
+            
+            create_result = create_position_response.json()
+            if 'position' not in create_result or 'entry_trade' not in create_result:
+                self.log_test("Positions & Trades Management", False, "Create position response missing position or entry_trade")
+                return False
+            
+            position = create_result['position']
+            entry_trade = create_result['entry_trade']
+            position_id = position.get('id')
+            
+            if not position_id:
+                self.log_test("Positions & Trades Management", False, "Created position missing ID")
+                return False
+            
+            # Validate position structure and computed fields
+            required_position_fields = ['symbol', 'side', 'entry_price', 'shares', 'initial_stop', 'trailing_stop', 'r_multiple', 'status']
+            missing_position_fields = [field for field in required_position_fields if field not in position]
+            if missing_position_fields:
+                self.log_test("Positions & Trades Management", False, f"Position missing fields: {missing_position_fields}")
+                return False
+            
+            # Validate initial stop calculation for LONG position
+            if position['side'] == 'LONG' and position['initial_stop'] > position['entry_price']:
+                self.log_test("Positions & Trades Management", False, f"Initial stop {position['initial_stop']} should be <= entry price {position['entry_price']} for LONG")
+                return False
+            
+            # Validate entry trade was created
+            if entry_trade['symbol'] != 'AAPL' or entry_trade['side'] != 'BUY' or entry_trade['shares'] != 10:
+                self.log_test("Positions & Trades Management", False, f"Entry trade incorrect: {entry_trade}")
+                return False
+            
+            # 3. Test PATCH /api/positions/{id} (admin required) - close position
+            patch_data = {
+                "status": "CLOSED",
+                "exit_price": 110.0,
+                "notes": "Test exit - profitable trade"
+            }
+            
+            patch_response = self.session.patch(f"{API_BASE}/positions/{position_id}", json=patch_data, headers=auth_headers)
+            if patch_response.status_code != 200:
+                self.log_test("Positions & Trades Management", False, f"PATCH position failed: HTTP {patch_response.status_code}: {patch_response.text}")
+                return False
+            
+            updated_position = patch_response.json()
+            
+            # Validate position was closed and PnL calculated
+            if updated_position.get('status') != 'CLOSED':
+                self.log_test("Positions & Trades Management", False, f"Position status not updated to CLOSED: {updated_position.get('status')}")
+                return False
+            
+            if updated_position.get('exit_price') != 110.0:
+                self.log_test("Positions & Trades Management", False, f"Exit price not set correctly: {updated_position.get('exit_price')}")
+                return False
+            
+            # Validate PnL is positive (110 - 100) * 10 = 100
+            pnl = updated_position.get('pnl')
+            if pnl is None or pnl <= 0:
+                self.log_test("Positions & Trades Management", False, f"PnL should be positive, got: {pnl}")
+                return False
+            
+            # Validate r_exit is present
+            r_exit = updated_position.get('r_exit')
+            if r_exit is None:
+                self.log_test("Positions & Trades Management", False, "r_exit not calculated for closed position")
+                return False
+            
+            # 4. Test GET /api/trades - should return at least 2 trades (entry + exit)
+            trades_response = self.session.get(f"{API_BASE}/trades")
+            if trades_response.status_code != 200:
+                self.log_test("Positions & Trades Management", False, f"GET trades failed: HTTP {trades_response.status_code}: {trades_response.text}")
+                return False
+            
+            trades = trades_response.json()
+            if not isinstance(trades, list):
+                self.log_test("Positions & Trades Management", False, f"Trades should be array, got {type(trades)}")
+                return False
+            
+            if len(trades) < 2:
+                self.log_test("Positions & Trades Management", False, f"Expected at least 2 trades (entry+exit), got {len(trades)}")
+                return False
+            
+            # Validate trades are in correct order (most recent first)
+            if len(trades) >= 2:
+                first_trade = trades[0]
+                second_trade = trades[1]
+                
+                # Parse timestamps for comparison
+                first_ts = datetime.fromisoformat(first_trade['ts'].replace('Z', '+00:00'))
+                second_ts = datetime.fromisoformat(second_trade['ts'].replace('Z', '+00:00'))
+                
+                if first_ts < second_ts:
+                    self.log_test("Positions & Trades Management", False, "Trades not in correct order (most recent first)")
+                    return False
+            
+            # Find our position's trades
+            position_trades = [t for t in trades if t.get('position_id') == position_id]
+            if len(position_trades) < 2:
+                self.log_test("Positions & Trades Management", False, f"Expected 2 trades for position {position_id}, got {len(position_trades)}")
+                return False
+            
+            # Validate entry and exit trades
+            buy_trade = next((t for t in position_trades if t['side'] == 'BUY'), None)
+            sell_trade = next((t for t in position_trades if t['side'] == 'SELL'), None)
+            
+            if not buy_trade or not sell_trade:
+                self.log_test("Positions & Trades Management", False, "Missing BUY or SELL trade for position")
+                return False
+            
+            # 5. Test POST /api/trades (admin required) - create standalone trade
+            standalone_trade_data = {
+                "symbol": "MSFT",
+                "side": "BUY",
+                "price": 250.0,
+                "shares": 5,
+                "fee": 1.0,
+                "notes": "Standalone test trade"
+            }
+            
+            create_trade_response = self.session.post(f"{API_BASE}/trades", json=standalone_trade_data, headers=auth_headers)
+            if create_trade_response.status_code != 200:
+                self.log_test("Positions & Trades Management", False, f"POST trade failed: HTTP {create_trade_response.status_code}: {create_trade_response.text}")
+                return False
+            
+            created_trade = create_trade_response.json()
+            
+            # Validate standalone trade
+            required_trade_fields = ['id', 'symbol', 'side', 'price', 'shares', 'ts']
+            missing_trade_fields = [field for field in required_trade_fields if field not in created_trade]
+            if missing_trade_fields:
+                self.log_test("Positions & Trades Management", False, f"Created trade missing fields: {missing_trade_fields}")
+                return False
+            
+            if created_trade['symbol'] != 'MSFT' or created_trade['side'] != 'BUY' or created_trade['shares'] != 5:
+                self.log_test("Positions & Trades Management", False, f"Standalone trade data incorrect: {created_trade}")
+                return False
+            
+            self.log_test("Positions & Trades Management", True, f"All Positions & Trades APIs working: GET positions, POST position (AAPL LONG), PATCH close (PnL: ${pnl}), GET trades ({len(trades)} total), POST standalone trade")
+            return True
+            
+        except Exception as e:
+            self.log_test("Positions & Trades Management", False, f"Error: {str(e)}")
+            return False
+
     def test_phase2_universe_import(self):
         """Test Phase 2: POST /api/universe/import with AAPL, MSFT, NVDA"""
         try:
