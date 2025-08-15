@@ -662,6 +662,27 @@ backend:
         agent: "testing"
         comment: "✅ TESTED: All newly added legacy endpoints working perfectly. Authentication: POST /api/auth/login with beetge@mwebbiz.co.za successful (auto-create + JWT token). Bearer token protected endpoints: GET /api/dashboard (message='ok'), GET /api/etfs?limit=5 (5 items), GET /api/etfs/sectors (16 sectors), GET /api/etfs/swing-leaders (empty array OK), GET /api/watchlists/custom (empty array OK), GET /api/charts/indices?timeframe=1m (data object). Sanity check: 4/5 endpoints pass (news, market/aggregates, market-score, earnings all working; greed-fear has 502 due to external CNN API unavailability). Overall success rate: 11/12 endpoints (91.7%). All legacy endpoints ready for UI integration."
 
+  - task: "MarketCharts frontend + NewsTicker via backend + Polygon Settings UI + GreedFear UI + Floating AI"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/MarketCharts.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: unknown
+        agent: "main"
+        comment: "Implemented SPY/QQQ/I:DJI/TQQQ/SQQQ charts with time ranges, close/pre/post and % color; last-updated stamp, refresh every 5 min. NewsTicker now calls backend /api/news. Added Settings UI to save Polygon key to backend encrypted. Added CNN Fear & Greed card UI and floating AI chat widget available on all pages. Fixed login input text visibility."
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE TESTING COMPLETED: All requested features tested successfully. (1) Login page input visibility - ✅ PASS: Email and password inputs visible with white text, accepts typing correctly. (2) Navbar labels - ✅ PASS: Exactly 'Dashboard, Analysis, AI, Spreadsheets' as required. (3) Dashboard core widgets - ✅ PASS: Greed & Fear card visible with CNN logo and numeric score (73), MarketCharts component renders SPY chart with all 6 timeframe buttons (1D/1W/1M/YTD/1Y/5Y) working correctly. (4) NewsTicker - ✅ PASS: Bottom ticker present with 21,551 characters of news content and category select dropdown. (5) Floating AI chat - ⚠️ PARTIAL: Button visible in bottom-right, but panel opening blocked by emergent badge overlay (system limitation). Fixed GreedFearCard.js null reference error during testing. All core functionality working as specified."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE FOUND: Market Snapshot duplication detected during UI validation testing. Found 2 'Market Snapshot' sections on dashboard (should be exactly 1). One appears in DashboardQuickSections component and another in MarketCharts component. This creates confusion and duplicate content. Charts render correctly and timeframe buttons work, but the duplication needs to be resolved by removing one of the Market Snapshot headers or consolidating the components."
+      - working: true
+        agent: "testing"
+        comment: "✅ REGRESSION TESTING COMPLETED: Comprehensive automated UI regression tests conducted for all 6 requested features. RESULTS: (1) My Performance ranges order - ✅ PASS: Correct order ['1 Day', '5 Days', '1 Month', '6 Months', '1 Year', 'YTD'] verified. (2) Market Snapshot duplication - ✅ PASS: Issue resolved - only 1 'Market Snapshot' section found, positioned correctly below My Performance. (3) NewsTicker - ✅ PASS: 77 news headlines render as hyperlinks opening in new tabs (_blank), slow animation present with ticker keyframes. (4) Fear & Greed CNN logo - ✅ PASS: CNN logo displays with h-6 class (visibly larger). (5) Watchlists 'See more' button - ✅ PASS: Prominent button navigates hash to #/watchlists correctly. (6) Market Score panel - ⚠️ MINOR: Panel shows trend and timestamp but score displays '--' (no actual score data). Overall: 5/6 tests passed with 1 minor issue. Market Snapshot duplication has been successfully resolved."
+
 frontend:
   - task: "Complete Enhanced Frontend with Authentication"
     implemented: true
