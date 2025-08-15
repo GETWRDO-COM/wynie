@@ -1,51 +1,51 @@
 {
   "summary": {
-    "passed": 4,
-    "failed": 2
+    "passed": 5,
+    "failed": 1
   },
   "detailed_results": [
     {
       "test": "API Root",
       "success": true,
       "details": "Root endpoint accessible: ETF Intelligence System API - Enhanced Version",
-      "timestamp": "2025-08-15T08:02:04.701342",
+      "timestamp": "2025-08-15T08:02:47.395654",
       "response_data": null
     },
     {
       "test": "Authentication System",
       "success": true,
       "details": "Complete authentication system working: login, JWT tokens, user info, password updates, forgot password",
-      "timestamp": "2025-08-15T08:02:05.959190",
+      "timestamp": "2025-08-15T08:02:48.699403",
       "response_data": null
     },
     {
       "test": "Formula Param Editor & Versioning",
-      "success": false,
-      "details": "Revert failed: HTTP 400: {\"detail\":\"Provide id or created_at\"}",
-      "timestamp": "2025-08-15T08:02:06.032628",
+      "success": true,
+      "details": "All endpoints working: preview with snapshot+signal+params_version, publish returns id/version, revert activates previous version",
+      "timestamp": "2025-08-15T08:02:48.775605",
       "response_data": null
     },
     {
       "test": "SendGrid Settings",
       "success": false,
       "details": "GET sendgrid settings failed: HTTP 404: {\"detail\":\"Not Found\"}",
-      "timestamp": "2025-08-15T08:02:06.040655",
+      "timestamp": "2025-08-15T08:02:48.784143",
       "response_data": null
     },
     {
       "test": "Scheduler Smoke Test",
       "success": true,
       "details": "System responsive - scheduler functionality not breaking core API",
-      "timestamp": "2025-08-15T08:02:06.202749",
+      "timestamp": "2025-08-15T08:02:48.904877",
       "response_data": null
     },
     {
       "test": "API Root",
       "success": true,
       "details": "Root endpoint accessible: ETF Intelligence System API - Enhanced Version",
-      "timestamp": "2025-08-15T08:02:06.211029",
+      "timestamp": "2025-08-15T08:02:48.912516",
       "response_data": null
     }
   ],
-  "timestamp": "2025-08-15T08:02:06.211219"
+  "timestamp": "2025-08-15T08:02:48.912685"
 }
