@@ -1,37 +1,51 @@
 {
   "summary": {
-    "passed": 0,
-    "failed": 3
+    "passed": 4,
+    "failed": 2
   },
   "detailed_results": [
+    {
+      "test": "API Root",
+      "success": true,
+      "details": "Root endpoint accessible: ETF Intelligence System API - Enhanced Version",
+      "timestamp": "2025-08-15T08:02:04.701342",
+      "response_data": null
+    },
     {
       "test": "Authentication System",
       "success": true,
       "details": "Complete authentication system working: login, JWT tokens, user info, password updates, forgot password",
-      "timestamp": "2025-08-12T11:06:40.688085",
+      "timestamp": "2025-08-15T08:02:05.959190",
       "response_data": null
     },
     {
-      "test": "Phase 2: Universe Import",
+      "test": "Formula Param Editor & Versioning",
       "success": false,
-      "details": "HTTP 422: {\"detail\":[{\"type\":\"missing\",\"loc\":[\"query\",\"payload\"],\"msg\":\"Field required\",\"input\":null,\"url\":\"https://errors.pydantic.dev/2.11/v/missing\"}]}",
-      "timestamp": "2025-08-12T11:06:40.696523",
+      "details": "Revert failed: HTTP 400: {\"detail\":\"Provide id or created_at\"}",
+      "timestamp": "2025-08-15T08:02:06.032628",
       "response_data": null
     },
     {
-      "test": "Phase 2: Screens Neglected Pre-Earnings",
+      "test": "SendGrid Settings",
       "success": false,
-      "details": "HTTP 500: Internal Server Error",
-      "timestamp": "2025-08-12T11:06:43.108457",
+      "details": "GET sendgrid settings failed: HTTP 404: {\"detail\":\"Not Found\"}",
+      "timestamp": "2025-08-15T08:02:06.040655",
       "response_data": null
     },
     {
-      "test": "Phase 2: ETF Regime Simulate",
-      "success": false,
-      "details": "Missing fields: ['equity_curve', 'total_return', 'max_drawdown', 'sharpe', 'flips', 'pl_by_regime', 'decisions', 'params_version']",
-      "timestamp": "2025-08-12T11:06:44.716585",
+      "test": "Scheduler Smoke Test",
+      "success": true,
+      "details": "System responsive - scheduler functionality not breaking core API",
+      "timestamp": "2025-08-15T08:02:06.202749",
+      "response_data": null
+    },
+    {
+      "test": "API Root",
+      "success": true,
+      "details": "Root endpoint accessible: ETF Intelligence System API - Enhanced Version",
+      "timestamp": "2025-08-15T08:02:06.211029",
       "response_data": null
     }
   ],
-  "timestamp": "2025-08-12T11:06:44.716807"
+  "timestamp": "2025-08-15T08:02:06.211219"
 }
