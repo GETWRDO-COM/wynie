@@ -270,7 +270,7 @@
         comment: "Frontend mock loads, Column Settings opens, table sorts; temporary SVG chart."
   - task: "Frontend wired to backend (Polygon quotes/bars/logos)"
     implemented: true
-    working: true
+    working: false
     file: "/app/frontend/src/pages/Dashboard.jsx"
     stuck_count: 1
     priority: "high"
