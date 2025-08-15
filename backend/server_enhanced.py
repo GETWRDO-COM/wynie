@@ -130,10 +130,8 @@ async def login(data: LoginRequest):
 
         user = await db.users.find_one({"email": email})
         if not user:
-            # Restrict auto-create to the known user
             if email != "beetge@mwebbiz.co.za":
                 raise HTTPException(status_code=401, detail="Access restricted to authorized users only")
-            # create user with provided password
             hashed = hash_password(password)
             now = datetime.utcnow()
             await db.users.insert_one({
@@ -143,12 +141,9 @@ async def login(data: LoginRequest):
                 "last_login": now,
             })
             user = await db.users.find_one({"email": email})
-        # verify
         if not verify_password(password, user.get("hashed_password", "")):
             raise HTTPException(status_code=401, detail="Incorrect email or password")
-        # update last_login
         await db.users.update_one({"email": email}, {"$set": {"last_login": datetime.utcnow()}})
-        # token
         token = create_access_token({"sub": email})
         return {"access_token": token, "token_type": "bearer", "user": {"email": user.get("email"), "last_login": user.get("last_login")}}
     except HTTPException:
@@ -159,7 +154,6 @@ async def login(data: LoginRequest):
 @api_router.post("/auth/forgot-password")
 async def forgot_password(req: PasswordReset):
     try:
-        # Do not reveal if user exists
         return {"message": "If this email exists in our system, you will receive password reset instructions.", "temp_instructions": "Please contact system administrator for password reset assistance."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -187,6 +181,73 @@ async def polygon_status(user: dict = Depends(get_current_user)):
     key = await get_polygon_api_key()
     return {"configured": bool(key)}
 
+# =====================
+# Legacy/expected endpoints for UI compatibility
+# =====================
+@api_router.get("/dashboard")
+async def dashboard_summary(user: dict = Depends(get_current_user)):
+    # Minimal placeholder to satisfy UI; extend as needed
+    return {"message": "ok", "time": datetime.utcnow().isoformat()}
+
+@api_router.get("/etfs")
+async def list_etfs(limit: int = Query(200)):
+    # Try to read from DB if available, else return empty list
+    try:
+        docs = await db.etfs.find().limit(limit).to_list(length=limit)
+        # Strip ObjectIds and return a small subset to keep payload light
+        def clean(d):
+            d.pop('_id', None)
+            return d
+        return [clean(d) for d in docs]
+    except Exception:
+        return []
+
+@api_router.get("/etfs/sectors")
+async def etf_sectors():
+    try:
+        sectors = await db.etfs.distinct('sector')
+        sectors = [s for s in sectors if s]
+        return {"sectors": sectors}
+    except Exception:
+        return {"sectors": []}
+
+@api_router.get("/etfs/swing-leaders")
+async def swing_leaders():
+    # Placeholder minimal list; UI handles empty gracefully
+    try:
+        docs = await db.swing_leaders.find().sort("change_1m", -1).limit(10).to_list(10)
+        for d in docs:
+            d.pop('_id', None)
+        return docs
+    except Exception:
+        return []
+
+@api_router.get("/watchlists/custom")
+async def custom_watchlists(user: dict = Depends(get_current_user)):
+    try:
+        lists = await db.watchlists.find({"owner": user.get("email")}).to_list(50)
+        for w in lists:
+            w.pop('_id', None)
+        return lists
+    except Exception:
+        return []
+
+@api_router.get("/charts/indices")
+async def charts_indices(timeframe: str = Query("1m")):
+    # Bridge to market/aggregates for compatibility
+    # Map timeframe to our ranges
+    tf_map = {"1d":"1D","1w":"1W","1m":"1M","ytd":"YTD","1y":"1Y"}
+    rng = tf_map.get(timeframe.lower(), "1M")
+    try:
+        # Reuse the market_aggregates logic via HTTP call to self is overkill; instead return empty
+        # The current UI no longer depends on this data for charts; keep shape compatible
+        return {"data": {}}
+    except Exception:
+        return {"data": {}}
+
+# =====================
+# News + Data endpoints
+# =====================
 NEWS_FEEDS = {
     "All": 'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en',
     "USA": 'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en',
@@ -287,19 +348,7 @@ async def greed_fear():
                     continue
     except Exception:
         pass
-    # Fallback when CNN is down
-    fallback_result = {
-        "now": 50,  # Neutral value
-        "previous_close": 48,
-        "one_week_ago": 52,
-        "one_month_ago": 45,
-        "one_year_ago": 55,
-        "timeseries": [],
-        "last_updated": datetime.utcnow().isoformat(),
-        "source": "fallback-cnn-unavailable"
-    }
-    cache_set(cache_key, fallback_result, ttl_seconds=300)  # Short cache for fallback
-    return fallback_result
+    raise HTTPException(status_code=502, detail="Unable to fetch CNN Fear & Greed Index")
 
 TIME_RANGE_CONFIG = {
     "1D": {"multiplier": 5, "timespan": "minute", "days_back": 1},
@@ -379,7 +428,6 @@ async def market_aggregates(
         await asyncio.gather(*[fetch_one(t) for t in tlist])
     return {"range": range, "last_updated": datetime.utcnow().isoformat(), "data": out}
 
-# Finnhub earnings calendar
 @api_router.get("/earnings")
 async def earnings(tickers: Optional[str] = Query(None), days_ahead: int = Query(30)):
     api_key = os.environ.get('FINNHUB_API_KEY')
@@ -430,7 +478,6 @@ async def earnings(tickers: Optional[str] = Query(None), days_ahead: int = Query
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Normalize market score shape
 @api_router.get("/market-score")
 async def get_market_score_normalized():
     try:
@@ -441,18 +488,12 @@ async def get_market_score_normalized():
             await db.market_scores.insert_one(default)
             return default
         doc = scores[0]
-        # Remove MongoDB ObjectId to avoid serialization issues
-        if '_id' in doc:
-            del doc['_id']
         score = doc.get('score') or doc.get('total_score')
         trend = doc.get('trend') or doc.get('classification')
         last_updated = doc.get('last_updated') or doc.get('date') or datetime.utcnow().isoformat()
         recommendation = doc.get('recommendation')
-        normalized = {"score": score, "trend": trend, "last_updated": last_updated, "recommendation": recommendation}
-        # Add other fields from doc if they exist
-        for key, value in doc.items():
-            if key not in normalized and key != '_id':
-                normalized[key] = value
+        normalized = {**doc, "score": score, "trend": trend, "last_updated": last_updated, "recommendation": recommendation}
+        normalized.pop('_id', None)
         return normalized
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
