@@ -306,9 +306,11 @@
 
 ## test_plan:
   current_focus:
-    - "Watchlists v2 drag-and-drop and combo builder UI"
-    - "Screener run + QueryBuilder integration"
-    - "Columns dialog + density controls"
+    - "Logo proxy and chart/company name rendering"
+    - "Watchlists v2: X delete + custom drag ghost"
+    - "Column Settings categories defaulting (no undefined)"
+    - "Right column scroll usability"
+    - "Table header summary ('N matched')"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
