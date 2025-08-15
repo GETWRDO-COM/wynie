@@ -61,7 +61,7 @@ const NewsTicker = () => {
           </div>
           <div className="relative flex-1 overflow-hidden h-8" aria-live="polite" aria-busy={loading}>
             <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-black/80 via-transparent to-black/80" />
-            <div className="absolute whitespace-nowrap will-change-transform animate-[ticker_1200s_linear_infinite] text-base text-white">
+            <div className={`absolute whitespace-nowrap will-change-transform text-base text-white ${items.length? 'animate-[ticker_1200s_linear_infinite]' : ''}`}>
               {(parts && parts.length) ? (
                 parts.map((t, i) => (
                   <span key={i} className="inline-flex items-center">{i > 0 && <span className="mx-4 text-white/50">|</span>}{t}</span>
