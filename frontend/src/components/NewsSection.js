@@ -176,18 +176,42 @@ const NewsSection = ({ api }) => {
         </div>
         <div>
           <div className="flex items-center justify-between mb-2">
-            <div className="text-xs text-white/90 font-semibold flex items-center gap-2"><span className="px-2 py-0.5 rounded bg-gradient-to-r from-green-500/80 to-blue-500/80 text-black">Earnings</span><span className="text-gray-400 font-normal">announcements</span></div>
+            <div className="text-white font-semibold text-base flex items-center gap-2"><span className="px-2 py-0.5 rounded bg-gradient-to-r from-green-500 to-blue-500 text-black">Earnings</span><span className="text-gray-300 font-normal">announcements</span></div>
             <div className="text-[11px] text-gray-500">{earningsUpdatedRel ? `Updated ${earningsUpdatedRel}` : ''}</div>
           </div>
-          <ul className="space-y-2 bg-white/5 border border-white/10 rounded-lg p-3">
-            {(earnings||[]).slice(0,8).map((e, i) => (
-              <li key={i} className="text-sm">
-                <a href={e.link} target="_blank" rel="noopener noreferrer" className="text-white/90 hover:text-white underline-offset-2 hover:underline">{e.ticker}</a>
-                <span className="text-gray-400 text-xs"> — {e.date || 'N/A'} {e.time? '('+e.time+')':''} {e.period? 'Q'+e.period: ''}</span>
-              </li>
-            ))}
-            {(earnings||[]).length===0 && <li className="text-gray-400 text-sm">No earnings data yet.</li>}
-          </ul>
+          <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden">
+            <div className="overflow-auto">
+              <table className="min-w-full text-left text-xs">
+                <thead className="bg-white/5 text-white/80">
+                  <tr>
+                    <th className="px-3 py-2">Ticker</th>
+                    <th className="px-3 py-2">Date</th>
+                    <th className="px-3 py-2">Time</th>
+                    <th className="px-3 py-2">Quarter</th>
+                    <th className="px-3 py-2">Estimate</th>
+                    <th className="px-3 py-2">Actual</th>
+                    <th className="px-3 py-2">Surprise</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/10">
+                  {(earnings||[]).slice(0,8).map((e, i) => (
+                    <tr key={i} className="hover:bg-white/5">
+                      <td className="px-3 py-2 text-white/90"><a href={e.link} target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline">{e.ticker}</a></td>
+                      <td className="px-3 py-2 text-gray-300">{e.date || 'N/A'}</td>
+                      <td className="px-3 py-2 text-gray-300">{e.time || '-'}</td>
+                      <td className="px-3 py-2 text-gray-300">{e.period? 'Q'+e.period: '-'}</td>
+                      <td className="px-3 py-2 text-gray-300">{e.estimate ?? '-'}</td>
+                      <td className="px-3 py-2 text-gray-300">{e.actual ?? '-'}</td>
+                      <td className="px-3 py-2 text-gray-300">{e.surprise ?? '-'}</td>
+                    </tr>
+                  ))}
+                  {(earnings||[]).length===0 && (
+                    <tr><td colSpan="7" className="px-3 py-3 text-gray-400">No earnings data yet.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
           <div className="flex items-center justify-end mt-3">
             <button onClick={()=>{ setShowMore(false); fetchNews(category); }} className="btn btn-outline text-xs py-1">Reload</button>
           </div>
