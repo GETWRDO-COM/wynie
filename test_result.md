@@ -706,6 +706,42 @@ backend:
         agent: "testing"
         comment: "✅ TESTED: Historical data pruning working: configurable retention periods, multiple data types, deletion counts. All admin endpoints functional."
 
+  - task: "Formula Parameter Editor APIs (Targeted Review)"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TARGETED TESTING COMPLETED: All Formula Param Editor & Versioning endpoints working perfectly: (1) POST /api/formulas/preview returns JSON with snapshot+signal+params_version as required, (2) POST /api/formulas/config/publish (admin) successfully flips active version and returns id/version, (3) POST /api/formulas/config/revert (admin) re-activates previous version using created_at parameter. All endpoints require admin authentication (beetge@mwebbiz.co.za) and function as specified in review request."
+
+  - task: "SendGrid Settings APIs (Targeted Review)"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TARGETED TESTING COMPLETED: SendGrid settings endpoints working as specified: (1) GET /api/settings/sendgrid (admin) returns configured flag (False when no SENDGRID_API_KEY env var), (2) POST /api/settings/sendgrid (admin) with dummy key returns instruction message about adding SENDGRID_API_KEY to environment and does NOT persist the dummy key as required. Fixed router mounting issue where endpoints were defined after router inclusion."
+
+  - task: "Scheduler Smoke Test (Targeted Review)"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TARGETED TESTING COMPLETED: Scheduler smoke test passed - system remains responsive and core API functionality is not broken by scheduler components. No specific scheduler endpoints found, but system stability confirmed as requested (not asserting timed triggers)."
+
 frontend:
   - task: "Complete Enhanced Frontend with Authentication"
     implemented: true
