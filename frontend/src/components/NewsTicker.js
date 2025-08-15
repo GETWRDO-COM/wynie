@@ -2,6 +2,19 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 const FEEDS = { All:'All', USA:'USA', World:'World', 'South Africa':'South Africa', 'Stock Market':'Stock Market', 'Finance News':'Finance News' };
 
+// Heuristic summarizer for ticker headlines
+function toNameFromDomain(domain){ try { if(!domain) return ''; const parts = domain.replace(/^www\./,'').split('.'); const core = parts.length>1? parts[parts.length-2]: parts[0]; return core.toUpperCase(); } catch { return ''; } }
+const STOP = new Set(['the','a','an','of','to','and','for','with','on','in','at','from','that','this','is','are','was','were','as','by','after','over','into','about']);
+function pickWords(str, max=4){ const w = (str||'').split(/\s+/).filter(Boolean).filter(x=>!STOP.has(x.toLowerCase())); return w.slice(0,max).join(' '); }
+function summarizeHeadline(title, source){ if(!title) return ''; const t = title.replace(/\s+/g,' ').trim(); const lower = t.toLowerCase(); const catMap = [ ['tsunami','Tsunami'], ['earthquake','Earthquake'], ['quake','Earthquake'], ['hurricane','Hurricane'], ['cyclone','Cyclone'], ['wildfire','Wildfire'], ['fire','Fire'], ['flood','Flood'], ['crash','Plane Crash'], ['plane','Plane'], ['shooting','Shooting'], ['verdict','Verdict'], ['trial','Trial'], ['arrest','Arrest'], ['strike','Strike'], ['earnings','Earnings'], ['layoffs','Layoffs'], ['inflation','Inflation'], ['rates','Rates'], ['stocks','Stocks'], ['market','Market'], ['trump','Trump'] ];
+  let cat = null; for(const [k,v] of catMap){ if(lower.includes(k)){ cat = v; break; } }
+  let loc = null; const m = t.match(/\bin\s+([A-Z][\w\-]*(?:\s+[A-Z][\w\-]*){0,2})/); if(m) loc = m[1];
+  if(!loc){ const parts = t.split(/\s[-–—:]\s/); if(parts.length>1){ const tail = parts[parts.length-1]; loc = pickWords(tail,3); } }
+  if(!cat){ const parts = t.split(/[:\-–—]/); cat = pickWords(parts[0]||t,4); }
+  if(!loc) loc = toNameFromDomain(source);
+  const left = (cat||'').trim(); const right = (loc||'').trim();
+  return right ? `${left} — ${right}` : left; }
+
 const NewsTicker = () => {
   const [category, setCategory] = useState('All');
   const [items, setItems] = useState([]);
