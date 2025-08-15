@@ -113,11 +113,15 @@ const NewsSection = ({ api }) => {
         <div className="text-white/90 font-semibold">Top Headlines</div>
         <div className="flex items-center gap-2">
           <button onClick={()=> setCompact(v=>!v)} className="btn btn-outline text-xs py-1">{compact? 'Expanded' : 'Compact'}</button>
-          <div className="flex flex-wrap gap-2">
-            {CATS.map(c => (
-              <button key={c} onClick={() => { setShowMore(false); setCategory(c); }} className={`px-3 py-1.5 rounded-lg text-xs ${category===c?'text-white bg-white/10 border border-white/10':'text-gray-300 hover:text-white hover:bg-white/5'}`}>{c}</button>
-            ))}
-          </div>
+          <button onClick={()=>{ setShowMore(false); fetchNews(category); }} className="btn btn-outline text-xs py-1">Reload</button>
+        </div>
+      </div>
+      <div className="mb-3">
+        <div className="text-[11px] text-gray-500 mb-2">{updatedRel ? `Updated ${updatedRel}` : ''}</div>
+        <div className="flex flex-wrap gap-2">
+          {CATS.map(c => (
+            <button key={c} onClick={() => { setShowMore(false); setCategory(c); }} className={`px-3 py-1.5 rounded-lg text-xs ${category===c?'text-white bg-white/10 border border-white/10':'text-gray-300 hover:text-white hover:bg-white/5'}`}>{c}</button>
+          ))}
         </div>
       </div>
       <div className="text-[11px] text-gray-500 mb-2">{updatedRel ? `Updated ${updatedRel}` : ''}</div>
