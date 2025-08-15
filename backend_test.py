@@ -1945,9 +1945,7 @@ class ETFBackendTester:
             
             # Test POST /api/settings/sendgrid (admin required) with dummy key
             dummy_key_payload = {
-                "api_key": "SG.dummy_test_key_12345.abcdefghijklmnopqrstuvwxyz",
-                "from_email": "test@example.com",
-                "from_name": "Test System"
+                "sendgrid_api_key": "SG.dummy_test_key_12345.abcdefghijklmnopqrstuvwxyz"
             }
             
             post_response = self.session.post(f"{API_BASE}/settings/sendgrid", json=dummy_key_payload, headers=auth_headers)
