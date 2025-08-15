@@ -73,7 +73,7 @@ const NewsTicker = () => {
           </div>
         </div>
       </div>
-      <style>{`@keyframes ticker { 0% { transform: translateX(100%);} 100% { transform: translateX(-100%);} }`}</style>
+      <style>{`@keyframes ticker { 0% { transform: translateX(0);} 100% { transform: translateX(-100%);} }`}</style>
     </div>
   );
 };
