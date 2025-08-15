@@ -109,8 +109,6 @@ export default function WatchlistsPanel({ onUseSymbols }){
       }
       if (idx === -1 || !sections) return prev
       const next = prev.map((l,i)=> i===idx ? ({...l, sections}) : l)
-      // bump rev to force memo hooks recalculation
-      setRev(r => r+1)
       return next
     })
   }
