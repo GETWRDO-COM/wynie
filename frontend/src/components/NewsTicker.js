@@ -59,7 +59,7 @@ const NewsTicker = () => {
             </select>
             <button onClick={()=>fetchFeed(category)} className="btn btn-outline text-[10px] py-0.5 px-2">Reload</button>
           </div>
-          <div className="relative flex-1 overflow-hidden h-8">
+          <div className="relative flex-1 overflow-hidden h-8" aria-live="polite" aria-busy={loading}>
             <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-black/80 via-transparent to-black/80" />
             <div className="absolute whitespace-nowrap will-change-transform animate-[ticker_1200s_linear_infinite] text-base text-white">
               {(parts && parts.length) ? (
