@@ -24,8 +24,9 @@ export default function WatchlistsPanel({ onUseSymbols }){
   const [selectedSecs, setSelectedSecs] = useState(()=> LS.get('combo_selectedSecs', []))
   const [comboName, setComboName] = useState("")
   const [savedCombos, setSavedCombos] = useState(()=> LS.get('combos', {})) // { name: [secKey,...] }
+  const [rev, setRev] = useState(0)
 
-  const active = useMemo(()=> lists.find(l=> l.id===activeId) || lists[0], [lists, activeId])
+  const active = useMemo(()=> lists.find(l=> l.id===activeId) || lists[0], [lists, activeId, rev])
 
   const allSections = useMemo(()=> {
     const arr = []
@@ -35,7 +36,7 @@ export default function WatchlistsPanel({ onUseSymbols }){
       }
     }
     return arr
-  }, [lists])
+  }, [lists, rev])
 
   async function load(){ try { const r = await listWatchlists(); setLists(r||[]) } catch {} }
   useEffect(()=>{ load() }, [])
