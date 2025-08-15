@@ -211,10 +211,11 @@ export default function WatchlistsPanel({ onUseSymbols }){
                   {(sec.symbols||[]).length>0 && (
                     <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
                       {sec.symbols.map((s, idx) => (
-                        <div key={s+idx} className="flex items-center justify-between border rounded px-2 py-1"
+                        <div key={s+idx} className="flex items-center justify-between border rounded px-2 py-1 select-none"
+                             style={{ pointerEvents: 'none' }}
                              onDragOver={onDragOverSymbol}
                              onDrop={(e)=> onDropIntoSection(e, sec.id, idx)}>
-                          <span className="flex items-center gap-1">
+                          <span className="flex items-center gap-1" style={{ pointerEvents: 'auto' }}>
                             <span
                               role="button"
                               aria-label="Drag"
