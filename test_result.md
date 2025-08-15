@@ -447,6 +447,30 @@ agent_communication:
 # Phase 2–4 Backend Additions Testing Results
 
 backend:
+  - task: "Positions and Trades Management"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: All Positions & Trades endpoints working: GET/POST/PATCH /api/positions, GET/POST /api/trades with admin enforcement. Server computes initial/trailing stops, live R, breach flags; closing computes pnl and r_exit; entry and exit trades auto-created."
+
+  - task: "Formula Parameter Editor APIs"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Implemented Param Editor & Versioning: POST /api/formulas/preview, /api/formulas/config/publish, /api/formulas/config/revert with admin enforcement and active version switching. Preview returns snapshot+signal and params_version."
+
   - task: "ETF Regime Simulation API"
     implemented: true
     working: true
