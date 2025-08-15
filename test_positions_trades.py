@@ -20,7 +20,7 @@ session = requests.Session()
 
 # 1. Login with beetge@mwebbiz.co.za and any password (auto-creates user)
 print('1. Testing login with beetge@mwebbiz.co.za...')
-login_data = {'email': 'beetge@mwebbiz.co.za', 'password': 'test123'}
+login_data = {'email': 'beetge@mwebbiz.co.za', 'password': 'Albee1990!'}
 login_response = session.post(f'{API_BASE}/auth/login', json=login_data)
 if login_response.status_code == 200:
     token = login_response.json()['access_token']
