@@ -59,7 +59,7 @@ const NewsTicker = () => {
 
   useEffect(() => { fetchFeed(category); const id = setInterval(() => fetchFeed(category), 180000); return () => clearInterval(id); }, [category]);
 
-  const parts = useMemo(() => { const arr = loading ? ['Loading news…'] : (items && items.length) ? items.map((it) => it?.title || '') : [error || 'No headlines available']; return arr.filter(Boolean).length ? [...arr, ...arr, ...arr] : ['Loading news…']; }, [items, loading, error]);
+  const parts = useMemo(() => { const arr = loading ? ['Loading news…'] : (items && items.length) ? items.map((it) => summarizeHeadline(it?.title || '', it?.source)) : [error || 'No headlines available']; return arr.filter(Boolean).length ? [...arr] : ['Loading news…']; }, [items, loading, error]);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[5000]">
