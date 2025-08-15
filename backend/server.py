@@ -3256,6 +3256,32 @@ try:
 except Exception as e:
     logging.error(f"APScheduler not initialized: {e}")
 
+# ============== Settings: SendGrid API Key placeholder ==============
+class SendgridSettings(BaseModel):
+    sendgrid_api_key: Optional[str] = None
+
+@api_router.get("/settings/sendgrid")
+async def get_sendgrid_settings(current_user: User = Depends(get_current_user)):
+    if not _is_admin(current_user):
+        raise HTTPException(status_code=403, detail="Admin only")
+    # Do not expose real env value; just flag whether configured
+    has_key = bool(os.environ.get("SENDGRID_API_KEY"))
+    return {"configured": has_key}
+
+@api_router.post("/settings/sendgrid")
+async def set_sendgrid_settings(body: SendgridSettings, current_user: User = Depends(get_current_user)):
+    if not _is_admin(current_user):
+        raise HTTPException(status_code=403, detail="Admin only")
+    # We do not persist secrets in DB. Expect ops to set env and restart.
+    # This endpoint only validates non-empty input and returns instructions.
+    if not body.sendgrid_api_key:
+        raise HTTPException(status_code=400, detail="Provide sendgrid_api_key")
+    # We cannot write to .env as per policy; return next steps
+    return {
+        "message": "Add SENDGRID_API_KEY to backend environment and restart backend. This endpoint does not persist secrets.",
+        "next": "sudo supervisorctl restart backend"
+    }
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
