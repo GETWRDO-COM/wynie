@@ -2993,6 +2993,91 @@ async def get_all_formula_configs():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# ==================== Param Editor & Versioning ====================
+class FormulaPreviewRequest(BaseModel):
+    kind: str = Field(default="etf_regime")
+    params: Dict[str, Any]
+
+@api_router.post("/formulas/preview")
+async def formulas_preview(req: FormulaPreviewRequest):
+    # For etf_regime, compute a hypothetical signal using preview params
+    if req.kind != "etf_regime":
+        raise HTTPException(status_code=400, detail="Only etf_regime supported in preview for now")
+    base = await _ensure_etf_regime_config()
+    params_doc = {**base}
+    params_doc["params"] = {**base.get("params", {}), **(req.params or {})}
+    # compute latest market snapshot and signal
+    latest = await db.market_state.find({}).sort("ts", -1).limit(1).to_list(1)
+    if not latest:
+        # compute and persist once
+        await get_market_state()
+        latest = await db.market_state.find({}).sort("ts", -1).limit(1).to_list(1)
+        if not latest:
+            raise HTTPException(status_code=503, detail="No market state")
+    snap_doc = latest[0]
+    snapshot = MarketStateSnapshot(
+        ts=snap_doc.get("ts", datetime.utcnow()),
+        regime=snap_doc.get("regime", "CHOP"),
+        msae_score=float(snap_doc.get("msae_score", 0)),
+        components=snap_doc.get("components", {}),
+        stale=bool(snap_doc.get("stale", False))
+    )
+    signal = await _compute_signal(snapshot, params_doc)
+    return {"snapshot": snapshot, "signal": signal, "params_version": base.get("created_at")}
+
+class PublishRequest(BaseModel):
+    kind: str = Field(default="etf_regime")
+    name: str = "default"
+    comment: Optional[str] = None
+    params: Dict[str, Any]
+
+@api_router.post("/formulas/config/publish")
+async def formulas_publish(req: PublishRequest, current_user: User = Depends(get_current_user)):
+    if not _is_admin(current_user):
+        raise HTTPException(status_code=403, detail="Admin only")
+    if req.kind != "etf_regime":
+        raise HTTPException(status_code=400, detail="Only etf_regime supported")
+    # Mark existing actives as inactive
+    await db.formula_configs.update_many({"kind": req.kind, "active": True}, {"$set": {"active": False}})
+    doc = {
+        "id": str(uuid.uuid4()),
+        "name": req.name,
+        "kind": req.kind,
+        "params": req.params,
+        "comment": req.comment,
+        "active": True,
+        "created_at": datetime.utcnow().isoformat()
+    }
+    await db.formula_configs.insert_one(doc)
+    return {"message": "Published", "version": doc["created_at"], "id": doc["id"]}
+
+class RevertRequest(BaseModel):
+    kind: str = Field(default="etf_regime")
+    id: Optional[str] = None
+    created_at: Optional[str] = None
+
+@api_router.post("/formulas/config/revert")
+async def formulas_revert(req: RevertRequest, current_user: User = Depends(get_current_user)):
+    if not _is_admin(current_user):
+        raise HTTPException(status_code=403, detail="Admin only")
+    if req.kind != "etf_regime":
+        raise HTTPException(status_code=400, detail="Only etf_regime supported")
+    # Find target
+    query = {"kind": req.kind}
+    if req.id:
+        query["id"] = req.id
+    elif req.created_at:
+        query["created_at"] = req.created_at
+    else:
+        raise HTTPException(status_code=400, detail="Provide id or created_at")
+    target = await db.formula_configs.find_one(query)
+    if not target:
+        raise HTTPException(status_code=404, detail="Config not found")
+    # Flip active
+    await db.formula_configs.update_many({"kind": req.kind, "active": True}, {"$set": {"active": False}})
+    await db.formula_configs.update_one({"id": target["id"]}, {"$set": {"active": True}})
+    return {"message": "Reverted", "active_id": target["id"], "active_created_at": target["created_at"]}
+
 # ---------- NDX Constituents Admin Endpoints ----------
 
 class NdxMember(BaseModel):
