@@ -3214,6 +3214,48 @@ async def ndx_refresh_prices(interval: str = Query("1d", pattern="^(1d|15m)$")):
 app.include_router(api_router)
 
 # Add this to enable the app to be run directly
+
+# ==================== Scheduler (APScheduler) ====================
+try:
+    from apscheduler.schedulers.asyncio import AsyncIOScheduler
+    import exchange_calendars as xcals
+    scheduler = AsyncIOScheduler()
+
+    async def job_refresh_intraday():
+        # Recompute market state and store snapshot if within market hours
+        try:
+            await get_market_state()
+            logging.info("Scheduler: market state refreshed")
+        except Exception as e:
+            logging.error(f"Scheduler refresh error: {e}")
+
+    async def job_nightly_exports():
+        try:
+            # Touch exports so they're warm for download endpoints
+            await export_excel_daily()
+            await export_csv_daily()
+            logging.info("Scheduler: nightly exports generated")
+        except Exception as e:
+            logging.error(f"Scheduler export error: {e}")
+
+    def schedule_jobs():
+        try:
+            # US equities calendar
+            nyse = xcals.get_calendar("XNYS")
+            # 15-min refresh during RTH roughly: schedule cron every 15 minutes
+            scheduler.add_job(lambda: asyncio.create_task(job_refresh_intraday()), "cron", minute="*/15")
+            # Nightly jobs at 23:00 UTC
+            scheduler.add_job(lambda: asyncio.create_task(job_nightly_exports()), "cron", hour=23, minute=0)
+            scheduler.start()
+            logging.info("Scheduler started with 15m refresh and nightly exports")
+        except Exception as e:
+            logging.error(f"Scheduler init failed: {e}")
+
+    # Kickoff on startup
+    asyncio.get_event_loop().call_soon_threadsafe(lambda: schedule_jobs())
+except Exception as e:
+    logging.error(f"APScheduler not initialized: {e}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
