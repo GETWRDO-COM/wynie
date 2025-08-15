@@ -2108,10 +2108,15 @@ def _is_market_hours_ny(dt_now=None) -> bool:
     return open_t.time() <= now_ny.time() <= close_t.time()
 
 async def _ensure_etf_regime_config() -> Dict[str, Any]:
-    # If a config with kind=etf_regime doesn't exist, insert defaults
-    existing = await db.formula_configs.find_one({"kind": "etf_regime"})
-    if existing:
-        return existing
+    # Prefer the currently active config
+    existing_active = await db.formula_configs.find_one({"kind": "etf_regime", "active": True})
+    if existing_active:
+        return existing_active
+    # Otherwise return any existing
+    existing_any = await db.formula_configs.find_one({"kind": "etf_regime"})
+    if existing_any:
+        return existing_any
+    # Seed defaults
     default = {
         "name": "default",
         "kind": "etf_regime",
