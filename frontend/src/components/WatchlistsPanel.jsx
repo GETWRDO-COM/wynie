@@ -92,25 +92,15 @@ export default function WatchlistsPanel({ onUseSymbols }){
     await updateWatchlist(active.id, { sections }); await load()
   }
 
-  function removeSymbol(sym, secId){
-    setLists(prev => {
-      let idx = -1
-      let sections = null
-      for (let i=0;i<prev.length;i++){
-        const l = prev[i]
-        const hit = (l.sections||[]).some(s=> s.id===secId)
-        if (hit){
-          idx = i
-          sections = (l.sections||[]).map(x => x.id === secId ? ({ ...x, symbols: (x.symbols || []).filter(z => z !== sym) }) : x)
-          // persist in background
-          updateWatchlist(l.id, { sections }).catch(()=>{})
-          break
-        }
-      }
-      if (idx === -1 || !sections) return prev
-      const next = prev.map((l,i)=> i===idx ? ({...l, sections}) : l)
-      return next
-    })
+  async function removeSymbol(sym, secId){
+    let target = null
+    for (const l of lists){ if ((l.sections||[]).some(s=> s.id===secId)) { target = l; break } }
+    if (!target) return
+    const sections = (target.sections||[]).map(s => s.id === secId ? ({ ...s, symbols: (s.symbols||[]).filter(z => z !== sym) }) : s)
+    // optimistic local update with new object references at each level
+    setLists(prev => prev.map(l => l.id === target.id ? ({ ...l, sections }) : l))
+    try { await updateWatchlist(target.id, { sections }) } catch {}
+    await load()
   }
 
   async function setColor(secId, color){
