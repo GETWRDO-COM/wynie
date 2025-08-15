@@ -2999,6 +2999,7 @@ class ETFBackendTester:
             ("NDX: Refresh Prices", self.test_ndx_refresh_prices),
             # Legacy Compatibility Tests
             ("Legacy: Formulas Config", self.test_legacy_formulas_config),
+            ("Positions & Trades Management", self.test_positions_and_trades_management),
             ("Sanity: Dashboard", self.test_sanity_dashboard),
             # Phase 2 Tests - Specific endpoints from review request
             ("Phase 2: Universe Import", self.test_phase2_universe_import),
