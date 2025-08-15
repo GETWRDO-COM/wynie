@@ -753,6 +753,115 @@ async def update_etf_data():
 
 # ==================== API ROUTES ====================
 
+# ==================== Positions & Trades Models ====================
+class PositionCreate(BaseModel):
+    symbol: str
+    side: str = Field(default="LONG", description="LONG or SHORT")
+    entry_date: Optional[datetime] = None
+    entry_price: float
+    shares: int
+    strategy_tag: Optional[str] = None
+    risk_perc: float = 1.0
+    atr_at_entry: Optional[float] = None
+    stop_type: str = Field(default="ATR_TRAIL", description="FIXED|ATR_TRAIL|PCT")
+    trail_mult: float = 3.0
+    pct_stop: Optional[float] = Field(default=5.0, description="If stop_type=PCT, percent stop like 5.0 for 5%")
+    hard_stop: Optional[float] = None
+    notes: Optional[str] = None
+
+class Position(PositionCreate):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    status: str = Field(default="OPEN", description="OPEN|CLOSED")
+    initial_stop: Optional[float] = None
+    trailing_stop: Optional[float] = None
+    last_price: Optional[float] = None
+    r_multiple: Optional[float] = None
+    breached_initial_stop: bool = False
+    breached_trailing_stop: bool = False
+    last_updated: datetime = Field(default_factory=datetime.utcnow)
+    exit_date: Optional[datetime] = None
+    exit_price: Optional[float] = None
+    pnl: Optional[float] = None
+    r_exit: Optional[float] = None
+
+class Trade(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    symbol: str
+    side: str = Field(description="BUY or SELL")
+    ts: datetime = Field(default_factory=datetime.utcnow)
+    price: float
+    shares: int
+    fee: float = 0.0
+    position_id: Optional[str] = None
+    regime_at_entry: Optional[str] = None
+    msae_score_at_entry: Optional[float] = None
+    setup_tag: Optional[str] = None
+    notes: Optional[str] = None
+
+# ==================== Positions & Trades Helpers ====================
+async def _latest_close_and_atr(symbol: str, atr_period: int = 14) -> Dict[str, float]:
+    try:
+        t = yf.Ticker(symbol)
+        hist = t.history(period="3mo")
+        if hist.empty:
+            return {"price": None, "atr": None}
+        # ATR
+        high_low = hist['High'] - hist['Low']
+        high_close = np.abs(hist['High'] - hist['Close'].shift())
+        low_close = np.abs(hist['Low'] - hist['Close'].shift())
+        tr = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
+        atr = tr.rolling(atr_period).mean().iloc[-1]
+        return {"price": float(hist['Close'].iloc[-1]), "atr": float(atr)}
+    except Exception as e:
+        logging.error(f"ATR fetch failed for {symbol}: {e}")
+        return {"price": None, "atr": None}
+
+def _compute_initial_stop(p: Position) -> float:
+    if p.stop_type == "FIXED" and p.hard_stop:
+        return float(p.hard_stop)
+    if p.stop_type == "PCT" and p.pct_stop:
+        pct = float(p.pct_stop) / 100.0
+        if p.side == "LONG":
+            return round(p.entry_price * (1 - pct), 4)
+        else:
+            return round(p.entry_price * (1 + pct), 4)
+    # ATR_TRAIL default
+    atr = p.atr_at_entry or 0.0
+    if p.side == "LONG":
+        return round(p.entry_price - p.trail_mult * atr, 4)
+    else:
+        return round(p.entry_price + p.trail_mult * atr, 4)
+
+def _compute_trailing_stop(p: Position, cur_price: float, cur_atr: float) -> float:
+    base = _compute_initial_stop(p) if not p.trailing_stop else p.trailing_stop
+    if p.stop_type == "ATR_TRAIL" and cur_atr:
+        if p.side == "LONG":
+            new_stop = round(cur_price - p.trail_mult * cur_atr, 4)
+            return max(base, new_stop)  # ratchet up for longs
+        else:
+            new_stop = round(cur_price + p.trail_mult * cur_atr, 4)
+            return min(base, new_stop)  # ratchet down for shorts
+    return base
+
+def _compute_r_multiple(p: Position, cur_price: float) -> Optional[float]:
+    risk_per_share = abs(p.entry_price - (p.trailing_stop or p.initial_stop or p.entry_price))
+    if risk_per_share <= 0:
+        return None
+    if p.side == "LONG":
+        return round((cur_price - p.entry_price) / risk_per_share, 3)
+    else:
+        return round((p.entry_price - cur_price) / risk_per_share, 3)
+
+# Simple Admin checker (email-based). In future we can switch to role claims or tokens.
+ADMIN_EMAILS = set((os.environ.get("ADMIN_EMAILS", "beetge@mwebbiz.co.za").split(",")))
+
+def _is_admin(user: Optional[User]) -> bool:
+    try:
+        return user and user.email in ADMIN_EMAILS
+    except Exception:
+        return False
+
+
 # Authentication Routes
 @api_router.post("/auth/login")
 async def login(user_data: UserLogin):
