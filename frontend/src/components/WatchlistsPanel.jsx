@@ -92,14 +92,15 @@ export default function WatchlistsPanel({ onUseSymbols }){
     await updateWatchlist(active.id, { sections }); await load()
   }
 
-  async function removeSymbol(sym, secId){
-    if (!active) return
-    // optimistic remove without blocking confirm for automation reliability
-    const sections = (active.sections||[]).map(x=> x.id===secId ? ({...x, symbols: (x.symbols||[]).filter(z=> z!==sym)}) : x)
-    // optimistic local update for instant feedback
-    setLists(prev => prev.map(l => l.id===active.id ? ({...l, sections}) : l))
-    try { await updateWatchlist(active.id, { sections }) } catch {}
-    await load()
+  function removeSymbol(sym, secId){
+    setLists(prev => {
+      const li = prev.find(l => l.id === activeId)
+      if (!li) return prev
+      const sections = (li.sections || []).map(x => x.id === secId ? ({ ...x, symbols: (x.symbols || []).filter(z => z !== sym) }) : x)
+      // persist in background
+      updateWatchlist(li.id, { sections }).catch(()=>{})
+      return prev.map(l => l.id === li.id ? ({ ...l, sections }) : l)
+    })
   }
 
   async function setColor(secId, color){
