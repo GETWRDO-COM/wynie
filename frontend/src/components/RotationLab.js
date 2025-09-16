@@ -12,7 +12,7 @@ function NumberInput({label, value, onChange, step=1, min=0, hint}){
 function TextInput({label, value, onChange, hint}){
   return (
     <label className="block">
-      <div className="text-xs text-gray-400 mb-1">{label}</div>
+      <div className="text-xs text-gray-400 mb-1 flex items-center gap-1">{label}{hint && <span className="text-[10px] text-gray-500" title={hint}>ⓘ</span>}</div>
       <input value={value} onChange={e=>onChange(e.target.value)} className="form-input w-full" />
     </label>
   );
