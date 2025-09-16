@@ -59,7 +59,7 @@ const RotationLab = ({ api }) => {
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <NumberInput label="Capital" value={cfg.capital} onChange={v=>setCfg({...cfg, capital:v})} step={1000} />
+          <NumberInput label="Capital" value={cfg.capital} onChange={v=>setCfg({...cfg, capital:v})} step={1000} hint="Total capital used for backtests and live allocation sizing." />
           <label className="block">
             <div className="text-xs text-gray-400 mb-1">Rebalance</div>
             <select value={cfg.rebalance} onChange={e=>setCfg({...cfg, rebalance:e.target.value})} className="form-input w-full">
