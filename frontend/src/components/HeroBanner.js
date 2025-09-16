@@ -100,10 +100,9 @@ const HeroBanner = ({ user }) => {
 
   return (
     <div className="glass-panel p-6">
-      {/* Header Section */}
+      {/* Header Section with Greeting */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <div className="text-xs text-gray-400 mb-1">Welcome back!</div>
           <div className="text-white font-extrabold text-3xl mb-2">
             <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
               HUNT by WRDO
