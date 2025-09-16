@@ -75,7 +75,7 @@ const RotationLab = ({ api }) => {
           <NumberInput label="ATR len (20)" value={cfg.atr_len} onChange={v=>setCfg({...cfg, atr_len:v})} hint="ATR length used for Keltner bands (EMA20 ± mult × ATR)." />
           <NumberInput label="Keltner mult (2.0)" value={cfg.kelt_mult} onChange={v=>setCfg({...cfg, kelt_mult:v})} step={0.1} hint="Multiplier for ATR to set Keltner upper/lower bands (2.0 typical)." />
           <div className="grid grid-cols-3 gap-2">
-            <NumberInput label="MACD fast" value={cfg.macd_fast} onChange={v=>setCfg({...cfg, macd_fast:v})} />
+            <NumberInput label="MACD fast" value={cfg.macd_fast} onChange={v=>setCfg({...cfg, macd_fast:v})} hint="Standard MACD parameters; bullish when MACD line > signal." />
             <NumberInput label="MACD slow" value={cfg.macd_slow} onChange={v=>setCfg({...cfg, macd_slow:v})} />
             <NumberInput label="MACD signal" value={cfg.macd_signal} onChange={v=>setCfg({...cfg, macd_signal:v})} />
           </div>
