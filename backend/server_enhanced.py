@@ -21,15 +21,14 @@ import base64
 from cryptography.fernet import Fernet
 from urllib.parse import quote, urlparse
 
+# --- App, DB, Router, Auth init ---
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# Database
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ.get('DB_NAME', 'test_database')]
 
-# FastAPI app and router
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -40,13 +39,9 @@ app.add_middleware(
 )
 api_router = APIRouter(prefix="/api")
 
-# Auth basics
 JWT_SECRET = os.environ.get('JWT_SECRET', 'etf-intelligence-secret-key')
 JWT_ALGORITHM = "HS256"
 security = HTTPBearer()
-
-from cryptography.fernet import Fernet
-from hashlib import sha256
 FERNET_KEY = base64.urlsafe_b64encode(sha256(JWT_SECRET.encode()).digest())
 fernet = Fernet(FERNET_KEY)
 
@@ -58,23 +53,25 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
             raise HTTPException(status_code=401, detail="Invalid authentication credentials")
         user = await db.users.find_one({"email": email})
         if user is None:
-            # allow pass-through for now but indicate anonymous
             return {"email": email}
         return user
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
 
+# =====================
+# Rotation Lab models & endpoints
+# =====================
 class RotationConfig(BaseModel):
     name: str = "Default"
     capital: float = 100000.0
-    rebalance: str = "D"  # D/W/M (not used in v1 logic, placeholder)
+    rebalance: str = "D"  # D/W/M
     lookback_days: int = 126
     trend_days: int = 200
     max_positions: int = 1
     cost_bps: float = 5.0
     slippage_bps: float = 5.0
     pairs: List[Dict[str, Any]] = []  # [{bull:"TQQQ", bear:"SQQQ", underlying:"QQQ"}, ...]
-    # Sheet-like knobs
+    # Indicators & logic
     ema_fast: int = 20
     ema_slow: int = 50
     rsi_len: int = 14
@@ -86,6 +83,8 @@ class RotationConfig(BaseModel):
     consec_needed: int = 2
     conf_threshold: int = 2
     exec_timing: str = "next_open"  # or "close"
+    use_inseason: bool = False
+    season_months: Optional[str] = ""  # comma-separated months like "11,12,1,2,3,4"
 
 @api_router.get("/rotation/config")
 async def get_rotation_config(user: dict = Depends(get_current_user)):
@@ -132,7 +131,7 @@ async def rotation_live(user: dict = Depends(get_current_user)):
 async def rotation_backtest(cfg: RotationConfig, user: dict = Depends(get_current_user)):
     import yfinance as yf
 
-    # Pull knobs from cfg
+    # Pull knobs
     short_len = cfg.ema_fast or 20
     long_len = cfg.ema_slow or 50
     trend_len = cfg.trend_days or 200
@@ -218,21 +217,48 @@ async def rotation_backtest(cfg: RotationConfig, user: dict = Depends(get_curren
     sig['conf_bull'] = sig[['dual_up','trend_bull','kelt_bull','macd_bull','rsi_bull']].sum(axis=1)
     sig['conf_bear'] = sig[['dual_dn','trend_bear','kelt_bear','macd_bear','rsi_bear']].sum(axis=1)
 
+    # Rebalance schedule mask
+    idx = sig.index
+    if cfg.rebalance == 'W':
+        reb_mask = pd.Series(idx.weekday == 0, index=idx)  # Monday
+    elif cfg.rebalance == 'M':
+        # first trading day of month
+        periods = idx.to_period('M')
+        reb_mask = pd.Series(periods != periods.shift(1), index=idx)
+    else:
+        reb_mask = pd.Series(True, index=idx)
+
+    # Seasonality mask
+    if cfg.use_inseason and cfg.season_months:
+        allowed = set([int(x.strip()) for x in str(cfg.season_months).split(',') if x.strip().isdigit()])
+        month_allowed = pd.Series([d.month in allowed for d in idx], index=idx)
+    else:
+        month_allowed = pd.Series(True, index=idx)
+
     pos = []  # 1 bull, -1 bear, 0 cash
-    last = 0
+    holding = 0
     for i, row in sig.iterrows():
+        # Base signals
         bull_ok = (row['conf_bull'] >= conf_threshold) and (row['dual_consec_ok'] == 1)
         bear_ok = (row['conf_bear'] >= conf_threshold)
-        if bull_ok and not bear_ok:
-            cur = 1
-        elif bear_ok and not bull_ok:
-            cur = -1
-        elif bull_ok and bear_ok:
-            cur = 1 if row['conf_bull'] >= row['conf_bear'] else -1
+        # Seasonality
+        if not month_allowed.at[i]:
+            target = 0
         else:
-            cur = 0
-        pos.append(cur)
-        last = cur
+            if bull_ok and not bear_ok:
+                target = 1
+            elif bear_ok and not bull_ok:
+                target = -1
+            elif bull_ok and bear_ok:
+                target = 1 if row['conf_bull'] >= row['conf_bear'] else -1
+            else:
+                target = 0
+        # Rebalance control: only change on rebalance days; otherwise hold
+        if not reb_mask.at[i]:
+            target = holding
+        holding = target
+        pos.append(holding)
+
     sig['pos_signal'] = pos
 
     # Execution prices
@@ -261,8 +287,8 @@ async def rotation_backtest(cfg: RotationConfig, user: dict = Depends(get_curren
         px_b = exec_prices.at[dt, 'bull_px'] if dt in exec_prices.index else np.nan
         px_s = exec_prices.at[dt, 'bear_px'] if dt in exec_prices.index else np.nan
         target = row['pos_signal']
-        # change position
-        if target != holding:
+        # change position only when target changed
+        if (target != holding):
             # sell existing
             if holding == 1 and shares_bull>0 and pd.notna(px_b):
                 proceeds = shares_bull * px_b * (1 - cost - slip)
@@ -316,5 +342,5 @@ async def rotation_backtest(cfg: RotationConfig, user: dict = Depends(get_curren
         "trades": trades
     }
 
-# mount router at end
+# Mount router
 app.include_router(api_router)
