@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-function NumberInput({label, value, onChange, step=1, min=0}){
+function NumberInput({label, value, onChange, step=1, min=0, hint}){
   return (
     <label className="block">
       <div className="text-xs text-gray-400 mb-1">{label}</div>
