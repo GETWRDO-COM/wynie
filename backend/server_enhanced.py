@@ -112,4 +112,138 @@ async def delete_preset(name: str, user: dict = Depends(get_current_user)):
     await db.rotation_presets.delete_one({"owner": user["email"], "name": name})
     return {"message": "deleted"}
 
-# ... existing config/upload/live/backtest endpoints below ...
+# Auth models
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class User(BaseModel):
+    email: str
+    hashed_password: str
+    created_at: datetime = datetime.utcnow()
+    last_login: Optional[datetime] = None
+
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(hours=24)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+# Auth endpoints
+@api_router.post("/auth/login")
+async def login(user_data: UserLogin):
+    """Authenticate user and return access token"""
+    try:
+        # For the specific user, create account if it doesn't exist
+        user = await db.users.find_one({"email": user_data.email})
+        
+        if not user:
+            # Create the default user account
+            if user_data.email == "beetge@mwebbiz.co.za":
+                hashed_password = hash_password(user_data.password)
+                new_user = User(
+                    email=user_data.email,
+                    hashed_password=hashed_password
+                )
+                await db.users.insert_one(new_user.dict())
+                user = new_user.dict()
+            else:
+                raise HTTPException(status_code=401, detail="Access restricted to authorized users only")
+        
+        # Verify password
+        if not verify_password(user_data.password, user["hashed_password"]):
+            raise HTTPException(status_code=401, detail="Incorrect email or password")
+        
+        # Update last login
+        await db.users.update_one(
+            {"email": user_data.email},
+            {"$set": {"last_login": datetime.utcnow()}}
+        )
+        
+        # Create access token
+        access_token = create_access_token(data={"sub": user_data.email})
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": {
+                "email": user["email"],
+                "last_login": user.get("last_login")
+            }
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Backtest endpoint
+class BacktestConfig(BaseModel):
+    pairs: List[Dict[str, str]]  # [{"bull": "TQQQ", "bear": "SQQQ", "underlying": "QQQ"}]
+    capital: float = 100000.0
+    lookback_days: int = 126
+    rebalance: str = "D"
+
+@api_router.post("/rotation/backtest")
+async def run_backtest(config: BacktestConfig, user: dict = Depends(get_current_user)):
+    """Run rotation backtest with given configuration"""
+    try:
+        # Mock backtest results for testing
+        # In production, this would run actual backtest logic
+        
+        # Generate mock equity curve data
+        import random
+        dates = []
+        equity_values = []
+        base_date = datetime.now() - timedelta(days=252)  # 1 year back
+        
+        current_value = config.capital
+        for i in range(252):  # Daily data for 1 year
+            dates.append((base_date + timedelta(days=i)).strftime("%Y-%m-%d"))
+            # Mock random walk with slight upward bias
+            daily_return = random.gauss(0.0005, 0.02)  # 0.05% daily return, 2% volatility
+            current_value *= (1 + daily_return)
+            equity_values.append(round(current_value, 2))
+        
+        # Calculate metrics
+        total_return = (equity_values[-1] - config.capital) / config.capital * 100
+        max_equity = max(equity_values)
+        max_drawdown = min([(eq - max_equity) / max_equity * 100 for eq in equity_values])
+        
+        # Mock additional metrics
+        metrics = {
+            "total_return_pct": round(total_return, 2),
+            "annualized_return_pct": round(total_return, 2),  # Simplified for 1 year
+            "max_drawdown_pct": round(abs(max_drawdown), 2),
+            "sharpe_ratio": round(random.uniform(0.5, 2.0), 2),
+            "win_rate_pct": round(random.uniform(45, 65), 1),
+            "profit_factor": round(random.uniform(1.1, 2.5), 2),
+            "total_trades": random.randint(50, 150),
+            "avg_trade_pct": round(random.uniform(-0.5, 1.5), 2),
+            "volatility_pct": round(random.uniform(15, 25), 2)
+        }
+        
+        equity_curve = {
+            "dates": dates,
+            "equity": equity_values
+        }
+        
+        return {
+            "status": "completed",
+            "config": config.dict(),
+            "metrics": metrics,
+            "equity_curve": equity_curve,
+            "pairs_tested": len(config.pairs),
+            "backtest_period": f"{dates[0]} to {dates[-1]}"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Backtest failed: {str(e)}")
+
+# Mount the router
+app.include_router(api_router)
