@@ -108,7 +108,7 @@ async def save_preset(preset: RotationPresetIn, user: dict = Depends(get_current
     return {"message": "saved"}
 
 @api_router.delete("/rotation/presets/{name}")
-async def delete_preset(name: str = Path(...), user: dict = Depends(get_current_user)):
+async def delete_preset(name: str, user: dict = Depends(get_current_user)):
     await db.rotation_presets.delete_one({"owner": user["email"], "name": name})
     return {"message": "deleted"}
 
