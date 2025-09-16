@@ -184,6 +184,15 @@ async def login(user_data: UserLogin):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.get("/auth/me")
+async def get_current_user_info(user: dict = Depends(get_current_user)):
+    """Get current user information"""
+    return {
+        "email": user.get("email"),
+        "last_login": user.get("last_login"),
+        "created_at": user.get("created_at")
+    }
+
 # Backtest endpoint (returns shape expected by UI)
 class BacktestConfig(BaseModel):
     pairs: List[Dict[str, str]]
