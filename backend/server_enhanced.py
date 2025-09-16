@@ -315,3 +315,6 @@ async def rotation_backtest(cfg: RotationConfig, user: dict = Depends(get_curren
         "drawdown": [{"date": str(d.date()), "dd": float(v)} for d,v in dd.items()],
         "trades": trades
     }
+
+# mount router at end
+app.include_router(api_router)
