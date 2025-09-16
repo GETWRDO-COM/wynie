@@ -47,7 +47,7 @@ const HeroBanner = ({ user }) => {
     const upcoming = holidays.find(h => h.date > now);
     if (upcoming) {
       const days = Math.ceil((upcoming.date - now) / (1000 * 60 * 60 * 24));
-      return `${upcoming.name} - ${upcoming.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} (${days} days)`;
+      return `${upcoming.name} in ${days} days`;
     }
     return '';
   };
