@@ -259,12 +259,7 @@ const RotationLab = ({ api }) => {
   if (loading) return <div className="glass-panel p-4">Loading Rotation Lab…</div>;
   if (!cfg) return (
     <div className="space-y-3">
-      <div className="glass-panel p-3 text-[11px] text-gray-300">
-        <div>Backend base: <span className="text-white/90">{diag.base||'(empty)'}</span></div>
-        <div>Config URL: <span className="text-white/90">{diag.url}</span></div>
-        <div>Auth token present: <span className="text-white/90">{String(diag.token)}</span></div>
-        {diag.last && <div>Last error: <span className="text-rose-300">{diag.last}</span></div>}
-      </div>
+
       <div className="glass-panel p-4">
         <div className="text-white/90 font-semibold mb-2">Rotation Lab</div>
         <div className="text-xs text-gray-400 mb-3">We couldn’t load your configuration. Use one of the recovery actions below.</div>
