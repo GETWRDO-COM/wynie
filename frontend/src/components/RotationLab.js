@@ -68,7 +68,7 @@ const RotationLab = ({ api }) => {
               <option value="M">Monthly</option>
             </select>
           </label>
-          <NumberInput label="Trend days (200)" value={cfg.trend_days} onChange={v=>setCfg({...cfg, trend_days:v})} />
+          <NumberInput label="Trend days (200)" value={cfg.trend_days} onChange={v=>setCfg({...cfg, trend_days:v})} hint="200-day SMA regime filter (price above = bull regime, below = bear)." />
           <NumberInput label="EMA fast (20)" value={cfg.ema_fast} onChange={v=>setCfg({...cfg, ema_fast:v})} />
           <NumberInput label="EMA slow (50)" value={cfg.ema_slow} onChange={v=>setCfg({...cfg, ema_slow:v})} />
           <NumberInput label="RSI len (14)" value={cfg.rsi_len} onChange={v=>setCfg({...cfg, rsi_len:v})} />
