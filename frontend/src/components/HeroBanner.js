@@ -164,10 +164,6 @@ const HeroBanner = ({ user }) => {
       <div className="rounded-xl border border-white/10 bg-black/30 p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="text-white/90 font-semibold">Market Status</div>
-          <div className="text-xs text-gray-400">Regular Hours</div>
-        </div>
-        
-        <div className="flex items-center gap-3 mb-4">
           <div className={`px-3 py-1.5 rounded-lg text-sm font-semibold ${
             status.status === 'Open' 
               ? 'text-green-400 bg-green-500/20 border border-green-500/30' 
@@ -182,35 +178,6 @@ const HeroBanner = ({ user }) => {
           <div className="text-3xl font-mono font-bold text-cyan-400">
             {formatHMS(status.seconds)}
           </div>
-          <div className="text-xs text-gray-400 mt-1">Hours : Minutes : Seconds</div>
-        </div>
-
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-gray-400">📅 Next Close:</span>
-            <span className="text-white/90">{new Date().toLocaleDateString('en-US', { timeZone: 'America/New_York', weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-400">⏰ Time:</span>
-            <span className="text-white/90">12:00 PM ET</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-400">🕘 Regular Hours:</span>
-            <span className="text-white/90">9:30 AM - 4:00 PM ET</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-400">🌅 Pre-Market:</span>
-            <span className="text-white/90">4:00 AM - 9:30 AM ET</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-400">🌆 After Hours:</span>
-            <span className="text-white/90">4:00 PM - 8:00 PM ET</span>
-          </div>
-        </div>
-
-        <div className="flex justify-between items-center mt-4 pt-3 border-t border-white/10">
-          <span className="text-xs text-gray-400">NYSE/NASDAQ</span>
-          <span className="text-xs text-gray-400">Last updated: {new Date().toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit' })}</span>
         </div>
       </div>
     </div>
