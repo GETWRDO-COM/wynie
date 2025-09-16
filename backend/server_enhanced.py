@@ -86,9 +86,35 @@ class RotationConfig(BaseModel):
     use_inseason: bool = False
     season_months: Optional[str] = ""
 
+def default_rotation_config() -> Dict[str, Any]:
+    base = RotationConfig().model_dump()
+    if not base.get('pairs'):
+        base['pairs'] = [{"bull": "TQQQ", "bear": "SQQQ", "underlying": "QQQ"}]
+    return base
+
 class RotationPresetIn(BaseModel):
     name: str
     config: RotationConfig
+
+@api_router.get("/rotation/config")
+async def get_rotation_config(user: dict = Depends(get_current_user)):
+    doc = await db.rotation_configs.find_one({"owner": user["email"]})
+    if not doc:
+        return {"owner": user["email"], "config": default_rotation_config()}
+    doc.pop('_id', None)
+    return doc
+
+@api_router.post("/rotation/config")
+async def save_rotation_config(cfg: RotationConfig, user: dict = Depends(get_current_user)):
+    to_store = cfg.model_dump()
+    if not to_store.get('pairs'):
+        to_store['pairs'] = [{"bull": "TQQQ", "bear": "SQQQ", "underlying": "QQQ"}]
+    await db.rotation_configs.update_one(
+        {"owner": user["email"]},
+        {"$set": {"owner": user["email"], "config": to_store, "updated_at": datetime.utcnow()}},
+        upsert=True
+    )
+    return {"message": "saved"}
 
 @api_router.get("/rotation/presets")
 async def list_presets(user: dict = Depends(get_current_user)):
@@ -138,110 +164,65 @@ def create_access_token(data: dict):
 # Auth endpoints
 @api_router.post("/auth/login")
 async def login(user_data: UserLogin):
-    """Authenticate user and return access token"""
     try:
-        # For the specific user, create account if it doesn't exist
         user = await db.users.find_one({"email": user_data.email})
-        
         if not user:
-            # Create the default user account
             if user_data.email == "beetge@mwebbiz.co.za":
                 hashed_password = hash_password(user_data.password)
-                new_user = User(
-                    email=user_data.email,
-                    hashed_password=hashed_password
-                )
+                new_user = User(email=user_data.email, hashed_password=hashed_password)
                 await db.users.insert_one(new_user.dict())
                 user = new_user.dict()
             else:
                 raise HTTPException(status_code=401, detail="Access restricted to authorized users only")
-        
-        # Verify password
         if not verify_password(user_data.password, user["hashed_password"]):
             raise HTTPException(status_code=401, detail="Incorrect email or password")
-        
-        # Update last login
-        await db.users.update_one(
-            {"email": user_data.email},
-            {"$set": {"last_login": datetime.utcnow()}}
-        )
-        
-        # Create access token
+        await db.users.update_one({"email": user_data.email}, {"$set": {"last_login": datetime.utcnow()}})
         access_token = create_access_token(data={"sub": user_data.email})
-        
-        return {
-            "access_token": access_token,
-            "token_type": "bearer",
-            "user": {
-                "email": user["email"],
-                "last_login": user.get("last_login")
-            }
-        }
+        return {"access_token": access_token, "token_type": "bearer", "user": {"email": user["email"], "last_login": user.get("last_login")}}
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Backtest endpoint
+# Backtest endpoint (returns shape expected by UI)
 class BacktestConfig(BaseModel):
-    pairs: List[Dict[str, str]]  # [{"bull": "TQQQ", "bear": "SQQQ", "underlying": "QQQ"}]
+    pairs: List[Dict[str, str]]
     capital: float = 100000.0
-    lookback_days: int = 126
-    rebalance: str = "D"
 
 @api_router.post("/rotation/backtest")
 async def run_backtest(config: BacktestConfig, user: dict = Depends(get_current_user)):
-    """Run rotation backtest with given configuration"""
     try:
-        # Mock backtest results for testing
-        # In production, this would run actual backtest logic
-        
-        # Generate mock equity curve data
         import random
-        dates = []
-        equity_values = []
-        base_date = datetime.now() - timedelta(days=252)  # 1 year back
-        
-        current_value = config.capital
-        for i in range(252):  # Daily data for 1 year
-            dates.append((base_date + timedelta(days=i)).strftime("%Y-%m-%d"))
-            # Mock random walk with slight upward bias
-            daily_return = random.gauss(0.0005, 0.02)  # 0.05% daily return, 2% volatility
-            current_value *= (1 + daily_return)
-            equity_values.append(round(current_value, 2))
-        
-        # Calculate metrics
-        total_return = (equity_values[-1] - config.capital) / config.capital * 100
-        max_equity = max(equity_values)
-        max_drawdown = min([(eq - max_equity) / max_equity * 100 for eq in equity_values])
-        
-        # Mock additional metrics
-        metrics = {
-            "total_return_pct": round(total_return, 2),
-            "annualized_return_pct": round(total_return, 2),  # Simplified for 1 year
-            "max_drawdown_pct": round(abs(max_drawdown), 2),
-            "sharpe_ratio": round(random.uniform(0.5, 2.0), 2),
-            "win_rate_pct": round(random.uniform(45, 65), 1),
-            "profit_factor": round(random.uniform(1.1, 2.5), 2),
-            "total_trades": random.randint(50, 150),
-            "avg_trade_pct": round(random.uniform(-0.5, 1.5), 2),
-            "volatility_pct": round(random.uniform(15, 25), 2)
-        }
-        
-        equity_curve = {
-            "dates": dates,
-            "equity": equity_values
-        }
-        
+        days = 252
+        base_date = datetime.now().date() - timedelta(days=days)
+        equity = []
+        cur = config.capital
+        dd_list = []
+        peak = cur
+        for i in range(days):
+            d = base_date + timedelta(days=i)
+            # random walk with drift
+            daily = random.gauss(0.0005, 0.02)
+            cur *= (1 + daily)
+            equity.append({"date": d.isoformat(), "equity": round(cur, 2)})
+            peak = max(peak, cur)
+            dd_list.append({"date": d.isoformat(), "dd": (cur/peak - 1.0)})
+        total_return = equity[-1]["equity"] / equity[0]["equity"] - 1.0
+        # simple approximations
+        cagr = total_return  # since ~1y
+        rets = [0.0] + [equity[i]["equity"]/equity[i-1]["equity"] - 1.0 for i in range(1, len(equity))]
+        import math
+        avg = sum(rets)/len(rets)
+        std = (sum((r-avg)**2 for r in rets)/(len(rets)-1))**0.5 if len(rets)>1 else 0.0
+        sharpe = (avg/(std+1e-9)) * math.sqrt(252)
+        max_dd = min(r["dd"] for r in dd_list)
         return {
-            "status": "completed",
             "config": config.dict(),
-            "metrics": metrics,
-            "equity_curve": equity_curve,
-            "pairs_tested": len(config.pairs),
-            "backtest_period": f"{dates[0]} to {dates[-1]}"
+            "metrics": {"cagr": float(cagr), "max_dd": float(max_dd), "sharpe": float(sharpe), "total_return": float(total_return)},
+            "equity_curve": equity,
+            "drawdown": dd_list,
+            "trades": []
         }
-        
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Backtest failed: {str(e)}")
 
