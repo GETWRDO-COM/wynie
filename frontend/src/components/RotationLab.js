@@ -135,7 +135,7 @@ const RotationLab = ({ api }) => { const BACKEND_URL = process.env.REACT_APP_BAC
       setPresetKey(name);
     } catch { alert('Failed to save preset'); }
   };
-  const deletePreset = async(name)=>{ if(!confirm(`Delete preset "${name}"?`)) return; try{ await api.delete(`/api/rotation/presets/${encodeURIComponent(name)}`); await loadPresets(); } catch { alert('Failed to delete'); } };
+  const deletePreset = async(name)=>{ if(!confirm(`Delete preset "${name}"?`)) return; try{ await httpDelete(`/api/rotation/presets/${encodeURIComponent(name)}`); await loadPresets(); } catch { alert('Failed to delete'); } };
 
   const save = async()=>{ setSaving(true); try{ await api.post('/api/rotation/config', cfg); } finally { setSaving(false);} };
   const reloadLive = async()=>{ const r = await api.get('/api/rotation/live'); setLive(r.data); };
