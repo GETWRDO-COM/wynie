@@ -259,7 +259,6 @@ const RotationLab = ({ api }) => {
   if (loading) return <div className="glass-panel p-4">Loading Rotation Lab…</div>;
   if (!cfg) return (
     <div className="space-y-3">
-
       <div className="glass-panel p-4">
         <div className="text-white/90 font-semibold mb-2">Rotation Lab</div>
         <div className="text-xs text-gray-400 mb-3">We couldn’t load your configuration. Use one of the recovery actions below.</div>
