@@ -144,7 +144,6 @@ function App() {
               <WatchlistsSection />
               <EnhancedNewsSection />
               <EarningsCalendar />
-              <DashboardQuickSections swingLeaders={swingLeaders} watchlists={watchlists} marketScore={marketScore} />
             </div>
           )}
           {activeTab === 'rotation' && (
