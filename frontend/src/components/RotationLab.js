@@ -239,8 +239,36 @@ const RotationLab = ({ api }) => {
   const fmtPct = (x)=> x==null? '--' : (x*100).toFixed(2)+'%';
   const fmt = (x)=> x==null? '--' : Number(x).toFixed(2);
 
+  const initDefault = async()=>{
+    try{
+      const def = { name:'Default', capital:100000, rebalance:'D', trend_days:200, ema_fast:20, ema_slow:50, rsi_len:14, atr_len:20, kelt_mult:2.0, macd_fast:12, macd_slow:26, macd_signal:9, consec_needed:2, conf_threshold:2, exec_timing:'next_open', pairs:[{bull:'TQQQ', bear:'SQQQ', underlying:'QQQ'}] };
+      await httpPost('/api/rotation/config', def);
+      const data2 = await httpGet('/api/rotation/config'); setCfg(data2.config || data2);
+    } catch(e){ setDiag(d=>({ ...d, last: `Init failed: ${String(e?.message||e)}` })); }
+  };
+  const retryLoad = async()=>{ try{ const data = await httpGet('/api/rotation/config'); setCfg(data.config || data); } catch(e){ setDiag(d=>({ ...d, last: `Retry failed: ${String(e?.message||e)}` })); }};
+  const reauth = ()=>{ localStorage.removeItem('authToken'); localStorage.removeItem('user'); window.location.reload(); };
+
   if (loading) return <div className="glass-panel p-4">Loading Rotation Lab…</div>;
-  if (!cfg) return <div className="glass-panel p-4">No config</div>;
+  if (!cfg) return (
+    <div className="space-y-3">
+      <div className="glass-panel p-3 text-[11px] text-gray-300">
+        <div>Backend base: <span className="text-white/90">{diag.base||'(empty)'}</span></div>
+        <div>Config URL: <span className="text-white/90">{diag.url}</span></div>
+        <div>Auth token present: <span className="text-white/90">{String(diag.token)}</span></div>
+        {diag.last && <div>Last error: <span className="text-rose-300">{diag.last}</span></div>}
+      </div>
+      <div className="glass-panel p-4">
+        <div className="text-white/90 font-semibold mb-2">Rotation Lab</div>
+        <div className="text-xs text-gray-400 mb-3">We couldn’t load your configuration. Use one of the recovery actions below.</div>
+        <div className="flex items-center gap-2 justify-end">
+          <button onClick={reauth} className="btn btn-outline text-xs py-1">Re‑authenticate</button>
+          <button onClick={retryLoad} className="btn btn-outline text-xs py-1">Retry</button>
+          <button onClick={initDefault} className="btn btn-primary-strong text-xs py-1">Initialize Default Config</button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6" key="rotation-v3-20250612">
