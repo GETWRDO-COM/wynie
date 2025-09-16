@@ -247,16 +247,4 @@ const HeroBanner = ({ user }) => {
         </div>
       </div>
 
-      {/* Date + Weather (same height cards) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-        <div className="glass-panel p-4 h-full flex items-center justify-between">
-          <div className="text-white/90 font-semibold text-base sm:text-lg">{todayLocal}</div>
-          {/* remove explicit timezone text */}
-        </div>
-        <div className="h-full"><WeatherWidget /></div>
-      </div>
-    </div>
-  );
-};
-
 export default HeroBanner;
