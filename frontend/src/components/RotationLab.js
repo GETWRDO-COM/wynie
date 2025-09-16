@@ -182,11 +182,11 @@ const RotationLab = ({ api }) => {
     setComparing(true);
     try{
       const [ra, rb] = await Promise.all([
-        api.post('/api/rotation/backtest', {...cfg, ...p}),
-        api.post('/api/rotation/backtest', cfg),
+        httpPost('/api/rotation/backtest', {...cfg, ...p}),
+        httpPost('/api/rotation/backtest', cfg),
       ]);
-      setResA(ra.data); setResB(rb.data);
-    } finally { setComparing(false); }
+      setResA(ra); setResB(rb);
+    } catch(e){ alert('Compare failed'); } finally { setComparing(false); }
   };
 
   // Charts from primary backtest
