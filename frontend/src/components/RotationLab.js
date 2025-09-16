@@ -244,6 +244,13 @@ const RotationLab = ({ api }) => {
 
   return (
     <div className="space-y-6" key="rotation-v3-20250612">
+      {/* Diagnostics (temporary) */}
+      <div className="glass-panel p-3 text-[11px] text-gray-300">
+        <div>Backend base: <span className="text-white/90">{diag.base||'(empty)'}</span></div>
+        <div>Config URL: <span className="text-white/90">{diag.url}</span></div>
+        <div>Auth token present: <span className="text-white/90">{String(diag.token)}</span></div>
+        {diag.last && <div>Last error: <span className="text-rose-300">{diag.last}</span></div>}
+      </div>
       {/* Hero header */}
       <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0b0f1a]/80 to-[#0c1222]/80 backdrop-blur-xl p-6">
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3">
