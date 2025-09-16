@@ -71,7 +71,7 @@ const RotationLab = ({ api }) => {
           <NumberInput label="Trend days (200)" value={cfg.trend_days} onChange={v=>setCfg({...cfg, trend_days:v})} hint="200-day SMA regime filter (price above = bull regime, below = bear)." />
           <NumberInput label="EMA fast (20)" value={cfg.ema_fast} onChange={v=>setCfg({...cfg, ema_fast:v})} hint="Short EMA length used in DualUp (EMAfast > EMAslow)." />
           <NumberInput label="EMA slow (50)" value={cfg.ema_slow} onChange={v=>setCfg({...cfg, ema_slow:v})} hint="Long EMA length used in DualUp (EMAfast > EMAslow)." />
-          <NumberInput label="RSI len (14)" value={cfg.rsi_len} onChange={v=>setCfg({...cfg, rsi_len:v})} />
+          <NumberInput label="RSI len (14)" value={cfg.rsi_len} onChange={v=>setCfg({...cfg, rsi_len:v})} hint="RSI period; >50 contributes to bull confirmations; <50 contributes to bear." />
           <NumberInput label="ATR len (20)" value={cfg.atr_len} onChange={v=>setCfg({...cfg, atr_len:v})} />
           <NumberInput label="Keltner mult (2.0)" value={cfg.kelt_mult} onChange={v=>setCfg({...cfg, kelt_mult:v})} step={0.1} />
           <div className="grid grid-cols-3 gap-2">
