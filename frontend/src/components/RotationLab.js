@@ -9,7 +9,7 @@ function NumberInput({label, value, onChange, step=1, min=0, hint}){
   );
 }
 
-function TextInput({label, value, onChange}){
+function TextInput({label, value, onChange, hint}){
   return (
     <label className="block">
       <div className="text-xs text-gray-400 mb-1">{label}</div>
