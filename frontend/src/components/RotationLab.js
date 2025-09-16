@@ -124,7 +124,11 @@ const RotationLab = ({ api }) => {
   const [resB, setResB] = useState(null);
   const [comparing, setComparing] = useState(false);
 
-  useEffect(()=>{ (async()=>{ try{ const data = await httpGet('/api/rotation/config'); setCfg(data.config || data); } finally { setLoading(false); } })(); }, []);
+  const [diag, setDiag] = useState({ base:'', url:'', token:false, last:'' });
+  useEffect(()=>{ (async()=>{ try{ const token = !!localStorage.getItem('authToken'); const url = (RAW_BASE||'') + '/api/rotation/config'; setDiag(d=>({ ...d, base: RAW_BASE||'', url, token })); const data = await httpGet('/api/rotation/config'); setCfg(data.config || data); } catch(err){ setDiag(d=>({ ...d, last: String(err?.message||err) })); // attempt to upsert default config then re-get
+      try { const def = { name:'Default', capital:100000, rebalance:'D', trend_days:200, ema_fast:20, ema_slow:50, rsi_len:14, atr_len:20, kelt_mult:2.0, macd_fast:12, macd_slow:26, macd_signal:9, consec_needed:2, conf_threshold:2, exec_timing:'next_open', pairs:[{bull:'TQQQ', bear:'SQQQ', underlying:'QQQ'}] };
+        await httpPost('/api/rotation/config', def); const data2 = await httpGet('/api/rotation/config'); setCfg(data2.config || data2); } catch(e2){ setDiag(d=>({ ...d, last: `Fallback failed: ${String(e2?.message||e2)}` })); }
+    } finally { setLoading(false); } })(); }, []);
   const loadPresets = async()=>{ try{ const r = await httpGet('/api/rotation/presets'); setUserPresets(r.items||[]); } catch{} };
   useEffect(()=>{ loadPresets(); }, []);
 
