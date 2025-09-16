@@ -130,7 +130,7 @@ const RotationLab = ({ api }) => { const BACKEND_URL = process.env.REACT_APP_BAC
     const name = prompt('Preset name');
     if(!name) return;
     try{
-      await api.post('/api/rotation/presets', { name, config: cfg });
+      await httpPost('/api/rotation/presets', { name, config: cfg });
       await loadPresets();
       setPresetKey(name);
     } catch { alert('Failed to save preset'); }
