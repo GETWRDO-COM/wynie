@@ -713,7 +713,17 @@ backend:
         comment: "✅ REGRESSION TESTING COMPLETED: Comprehensive automated UI regression tests conducted for all 6 requested features. RESULTS: (1) My Performance ranges order - ✅ PASS: Correct order ['1 Day', '5 Days', '1 Month', '6 Months', '1 Year', 'YTD'] verified. (2) Market Snapshot duplication - ✅ PASS: Issue resolved - only 1 'Market Snapshot' section found, positioned correctly below My Performance. (3) NewsTicker - ✅ PASS: 77 news headlines render as hyperlinks opening in new tabs (_blank), slow animation present with ticker keyframes. (4) Fear & Greed CNN logo - ✅ PASS: CNN logo displays with h-6 class (visibly larger). (5) Watchlists 'See more' button - ✅ PASS: Prominent button navigates hash to #/watchlists correctly. (6) Market Score panel - ⚠️ MINOR: Panel shows trend and timestamp but score displays '--' (no actual score data). Overall: 5/6 tests passed with 1 minor issue. Market Snapshot duplication has been successfully resolved."
 
 frontend:
-  - task: "Complete Enhanced Frontend with Authentication"
+  - task: "Rotation Lab Frontend Component"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/RotationLab.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE ROTATION LAB TESTING COMPLETED: End-to-end automated testing confirms ALL Rotation Lab functionality working perfectly. CRITICAL SUCCESS: User's main complaint about 'Recompute Live' 404 errors has been COMPLETELY RESOLVED. Authentication & Navigation working (beetge@mwebbiz.co.za login successful, clean interface with no settings bleeding). Core Functions all operational: 'Recompute Live' (GET /api/rotation/live - 200 OK), 'Save Configuration' working, 'Run Backtest' functional with KPI results visible. A/B Comparison features working: Set A/B from Current, Compare vs Preset with visible metrics. Preset Management functional: built-in presets, custom saving, dropdown working. Network analysis shows 100% success rate on all 5 rotation endpoints with NO 404 ERRORS. System is production-ready and user issue resolved."
     implemented: true
     working: true
     file: "/app/frontend/src/App.js"
