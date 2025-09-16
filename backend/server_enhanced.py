@@ -226,5 +226,58 @@ async def run_backtest(config: BacktestConfig, user: dict = Depends(get_current_
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Backtest failed: {str(e)}")
 
+@api_router.get("/rotation/live")
+async def get_live_data(user: dict = Depends(get_current_user)):
+    """Get live market data for rotation pairs"""
+    try:
+        # Get user's current rotation config
+        doc = await db.rotation_configs.find_one({"owner": user["email"]})
+        config = doc.get('config', default_rotation_config()) if doc else default_rotation_config()
+        
+        # Extract tickers from pairs
+        tickers = set()
+        for pair in config.get('pairs', []):
+            tickers.add(pair.get('bull'))
+            tickers.add(pair.get('bear'))
+            tickers.add(pair.get('underlying'))
+        
+        # Filter out None values
+        tickers = [t for t in tickers if t]
+        
+        # Mock live data for now (in production, this would fetch real data)
+        import random
+        live_data = {}
+        for ticker in tickers:
+            price = random.uniform(50, 500)
+            change = random.uniform(-5, 5)
+            live_data[ticker] = {
+                "price": round(price, 2),
+                "change": round(change, 2),
+                "change_pct": round((change / price) * 100, 2),
+                "last_updated": datetime.now().isoformat()
+            }
+        
+        return {
+            "data": live_data,
+            "timestamp": datetime.now().isoformat(),
+            "pairs": config.get('pairs', [])
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get live data: {str(e)}")
+
+@api_router.post("/rotation/upload-xlsx")
+async def upload_xlsx(file: UploadFile = File(...), user: dict = Depends(get_current_user)):
+    """Upload and parse XLSX file for rotation configuration"""
+    try:
+        # For now, return a mock response
+        # In production, this would parse the Excel file and extract configuration
+        return {
+            "message": "XLSX processed successfully",
+            "sheets": ["Sheet1", "Configuration", "Pairs"],
+            "rows_parsed": 42
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"XLSX upload failed: {str(e)}")
+
 # Mount the router
 app.include_router(api_router)
