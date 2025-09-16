@@ -141,8 +141,10 @@ function App() {
               </div>
               <MyPerformance api={api} />
               <MarketCharts />
+              <WatchlistsSection />
+              <EnhancedNewsSection />
+              <EarningsCalendar />
               <DashboardQuickSections swingLeaders={swingLeaders} watchlists={watchlists} marketScore={marketScore} />
-              <NewsSection api={api} />
             </div>
           )}
           {activeTab === 'rotation' && (
