@@ -92,7 +92,19 @@ const SeasonMonths = ({value, onChange})=>{
   );
 };
 
-const RotationLab = ({ api }) => { const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || ''; const authHeaders = () => { const t = localStorage.getItem('authToken'); return t ? { Authorization: `Bearer ${t}` } : {}; }; const httpGet = async (path) => { const res = await fetch(`${BACKEND_URL}${path}`, { headers: { 'Content-Type':'application/json', ...authHeaders() } }); if(!res.ok) throw new Error(`GET ${path} ${res.status}`); return res.json(); }; const httpPost = async (path, body) => { const res = await fetch(`${BACKEND_URL}${path}`, { method:'POST', headers: { 'Content-Type':'application/json', ...authHeaders() }, body: JSON.stringify(body) }); if(!res.ok) throw new Error(`POST ${path} ${res.status}`); return res.json(); }; const httpDelete = async (path) => { const res = await fetch(`${BACKEND_URL}${path}`, { method:'DELETE', headers: { ...authHeaders() } }); if(!res.ok) throw new Error(`DELETE ${path} ${res.status}`); return res.json(); };
+const RotationLab = ({ api }) => {
+  const RAW_BASE = process.env.REACT_APP_BACKEND_URL || '';
+  const BASE = RAW_BASE.replace(/\/$/, '');
+  const buildUrl = (path) => {
+    // Normalize to avoid double /api when BASE already ends with /api
+    if (!BASE) return path; // fallback to relative '/api/...'
+    const p = path.startsWith('/api') && BASE.endsWith('/api') ? path.replace(/^\/api/, '') : path;
+    return `${BASE}${p}`;
+  };
+  const authHeaders = () => { const t = localStorage.getItem('authToken'); return t ? { Authorization: `Bearer ${t}` } : {}; };
+  const httpGet = async (path) => { const url = buildUrl(path); const res = await fetch(url, { headers: { 'Content-Type':'application/json', ...authHeaders() } }); if(!res.ok) throw new Error(`GET ${path} ${res.status}`); return res.json(); };
+  const httpPost = async (path, body) => { const url = buildUrl(path); const res = await fetch(url, { method:'POST', headers: { 'Content-Type':'application/json', ...authHeaders() }, body: JSON.stringify(body) }); if(!res.ok) throw new Error(`POST ${path} ${res.status}`); return res.json(); };
+  const httpDelete = async (path) => { const url = buildUrl(path); const res = await fetch(url, { method:'DELETE', headers: { ...authHeaders() } }); if(!res.ok) throw new Error(`DELETE ${path} ${res.status}`); return res.json(); };
   const [cfg, setCfg] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
