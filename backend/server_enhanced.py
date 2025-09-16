@@ -449,7 +449,6 @@ async def get_market_aggregates(range: str = "1D", tickers: str = ""):
             ticker_list = ["SPY", "QQQ", "I:DJI", "TQQQ", "SQQQ"]
         
         import random
-        from datetime import datetime, timedelta
         
         data = {}
         
@@ -467,13 +466,13 @@ async def get_market_aggregates(range: str = "1D", tickers: str = ""):
             series = []
             
             for i in range(days):
-                date = datetime.now() - timedelta(days=days-i-1)
+                date_obj = datetime.now() - timedelta(days=days-i-1)
                 # Generate realistic price movement
                 price_variation = random.uniform(-0.02, 0.02)
                 price = base_price * (1 + price_variation)
                 
                 series.append({
-                    "t": date.isoformat(),  # timestamp
+                    "t": date_obj.isoformat(),  # timestamp
                     "c": round(price, 2),   # close price
                     "o": round(price * 0.999, 2),  # open
                     "h": round(price * 1.01, 2),   # high  
