@@ -104,18 +104,4 @@ const GlobalClock = () => {
     </div>
   );
 };
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">🇺🇸</span>
-            <span className="text-gray-300">NY</span>
-          </div>
-          <div className="text-white font-mono font-semibold">{nyTime}</div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 export default GlobalClock;
