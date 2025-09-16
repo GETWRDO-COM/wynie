@@ -18,15 +18,35 @@ const MarketCharts = () => {
       setError('');
       const tickers = TICKERS.map(t => t.id).join(',');
       const res = await fetch(`${BACKEND_URL}/api/market/aggregates?tickers=${encodeURIComponent(tickers)}&range=${encodeURIComponent(r)}`);
-      const js = await res.json();
+      
       if (!res.ok) {
-        throw new Error(js?.detail || 'Failed to load market data');
+        throw new Error('Market data API unavailable');
       }
+      
+      const js = await res.json();
       setData(js.data || {});
       setUpdatedAt(js.last_updated ? new Date(js.last_updated) : new Date());
     } catch (e) {
-      setError(e.message || 'Failed to load market data');
-      setData({});
+      console.warn('Market data failed, using fallback:', e.message);
+      
+      // Fallback mock data
+      const mockData = {};
+      TICKERS.forEach(ticker => {
+        const basePrice = { 'SPY': 450, 'QQQ': 380, 'I:DJI': 34500, 'TQQQ': 45, 'SQQQ': 12 }[ticker.id] || 100;
+        const change = (Math.random() - 0.5) * 0.06 * basePrice;
+        const price = basePrice + change;
+        
+        mockData[ticker.id] = {
+          ticker: ticker.id,
+          price: parseFloat(price.toFixed(2)),
+          change: parseFloat(change.toFixed(2)),
+          change_pct: parseFloat((change/basePrice * 100).toFixed(2)),
+          series: [] // Empty for now
+        };
+      });
+      
+      setData(mockData);
+      setError('Using simulated data - API temporarily unavailable');
       setUpdatedAt(new Date());
     }
   };
