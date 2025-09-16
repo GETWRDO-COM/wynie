@@ -224,27 +224,4 @@ const HeroBanner = ({ user }) => {
   );
 };
 
-      {/* Clocks + Market */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4 items-stretch">
-        <div className="glass-panel p-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <div className="flex items-center gap-2 text-xs text-gray-400"><img src="https://flagcdn.com/za.svg" alt="ZA" className="w-4 h-3 rounded-sm" /><span>South Africa</span></div>
-              <div className="text-xl font-bold">{saTime}</div>
-            </div>
-            <div>
-              <div className="flex items-center gap-2 text-xs text-gray-400"><img src="https://flagcdn.com/us.svg" alt="US" className="w-4 h-3 rounded-sm" /><span>USA (ET)</span></div>
-              <div className="text-xl font-bold">{usTime}</div>
-            </div>
-          </div>
-        </div>
-        <div className="glass-panel p-4 flex items-center justify-between">
-          <div>
-            <div className="text-xs text-gray-400">Market Status</div>
-            <div className={`${String(status.status).toLowerCase().includes('open') ? 'text-green-400' : 'text-red-400'} font-semibold`}>{status.status}</div>
-          </div>
-          <div className={`px-4 py-2 rounded-lg border text-white font-bold text-base sm:text-lg ${String(status.status).toLowerCase().includes('open') ? 'bg-green-500/20 border-green-500/40 text-green-300' : 'bg-red-500/20 border-red-500/40 text-red-300'}`}>{status.countdownLabel} {formatHMS(status.seconds)}</div>
-        </div>
-      </div>
-
 export default HeroBanner;
