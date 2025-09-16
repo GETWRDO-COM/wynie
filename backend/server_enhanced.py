@@ -21,7 +21,48 @@ import base64
 from cryptography.fernet import Fernet
 from urllib.parse import quote, urlparse
 
-# assume prior setup exists (api_router, db, get_current_user, etc.)
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
+
+# Database
+mongo_url = os.environ['MONGO_URL']
+client = AsyncIOMotorClient(mongo_url)
+db = client[os.environ.get('DB_NAME', 'test_database')]
+
+# FastAPI app and router
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+api_router = APIRouter(prefix="/api")
+
+# Auth basics
+JWT_SECRET = os.environ.get('JWT_SECRET', 'etf-intelligence-secret-key')
+JWT_ALGORITHM = "HS256"
+security = HTTPBearer()
+
+from cryptography.fernet import Fernet
+from hashlib import sha256
+FERNET_KEY = base64.urlsafe_b64encode(sha256(JWT_SECRET.encode()).digest())
+fernet = Fernet(FERNET_KEY)
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    try:
+        payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+        user = await db.users.find_one({"email": email})
+        if user is None:
+            # allow pass-through for now but indicate anonymous
+            return {"email": email}
+        return user
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
 
 class RotationConfig(BaseModel):
     name: str = "Default"
