@@ -21,26 +21,31 @@ import base64
 from cryptography.fernet import Fernet
 from urllib.parse import quote, urlparse
 
-# ... existing imports and setup above unchanged ...
-# (omitted here for brevity in this snippet)
+# assume prior setup exists (api_router, db, get_current_user, etc.)
 
-# =====================
-# Rotation Lab: models
-# =====================
 class RotationConfig(BaseModel):
     name: str = "Default"
     capital: float = 100000.0
-    rebalance: str = "W"  # D/W/M
+    rebalance: str = "D"  # D/W/M (not used in v1 logic, placeholder)
     lookback_days: int = 126
     trend_days: int = 200
-    max_positions: int = 2
+    max_positions: int = 1
     cost_bps: float = 5.0
     slippage_bps: float = 5.0
-    pairs: List[Dict[str, Any]] = []  # [{bull:"TQQQ", bear:"SQQQ"}, ...]
+    pairs: List[Dict[str, Any]] = []  # [{bull:"TQQQ", bear:"SQQQ", underlying:"QQQ"}, ...]
+    # Sheet-like knobs
+    ema_fast: int = 20
+    ema_slow: int = 50
+    rsi_len: int = 14
+    atr_len: int = 20
+    kelt_mult: float = 2.0
+    macd_fast: int = 12
+    macd_slow: int = 26
+    macd_signal: int = 9
+    consec_needed: int = 2
+    conf_threshold: int = 2
+    exec_timing: str = "next_open"  # or "close"
 
-# =====================
-# Rotation Lab: endpoints
-# =====================
 @api_router.get("/rotation/config")
 async def get_rotation_config(user: dict = Depends(get_current_user)):
     doc = await db.rotation_configs.find_one({"owner": user["email"]})
@@ -62,12 +67,10 @@ async def save_rotation_config(cfg: RotationConfig, user: dict = Depends(get_cur
 async def upload_rotation_xlsx(file: UploadFile = File(...), user: dict = Depends(get_current_user)):
     try:
         content = await file.read()
-        # Read all sheets
         xls = pd.ExcelFile(content)
         sheets = {}
         for name in xls.sheet_names:
             df = xls.parse(name)
-            # limit to first 200 rows/30 cols to keep payload light
             sheets[name] = df.iloc[:200, :30].fillna("").to_dict(orient="records")
         await db.rotation_uploads.update_one(
             {"owner": user["email"]},
@@ -80,7 +83,6 @@ async def upload_rotation_xlsx(file: UploadFile = File(...), user: dict = Depend
 
 @api_router.get("/rotation/live")
 async def rotation_live(user: dict = Depends(get_current_user)):
-    # Minimal placeholder: echo config and empty signals to wire UI
     doc = await db.rotation_configs.find_one({"owner": user["email"]})
     config = (doc or {}).get("config") or RotationConfig().model_dump()
     return {"config": config, "as_of": datetime.utcnow().isoformat(), "signals": [], "trades": []}
@@ -89,18 +91,17 @@ async def rotation_live(user: dict = Depends(get_current_user)):
 async def rotation_backtest(cfg: RotationConfig, user: dict = Depends(get_current_user)):
     import yfinance as yf
 
-    # Defaults aligned to sheet
-    short_len = 20
-    long_len = 50
-    trend_len = 200
-    rsi_len = 14
-    atr_len = 20
-    kelt_mult = 2.0
-    macd_fast, macd_slow, macd_sig = 12, 26, 9
-    consec_needed = 2  # DualConsecOK
-    conf_threshold = 2  # minimum confirmations to act
+    # Pull knobs from cfg
+    short_len = cfg.ema_fast or 20
+    long_len = cfg.ema_slow or 50
+    trend_len = cfg.trend_days or 200
+    rsi_len = cfg.rsi_len or 14
+    atr_len = cfg.atr_len or 20
+    kelt_mult = cfg.kelt_mult or 2.0
+    macd_fast, macd_slow, macd_sig = cfg.macd_fast or 12, cfg.macd_slow or 26, cfg.macd_signal or 9
+    consec_needed = cfg.consec_needed or 2
+    conf_threshold = cfg.conf_threshold or 2
 
-    # Determine tickers: use first pair; signal from QQQ by default
     pairs = cfg.pairs or [{"bull": "TQQQ", "bear": "SQQQ", "underlying": "QQQ"}]
     p0 = pairs[0]
     bull = p0.get("bull", "TQQQ")
@@ -176,7 +177,6 @@ async def rotation_backtest(cfg: RotationConfig, user: dict = Depends(get_curren
     sig['conf_bull'] = sig[['dual_up','trend_bull','kelt_bull','macd_bull','rsi_bull']].sum(axis=1)
     sig['conf_bear'] = sig[['dual_dn','trend_bear','kelt_bear','macd_bear','rsi_bear']].sum(axis=1)
 
-    # Decision: Bull if conf_bull>=thr and dual_consec_ok; Bear if conf_bear>=thr; else cash
     pos = []  # 1 bull, -1 bear, 0 cash
     last = 0
     for i, row in sig.iterrows():
@@ -189,16 +189,21 @@ async def rotation_backtest(cfg: RotationConfig, user: dict = Depends(get_curren
         elif bull_ok and bear_ok:
             cur = 1 if row['conf_bull'] >= row['conf_bear'] else -1
         else:
-            cur = 0 if last == 0 else last  # hold last to reduce churn, optional
+            cur = 0
         pos.append(cur)
         last = cur
     sig['pos_signal'] = pos
 
-    # Align execution at next day's open on TQQQ/SQQQ
-    exec_prices = pd.DataFrame(index=sig.index)
-    exec_prices['bull_open'] = b['open']
-    exec_prices['bear_open'] = s['open']
-    exec_prices = exec_prices.shift(-1)  # next day open
+    # Execution prices
+    if cfg.exec_timing == 'close':
+        exec_prices = pd.DataFrame(index=sig.index)
+        exec_prices['bull_px'] = b['close']
+        exec_prices['bear_px'] = s['close']
+    else:
+        exec_prices = pd.DataFrame(index=sig.index)
+        exec_prices['bull_px'] = b['open']
+        exec_prices['bear_px'] = s['open']
+        exec_prices = exec_prices.shift(-1)  # next day open
 
     capital = cfg.capital
     cost = cfg.cost_bps/10000.0
@@ -212,10 +217,10 @@ async def rotation_backtest(cfg: RotationConfig, user: dict = Depends(get_curren
     trades = []
 
     for dt, row in sig.iterrows():
-        px_b = exec_prices.at[dt, 'bull_open'] if dt in exec_prices.index else np.nan
-        px_s = exec_prices.at[dt, 'bear_open'] if dt in exec_prices.index else np.nan
+        px_b = exec_prices.at[dt, 'bull_px'] if dt in exec_prices.index else np.nan
+        px_s = exec_prices.at[dt, 'bear_px'] if dt in exec_prices.index else np.nan
         target = row['pos_signal']
-        # Liquidate if changing state
+        # change position
         if target != holding:
             # sell existing
             if holding == 1 and shares_bull>0 and pd.notna(px_b):
@@ -230,13 +235,13 @@ async def rotation_backtest(cfg: RotationConfig, user: dict = Depends(get_curren
                 shares_bear = 0.0
             holding = 0
             # buy new
-            if target == 1 and pd.notna(px_b):
-                alloc = cash  # full capital
+            if target == 1 and pd.notna(px_b) and cash > 0:
+                alloc = cash
                 shares_bull = alloc / (px_b * (1 + cost + slip))
                 cash -= shares_bull * px_b * (1 + cost + slip)
                 trades.append({"date": str(dt.date()), "action": "BUY", "ticker": bull, "shares": float(shares_bull), "price": float(px_b)})
                 holding = 1
-            elif target == -1 and pd.notna(px_s):
+            elif target == -1 and pd.notna(px_s) and cash > 0:
                 alloc = cash
                 shares_bear = alloc / (px_s * (1 + cost + slip))
                 cash -= shares_bear * px_s * (1 + cost + slip)
@@ -253,7 +258,6 @@ async def rotation_backtest(cfg: RotationConfig, user: dict = Depends(get_curren
     if not equity:
         raise HTTPException(status_code=500, detail="No equity curve computed")
 
-    # Metrics
     eq = pd.Series([e['equity'] for e in equity], index=[pd.to_datetime(e['date']) for e in equity])
     ret = eq.pct_change().fillna(0.0)
     total_return = eq.iloc[-1]/eq.iloc[0] - 1
@@ -270,5 +274,3 @@ async def rotation_backtest(cfg: RotationConfig, user: dict = Depends(get_curren
         "drawdown": [{"date": str(d.date()), "dd": float(v)} for d,v in dd.items()],
         "trades": trades
     }
-
-# ... rest of existing routes remain unchanged ...
