@@ -20,6 +20,12 @@ import MarketScoreCard from './components/MarketScoreCard';
 import BackendStatus from './components/BackendStatus';
 import NewsSection from './components/NewsSection';
 import RotationLab from './components/RotationLab';
+// NEW COMPONENTS
+import GlobalClock from './components/GlobalClock';
+import NewsBanner from './components/NewsBanner';
+import WatchlistsSection from './components/WatchlistsSection';
+import EnhancedNewsSection from './components/EnhancedNewsSection';
+import EarningsCalendar from './components/EarningsCalendar';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
