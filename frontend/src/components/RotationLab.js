@@ -79,7 +79,7 @@ const RotationLab = ({ api }) => {
             <NumberInput label="MACD slow" value={cfg.macd_slow} onChange={v=>setCfg({...cfg, macd_slow:v})} />
             <NumberInput label="MACD signal" value={cfg.macd_signal} onChange={v=>setCfg({...cfg, macd_signal:v})} />
           </div>
-          <NumberInput label="Consec DualUp days" value={cfg.consec_needed} onChange={v=>setCfg({...cfg, consec_needed:v})} />
+          <NumberInput label="Consec DualUp days" value={cfg.consec_needed} onChange={v=>setCfg({...cfg, consec_needed:v})} hint="Minimum consecutive days with EMAfast>EMAslow required before a long entry (reduces whipsaws)." />
           <NumberInput label="Conf threshold" value={cfg.conf_threshold} onChange={v=>setCfg({...cfg, conf_threshold:v})} />
           <label className="block">
             <div className="text-xs text-gray-400 mb-1">Execution</div>
