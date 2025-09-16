@@ -264,7 +264,6 @@ const RotationLab = ({ api }) => {
         <div className="text-xs text-gray-400 mb-3">We couldn’t load your configuration. Use one of the recovery actions below.</div>
         {diag.last && <div className="text-xs text-rose-300 mb-3">Error: {diag.last}</div>}
         <div className="flex items-center gap-2 justify-end">
-          <button onClick={reauth} className="btn btn-outline text-xs py-1">Re‑authenticate</button>
           <button onClick={retryLoad} className="btn btn-outline text-xs py-1">Retry</button>
           <button onClick={initDefault} className="btn btn-primary-strong text-xs py-1">Initialize Default Config</button>
         </div>
