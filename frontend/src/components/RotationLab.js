@@ -92,7 +92,7 @@ const SeasonMonths = ({value, onChange})=>{
   );
 };
 
-const RotationLab = ({ api }) => {
+const RotationLab = ({ api }) => { const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || ''; const authHeaders = () => { const t = localStorage.getItem('authToken'); return t ? { Authorization: `Bearer ${t}` } : {}; }; const httpGet = async (path) => { const res = await fetch(`${BACKEND_URL}${path}`, { headers: { 'Content-Type':'application/json', ...authHeaders() } }); if(!res.ok) throw new Error(`GET ${path} ${res.status}`); return res.json(); }; const httpPost = async (path, body) => { const res = await fetch(`${BACKEND_URL}${path}`, { method:'POST', headers: { 'Content-Type':'application/json', ...authHeaders() }, body: JSON.stringify(body) }); if(!res.ok) throw new Error(`POST ${path} ${res.status}`); return res.json(); }; const httpDelete = async (path) => { const res = await fetch(`${BACKEND_URL}${path}`, { method:'DELETE', headers: { ...authHeaders() } }); if(!res.ok) throw new Error(`DELETE ${path} ${res.status}`); return res.json(); };
   const [cfg, setCfg] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
