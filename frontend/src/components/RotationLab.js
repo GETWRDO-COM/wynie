@@ -80,7 +80,7 @@ const RotationLab = ({ api }) => {
             <NumberInput label="MACD signal" value={cfg.macd_signal} onChange={v=>setCfg({...cfg, macd_signal:v})} />
           </div>
           <NumberInput label="Consec DualUp days" value={cfg.consec_needed} onChange={v=>setCfg({...cfg, consec_needed:v})} hint="Minimum consecutive days with EMAfast>EMAslow required before a long entry (reduces whipsaws)." />
-          <NumberInput label="Conf threshold" value={cfg.conf_threshold} onChange={v=>setCfg({...cfg, conf_threshold:v})} />
+          <NumberInput label="Conf threshold" value={cfg.conf_threshold} onChange={v=>setCfg({...cfg, conf_threshold:v})} hint="How many bullish confirmations required (DualUp, Trend>200DMA, Kelt>upper, MACD bull, RSI>50)." />
           <label className="block">
             <div className="text-xs text-gray-400 mb-1">Execution</div>
             <select value={cfg.exec_timing} onChange={e=>setCfg({...cfg, exec_timing:e.target.value})} className="form-input w-full">
