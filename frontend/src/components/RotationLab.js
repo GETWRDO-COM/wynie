@@ -153,9 +153,9 @@ const RotationLab = ({ api }) => {
   };
   const deletePreset = async(name)=>{ if(!confirm(`Delete preset "${name}"?`)) return; try{ await httpDelete(`/api/rotation/presets/${encodeURIComponent(name)}`); await loadPresets(); } catch { alert('Failed to delete'); } };
 
-  const save = async()=>{ setSaving(true); try{ await api.post('/api/rotation/config', cfg); } finally { setSaving(false);} };
-  const reloadLive = async()=>{ const r = await api.get('/api/rotation/live'); setLive(r.data); };
-  const runBacktest = async()=>{ setRunning(true); try{ const r = await api.post('/api/rotation/backtest', cfg); setBt(r.data); setResA(null); setResB(null);} finally { setRunning(false);} };
+  const save = async()=>{ setSaving(true); try{ await httpPost('/api/rotation/config', cfg); } finally { setSaving(false);} };
+  const reloadLive = async()=>{ const r = await httpGet('/api/rotation/live'); setLive(r); };
+  const runBacktest = async()=>{ setRunning(true); try{ const r = await httpPost('/api/rotation/backtest', cfg); setBt(r); setResA(null); setResB(null);} finally { setRunning(false);} };
 
   const uploadXLSX = async (file) => {
     setUploading(true);
