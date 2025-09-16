@@ -3,6 +3,7 @@ import { FaCog, FaSignOutAlt, FaBars } from 'react-icons/fa';
 
 const TABS = [
   { id: 'dashboard', label: 'Dashboard' },
+  { id: 'rotation', label: 'Rotation Lab' },
   { id: 'swing-grid', label: 'Analysis' },
   { id: 'ai-analysis', label: 'AI' },
   { id: 'spreadsheet', label: 'Spreadsheets' },
@@ -36,7 +37,6 @@ const NavBar = ({ activeTab, setActiveTab, user, onSettings, onLogout }) => {
                     {t.label}
                   </button>
                 ))}
-                {/* Explicit Settings text button for easier access */}
                 <button onClick={onSettings} aria-label="Open Settings" className="hidden lg:inline-flex px-3 py-1.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10">
                   Settings
                 </button>
