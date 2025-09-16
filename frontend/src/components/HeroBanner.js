@@ -131,11 +131,10 @@ const HeroBanner = ({ user }) => {
             <span className="text-2xl">🇿🇦</span>
             <div>
               <div className="text-white font-semibold">South Africa</div>
-              <div className="text-white/70 text-xs">📍 Paarl, South Africa</div>
+              <div className="text-white/70 text-xs">SAST (UTC+2)</div>
             </div>
           </div>
-          <div className="text-2xl font-mono font-bold text-white">⏰ {saTime}</div>
-          <div className="text-xs text-white/60 mt-1">SAST (UTC+2)</div>
+          <div className="text-2xl font-mono font-bold text-white">{saTime}</div>
         </div>
 
         {/* New York, USA */}
@@ -144,12 +143,10 @@ const HeroBanner = ({ user }) => {
             <span className="text-2xl">🇺🇸</span>
             <div>
               <div className="text-white font-semibold">New York, USA</div>
-              <div className="text-white/70 text-xs">📍 Eastern Time</div>
+              <div className="text-white/70 text-xs">ET (UTC-5/-4)</div>
             </div>
           </div>
-          <div className="text-2xl font-mono font-bold text-white mb-1">⏰ {usTime}</div>
-          <div className="text-sm text-white/80">📅 {new Date().toLocaleDateString('en-US', { timeZone: 'America/New_York', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
-          <div className="text-xs text-white/60 mt-1">ET (America/New_York)</div>
+          <div className="text-2xl font-mono font-bold text-white">{usTime}</div>
         </div>
       </div>
 
