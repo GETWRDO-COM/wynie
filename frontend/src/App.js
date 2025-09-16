@@ -157,7 +157,6 @@ function App() {
       </div>
       <GlobalClock />
       <NewsBanner />
-      <NewsTicker />
       <FloatingChat api={api} user={user} />
     </ThemeWrapper>
   );
