@@ -135,8 +135,7 @@ const HeroBanner = ({ user }) => {
               <div className="text-white/70 text-xs">📍 Paarl, South Africa</div>
             </div>
           </div>
-          <div className="text-2xl font-mono font-bold text-white mb-1">⏰ {saTime}</div>
-          <div className="text-sm text-white/80">📅 {todayLocal}</div>
+          <div className="text-2xl font-mono font-bold text-white">⏰ {saTime}</div>
           <div className="text-xs text-white/60 mt-1">SAST (UTC+2)</div>
         </div>
 
