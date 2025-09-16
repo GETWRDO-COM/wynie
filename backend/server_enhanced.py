@@ -439,38 +439,69 @@ async def get_market_score():
         raise HTTPException(status_code=500, detail=f"Market score failed: {str(e)}")
 
 @api_router.get("/market/aggregates")
-async def get_market_aggregates(range: str = "1D"):
+async def get_market_aggregates(range: str = "1D", tickers: str = ""):
     """Get market data for major indices"""
     try:
-        # Mock market data - in production this would use real APIs
-        tickers = ["SPY", "QQQ", "I:DJI", "TQQQ", "SQQQ"]
+        # Parse tickers parameter
+        if tickers:
+            ticker_list = [t.strip() for t in tickers.split(',')]
+        else:
+            ticker_list = ["SPY", "QQQ", "I:DJI", "TQQQ", "SQQQ"]
         
         import random
+        from datetime import datetime, timedelta
+        
         data = {}
         
-        for ticker in tickers:
+        for ticker in ticker_list:
             # Generate realistic mock data
-            base_price = {"SPY": 450, "QQQ": 380, "I:DJI": 34500, "TQQQ": 45, "SQQQ": 12}[ticker]
+            base_prices = {"SPY": 450, "QQQ": 380, "I:DJI": 34500, "TQQQ": 45, "SQQQ": 12}
+            base_price = base_prices.get(ticker, 100)
             
             change_pct = random.uniform(-3.0, 3.0)
-            price = base_price * (1 + change_pct/100)
-            change = price * (change_pct/100)
+            current_price = base_price * (1 + change_pct/100)
+            change = current_price * (change_pct/100)
+            
+            # Generate historical series based on range
+            days = {"1D": 1, "1W": 7, "1M": 30, "YTD": 250, "1Y": 365}.get(range, 30)
+            series = []
+            
+            for i in range(days):
+                date = datetime.now() - timedelta(days=days-i-1)
+                # Generate realistic price movement
+                price_variation = random.uniform(-0.02, 0.02)
+                price = base_price * (1 + price_variation)
+                
+                series.append({
+                    "t": date.isoformat(),  # timestamp
+                    "c": round(price, 2),   # close price
+                    "o": round(price * 0.999, 2),  # open
+                    "h": round(price * 1.01, 2),   # high  
+                    "l": round(price * 0.99, 2),   # low
+                    "v": random.randint(1000000, 50000000)  # volume
+                })
             
             data[ticker] = {
                 "ticker": ticker,
-                "price": round(price, 2),
+                "series": series,
+                "price": round(current_price, 2),
                 "change": round(change, 2),
-                "change_percent": round(change_pct, 2),
-                "open": round(price * 0.995, 2),
-                "high": round(price * 1.01, 2),
-                "low": round(price * 0.98, 2),
+                "change_pct": round(change_pct, 2),
+                "open": round(current_price * 0.995, 2),
+                "close": round(current_price, 2),
+                "high": round(current_price * 1.01, 2),
+                "low": round(current_price * 0.98, 2),
                 "volume": random.randint(1000000, 50000000),
+                "pre_market": round(current_price * (1 + random.uniform(-0.01, 0.01)), 2),
+                "post_market": round(current_price * (1 + random.uniform(-0.01, 0.01)), 2),
                 "last_updated": datetime.now().isoformat()
             }
             
         return {
             "data": data,
             "range": range,
+            "tickers": ticker_list,
+            "last_updated": datetime.now().isoformat(),
             "timestamp": datetime.now().isoformat()
         }
     except Exception as e:
