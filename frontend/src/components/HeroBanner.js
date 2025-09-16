@@ -17,8 +17,6 @@ const HeroBanner = ({ user }) => {
   // Get username from user email
   const userName = user?.email ? user.email.split('@')[0].charAt(0).toUpperCase() + user.email.split('@')[0].slice(1) : 'User';
 
-  const todayLocal = useMemo(() => new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }), []);
-
   // Time-based gradient generator
   const getTimeGradient = (hour) => {
     if (hour >= 5 && hour < 8) return 'from-orange-400 via-pink-400 to-purple-500'; // Sunrise
