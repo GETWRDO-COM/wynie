@@ -113,7 +113,7 @@ const RotationLab = ({ api }) => { const BACKEND_URL = process.env.REACT_APP_BAC
   const [comparing, setComparing] = useState(false);
 
   useEffect(()=>{ (async()=>{ try{ const data = await httpGet('/api/rotation/config'); setCfg(data.config || data); } finally { setLoading(false); } })(); }, []);
-  const loadPresets = async()=>{ try{ const r = await api.get('/api/rotation/presets'); setUserPresets(r.data.items||[]); } catch{} };
+  const loadPresets = async()=>{ try{ const r = await httpGet('/api/rotation/presets'); setUserPresets(r.items||[]); } catch{} };
   useEffect(()=>{ loadPresets(); }, []);
 
   const applyPreset = (key)=>{
