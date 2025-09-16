@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 function NumberInput({label, value, onChange, step=1, min=0, hint}){
   return (
     <label className="block">
-      <div className="text-xs text-gray-400 mb-1">{label}</div>
+      <div className="text-xs text-gray-400 mb-1 flex items-center gap-1">{label}{hint && <span className="text-[10px] text-gray-500" title={hint}>ⓘ</span>}</div>
       <input type="number" value={value} onChange={e=>onChange(parseFloat(e.target.value))} step={step} min={min} className="form-input w-full" />
     </label>
   );
