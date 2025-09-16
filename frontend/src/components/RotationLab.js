@@ -162,8 +162,15 @@ const RotationLab = ({ api }) => {
     try{
       const fd = new FormData();
       fd.append('file', file);
-      const r = await api.post('/api/rotation/upload-xlsx', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-      alert(`Parsed sheets: ${r.data.sheets.join(', ')}`);
+      const url = buildUrl('/api/rotation/upload-xlsx');
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { ...authHeaders() },
+        body: fd
+      });
+      if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
+      const r = await res.json();
+      alert(`Parsed sheets: ${r.sheets.join(', ')}`);
     } catch(e){ alert('Upload failed'); } finally { setUploading(false); }
   };
 
