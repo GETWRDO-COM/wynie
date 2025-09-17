@@ -28,7 +28,7 @@ const HeroBanner = ({ user }) => {
     return 'from-purple-900 via-blue-900 to-black'; // Night
   };
 
-  // Enhanced Afrikaans greeting generator with special occasions
+  // Enhanced Afrikaans greeting generator with special occasions and emojis
   const getAfrikaansGreeting = (hour) => {
     const now = new Date();
     const month = now.getMonth() + 1;
@@ -58,14 +58,14 @@ const HeroBanner = ({ user }) => {
       }
     }
     
-    // Regular time-based greetings
-    if (hour >= 5 && hour < 12) return { text: `Goeie Môre ${userName}!`, gradient: 'from-yellow-400 via-orange-400 to-red-400' };
-    if (hour >= 12 && hour < 17) return { text: `Goeie Middag ${userName}!`, gradient: 'from-blue-400 via-cyan-400 to-teal-400' };
-    if (hour >= 17 && hour < 21) return { text: `Goeie Aand ${userName}!`, gradient: 'from-orange-400 via-pink-400 to-purple-400' };
-    return { text: `Goeie Nag ${userName}!`, gradient: 'from-purple-400 via-blue-400 to-indigo-400' };
+    // Regular time-based greetings with emojis
+    if (hour >= 5 && hour < 12) return { text: `🌅 Goeie Môre ${userName}!`, gradient: 'from-yellow-400 via-orange-400 to-red-400' };
+    if (hour >= 12 && hour < 17) return { text: `☀️ Goeie Middag ${userName}!`, gradient: 'from-blue-400 via-cyan-400 to-teal-400' };
+    if (hour >= 17 && hour < 21) return { text: `🌆 Goeie Aand ${userName}!`, gradient: 'from-orange-400 via-pink-400 to-purple-400' };
+    return { text: `🌙 Goeie Nag ${userName}!`, gradient: 'from-purple-400 via-blue-400 to-indigo-400' };
   };
 
-  // Format current date and time
+  // Format current date and time in SA format
   const getCurrentDateTime = () => {
     const now = new Date();
     const options = { 
@@ -74,7 +74,7 @@ const HeroBanner = ({ user }) => {
       month: 'long', 
       year: 'numeric' 
     };
-    const dateStr = now.toLocaleDateString('en-US', options);
+    const dateStr = now.toLocaleDateString('en-ZA', options);
     const timeStr = now.toLocaleTimeString('en-US', { 
       hour: '2-digit', 
       minute: '2-digit', 
@@ -82,6 +82,35 @@ const HeroBanner = ({ user }) => {
       hour12: true 
     });
     return `${dateStr} ${timeStr}`;
+  };
+
+  // Get holiday messages
+  const getHolidayMessage = (location = 'SA') => {
+    const now = new Date();
+    const heritageDay = new Date(2025, 8, 24); // September 24, 2025
+    const columbusDay = new Date(2025, 9, 14); // October 14, 2025
+    
+    if (location === 'SA') {
+      const diffTime = heritageDay - now;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) {
+        return '🎉 Today is Heritage Day!';
+      } else if (diffDays > 0) {
+        return `🎉 Heritage Day in ${diffDays} days`;
+      }
+    } else if (location === 'US') {
+      const diffTime = columbusDay - now;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) {
+        return '🇺🇸 Today is Columbus Day - Markets Closed';
+      } else if (diffDays > 0 && diffDays <= 7) {
+        return `🇺🇸 Columbus Day in ${diffDays} days - Affects Trading`;
+      }
+    }
+    
+    return null;
   };
 
   useEffect(() => {
