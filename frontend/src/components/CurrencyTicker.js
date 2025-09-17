@@ -32,9 +32,9 @@ const CurrencyTicker = ({ compact = false }) => {
 
   useEffect(() => { fetchRates(); const id = setInterval(fetchRates, 900000); return () => clearInterval(id); }, []);
 
-  const rows = useMemo(() =&gt; {
+  const rows = useMemo(() => {
     if (!rates) return [];
-    const inv = (x) =&gt; (x ? 1 / x : null);
+    const inv = (x) => (x ? 1 / x : null);
     return [
       { flag: 'https://flagcdn.com/us.svg', code: 'USD', pair: '$1', zar: inv(rates.USD) },
       { flag: 'https://flagcdn.com/eu.svg', code: 'EUR', pair: '€1', zar: inv(rates.EUR) },
