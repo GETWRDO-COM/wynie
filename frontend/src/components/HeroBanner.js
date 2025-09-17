@@ -169,38 +169,43 @@ const HeroBanner = ({ user }) => {
   }, []);
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md p-8 hover:from-white/10 hover:to-white/[0.05] transition-all duration-300 relative">
+    <div className="rounded-3xl border border-white/20 bg-black/40 backdrop-blur-2xl p-8 shadow-2xl hover:bg-black/50 transition-all duration-500 relative overflow-hidden">
+      {/* Futuristic Background Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-purple-500/5 to-blue-500/5 rounded-3xl"></div>
+      <div className="absolute inset-0 bg-gradient-to-tl from-white/[0.02] via-transparent to-white/[0.05] rounded-3xl"></div>
+      
       {/* Main Header Section with Greeting and Better Date/Time */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="relative z-10 flex items-center justify-between mb-8">
         <div className="flex-1">
-          <div className="text-white font-extrabold text-5xl mb-4">
-            <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+          <div className="text-white font-extrabold text-6xl mb-4 drop-shadow-2xl">
+            <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
               HUNT by WRDO
             </span>
           </div>
-          {/* Afrikaans Greeting with Gradient and Emojis */}
-          <div className={`text-2xl font-bold bg-gradient-to-r ${greetingGradient} bg-clip-text text-transparent mb-4`}>
-            {greeting}
+          {/* Afrikaans Greeting with Working Emojis */}
+          <div className={`text-3xl font-bold bg-gradient-to-r ${greetingGradient} bg-clip-text text-transparent mb-4 drop-shadow-lg flex items-center gap-2`}>
+            <span className="text-3xl">{greeting.split(' ')[0]}</span>
+            <span>{greeting.split(' ').slice(1).join(' ')}</span>
           </div>
-          {/* Today's Date and Time - Made Much Better */}
-          <div className="bg-gradient-to-r from-white/10 to-white/5 rounded-xl p-4 border border-white/10">
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center">
-                  📅
+          {/* Today's Date and Time - Ultra Premium Dark Glass */}
+          <div className="bg-black/60 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-xl">
+            <div className="flex items-center gap-8">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500/30 to-purple-500/30 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-lg">
+                  <span className="text-2xl">📅</span>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-400 font-medium">Today's Date</div>
-                  <div className="text-lg text-white font-semibold">{currentDateTime.date}</div>
+                  <div className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Today's Date</div>
+                  <div className="text-xl text-white font-bold drop-shadow-lg">{currentDateTime.date}</div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-teal-400 flex items-center justify-center">
-                  🕐
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500/30 to-teal-500/30 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-lg">
+                  <span className="text-2xl">🕐</span>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-400 font-medium">Current Time</div>
-                  <div className="text-xl text-cyan-400 font-mono font-bold">{currentDateTime.time}</div>
+                  <div className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Current Time</div>
+                  <div className="text-2xl text-cyan-400 font-mono font-bold drop-shadow-lg">{currentDateTime.time}</div>
                 </div>
               </div>
             </div>
@@ -208,84 +213,83 @@ const HeroBanner = ({ user }) => {
         </div>
       </div>
 
-      {/* Line 1: Time Cards - SA, USA, Market Status */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* South Africa - Fixed Heading and Flags */}
-        <div className="rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md p-6 hover:from-white/10 hover:to-white/[0.05] transition-all duration-300">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-yellow-400 flex items-center justify-center text-lg">
-              🇿🇦
+      {/* Line 1: Time Cards - Geolocation & Fixed Flags */}
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        {/* South Africa - Geolocation Header with Working Flags */}
+        <div className="rounded-2xl border border-white/20 bg-black/50 backdrop-blur-2xl p-6 hover:bg-black/60 transition-all duration-300 shadow-xl">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500/40 to-yellow-500/40 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-lg">
+              <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjMDA3QTNEIi8+CjxyZWN0IHdpZHRoPSIyNCIgaGVpZ2h0PSI0IiBmaWxsPSIjRkZCMzEzIi8+CjxyZWN0IHk9IjQiIHdpZHRoPSIyNCIgaGVpZ2h0PSI0IiBmaWxsPSIjRkZGRkZGIi8+CjxyZWN0IHk9IjgiIHdpZHRoPSIyNCIgaGVpZ2h0PSI4IiBmaWxsPSIjMDA3QTNEIi8+CjxyZWN0IHk9IjE2IiB3aWR0aD0iMjQiIGhlaWdodD0iNCIgZmlsbD0iI0ZGRkZGRiIvPgo8cmVjdCB5PSIyMCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNGRkIzMTMiLz4KPC9zdmc+" alt="SA Flag" className="w-6 h-4" />
             </div>
             <div>
-              <div className="text-white font-semibold text-lg">South Africa</div>
-              <div className="text-white/70 text-sm">SAST (UTC+2)</div>
+              <div className="text-white font-bold text-xl drop-shadow-lg">Paarl, South Africa</div>
+              <div className="text-white/70 text-sm font-medium">SAST (UTC+2)</div>
             </div>
           </div>
-          <div className={`text-4xl font-light bg-gradient-to-r ${timeGradients.sa} bg-clip-text text-transparent mb-3 tracking-wide`} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace', textShadow: '0 0 20px rgba(255,255,255,0.5)', filter: 'brightness(1.5)' }}>
+          <div className={`text-5xl font-light bg-gradient-to-r ${timeGradients.sa} bg-clip-text text-transparent mb-4 tracking-wide drop-shadow-2xl`} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace', textShadow: '0 0 30px rgba(255,255,255,0.8)', filter: 'brightness(2) contrast(1.5)' }}>
             {saTime}
           </div>
-          <div className="text-sm text-white/80 mb-3 font-medium">
+          <div className="text-sm text-white/90 mb-4 font-semibold">
             {new Date().toLocaleDateString('en-ZA', { timeZone: 'Africa/Johannesburg', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </div>
-          <div className="text-sm text-white/70 mb-2 font-medium">Paarl, South Africa</div>
-          <div className="text-sm text-orange-400 font-semibold">
+          <div className="text-sm text-orange-400 font-bold">
             {getHolidayMessage('SA') || '🌟 No holidays today'}
           </div>
         </div>
 
-        {/* New York, USA - Fixed Font Readability */}
-        <div className="rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md p-6 hover:from-white/10 hover:to-white/[0.05] transition-all duration-300">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-red-400 flex items-center justify-center text-lg">
-              🇺🇸
+        {/* New York, USA - Enhanced Readability */}
+        <div className="rounded-2xl border border-white/20 bg-black/50 backdrop-blur-2xl p-6 hover:bg-black/60 transition-all duration-300 shadow-xl">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500/40 to-red-500/40 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-lg">
+              <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjMDAyODY4Ii8+CjxyZWN0IHdpZHRoPSIyNCIgaGVpZ2h0PSIyIiBmaWxsPSIjRkZGRkZGIi8+CjxyZWN0IHk9IjQiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyIiBmaWxsPSIjRkY0MDQwIi8+CjxyZWN0IHk9IjgiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyIiBmaWxsPSIjRkZGRkZGIi8+CjxyZWN0IHk9IjEyIiB3aWR0aD0iMjQiIGhlaWdodD0iMiIgZmlsbD0iI0ZGNDA0MCIvPgo8cmVjdCB5PSIxNiIgd2lkdGg9IjI0IiBoZWlnaHQ9IjIiIGZpbGw9IiNGRkZGRkYiLz4KPHJlY3QgeT0iMjAiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyIiBmaWxsPSIjRkY0MDQwIi8+CjxyZWN0IHdpZHRoPSIxMCIgaGVpZ2h0PSIxMiIgZmlsbD0iIzAwMjg2OCIvPgo8L3N2Zz4=" alt="US Flag" className="w-6 h-4" />
             </div>
             <div>
-              <div className="text-white font-semibold text-lg">New York, USA</div>
-              <div className="text-white/70 text-sm">EDT (UTC-4)</div>
+              <div className="text-white font-bold text-xl drop-shadow-lg">New York, USA</div>
+              <div className="text-white/70 text-sm font-medium">EDT (UTC-4)</div>
             </div>
           </div>
-          <div className={`text-4xl font-light bg-gradient-to-r ${timeGradients.us} bg-clip-text text-transparent mb-3 tracking-wide`} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace', textShadow: '0 0 20px rgba(255,255,255,0.8)', filter: 'brightness(1.8) contrast(1.2)' }}>
+          <div className={`text-5xl font-light bg-gradient-to-r ${timeGradients.us} bg-clip-text text-transparent mb-4 tracking-wide drop-shadow-2xl`} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace', textShadow: '0 0 30px rgba(255,255,255,1)', filter: 'brightness(2.5) contrast(1.8)' }}>
             {usTime}
           </div>
-          <div className="text-sm text-white/80 mb-3 font-medium">
+          <div className="text-sm text-white/90 mb-4 font-semibold">
             {new Date().toLocaleDateString('en-ZA', { timeZone: 'America/New_York', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </div>
-          <div className="text-sm text-amber-400 font-semibold">
+          <div className="text-sm text-amber-400 font-bold">
             {getHolidayMessage('US') || '📈 Normal trading hours'}
           </div>
         </div>
 
-        {/* Market Status */}
-        <div className="rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md p-6 hover:from-white/10 hover:to-white/[0.05] transition-all duration-300">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-white/90 font-semibold text-lg">Market Status</div>
-            <div className={`px-4 py-2 rounded-full text-sm font-bold ${
+        {/* Market Status - Enhanced */}
+        <div className="rounded-2xl border border-white/20 bg-black/50 backdrop-blur-2xl p-6 hover:bg-black/60 transition-all duration-300 shadow-xl">
+          <div className="flex items-center justify-between mb-6">
+            <div className="text-white/90 font-bold text-xl drop-shadow-lg">Market Status</div>
+            <div className={`px-4 py-2 rounded-xl text-sm font-bold border-2 shadow-lg ${
               status.status === 'Open' 
-                ? 'text-green-300 bg-green-500/20 border border-green-400/40' 
-                : 'text-red-300 bg-red-500/20 border border-red-400/40'
+                ? 'text-green-300 bg-green-500/30 border-green-400/60 shadow-green-500/20' 
+                : 'text-red-300 bg-red-500/30 border-red-400/60 shadow-red-500/20'
             }`}>
               ● {status.status.toUpperCase()}
             </div>
           </div>
 
-          <div className="text-center mb-4">
-            <div className="text-gray-400 text-sm mb-2 font-medium">{status.countdownLabel}:</div>
-            <div className="text-4xl font-light text-cyan-300 mb-1 tracking-wide" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace', textShadow: '0 0 20px rgba(255,255,255,0.3)' }}>
+          <div className="text-center mb-6">
+            <div className="text-gray-400 text-sm mb-2 font-semibold uppercase tracking-wider">{status.countdownLabel}:</div>
+            <div className="text-5xl font-light text-cyan-300 mb-1 tracking-wide drop-shadow-2xl" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace', textShadow: '0 0 30px rgba(6, 182, 212, 0.8)' }}>
               {formatHMS(status.seconds)}
             </div>
           </div>
           
-          <div className="text-sm text-gray-400 text-center font-medium mb-2">
+          <div className="text-sm text-gray-400 text-center font-semibold mb-2 uppercase tracking-wider">
             NYSE/NASDAQ Regular Hours
           </div>
-          <div className="text-sm text-blue-400 text-center font-semibold">
+          <div className="text-sm text-blue-400 text-center font-bold">
             🗓️ No market holidays today
           </div>
         </div>
       </div>
 
-      {/* Line 2: Weather and Currency Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Line 2: Weather and Currency Cards - Enhanced Dark Glass */}
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Weather Section */}
         <div>
           <WeatherWidget />
@@ -297,15 +301,15 @@ const HeroBanner = ({ user }) => {
         </div>
       </div>
 
-      {/* Reload Button and Timestamp - Bottom Right Corner */}
-      <div className="absolute bottom-4 right-6 flex items-center gap-3">
-        <div className="text-xs text-gray-400 font-medium">
+      {/* Reload Button and Timestamp - Futuristic Bottom Right */}
+      <div className="absolute bottom-6 right-8 flex items-center gap-4 z-20">
+        <div className="text-xs text-gray-400 font-medium backdrop-blur-xl bg-black/40 px-3 py-2 rounded-lg border border-white/10">
           Last Update 1 min ago | {currentDateTime.date} | {currentDateTime.time}
         </div>
         <button 
           onClick={reloadAllData}
           disabled={reloading}
-          className="px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white text-xs font-semibold rounded-lg transition-all hover:scale-105 disabled:opacity-50"
+          className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white text-sm font-bold rounded-xl transition-all hover:scale-110 disabled:opacity-50 shadow-xl border border-white/20"
         >
           {reloading ? '🔄' : '↻'} Reload
         </button>
