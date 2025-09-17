@@ -54,42 +54,40 @@ const NewsBanner = () => {
       className="fixed bottom-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-xl border-t border-white/10 h-16"
       style={{ zIndex: 2000 }}
     >
-      {/* News Controls */}
-      <div className="absolute top-0 right-0 flex items-center gap-2 p-2 bg-black/80 rounded-bl-lg">
-        <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="text-xs bg-white/10 text-white border border-white/20 rounded px-2 py-1"
-        >
-          {categories.map(cat => (
-            <option key={cat} value={cat} className="bg-black text-white">{cat}</option>
-          ))}
-        </select>
+      {/* News Controls and Ticker */}
+      <div className="flex items-center h-full">
+        {/* News Category Dropdown */}
+        <div className="flex items-center gap-2 px-4 bg-black/80 border-r border-white/10">
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="text-sm bg-white/10 text-white border border-white/20 rounded px-3 py-1.5 font-medium"
+          >
+            {categories.map(cat => (
+              <option key={cat} value={cat} className="bg-black text-white">{cat}</option>
+            ))}
+          </select>
+        </div>
         
-        <div className="flex items-center gap-1">
+        {/* Speed Controls */}
+        <div className="flex items-center gap-1 px-3 bg-black/80 border-r border-white/10">
           <button
             onClick={() => setScrollSpeed(Math.min(scrollSpeed + 20, 160))}
-            className="text-xs bg-white/10 text-white border border-white/20 rounded px-2 py-1 hover:bg-white/20"
+            className="text-sm bg-white/10 text-white border border-white/20 rounded px-2 py-1 hover:bg-white/20 transition-colors"
             title="Slow down"
           >
             🐌
           </button>
           <button
             onClick={() => setScrollSpeed(Math.max(scrollSpeed - 20, 40))}
-            className="text-xs bg-white/10 text-white border border-white/20 rounded px-2 py-1 hover:bg-white/20"
+            className="text-sm bg-white/10 text-white border border-white/20 rounded px-2 py-1 hover:bg-white/20 transition-colors"
             title="Speed up"
           >
             🚀
           </button>
         </div>
-      </div>
 
-      {/* News Ticker */}
-      <div className="flex items-center h-full overflow-hidden">
-        <div className="text-amber-400 text-sm font-semibold px-4 whitespace-nowrap bg-gradient-to-r from-black via-transparent to-transparent">
-          📺 {selectedCategory} News:
-        </div>
-        
+        {/* News Ticker */}
         <div className="flex-1 overflow-hidden relative">
           <div 
             className="flex items-center whitespace-nowrap text-white text-sm animate-marquee"
@@ -99,8 +97,8 @@ const NewsBanner = () => {
           >
             {news.map((article, index) => (
               <React.Fragment key={index}>
-                <div className="flex items-center gap-2 mx-8">
-                  <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent font-semibold text-xs px-2 py-1 border border-cyan-400/30 rounded">
+                <div className="flex items-center gap-2 mx-3">
+                  <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent font-semibold text-xs px-2 py-1 border border-cyan-400/30 rounded whitespace-nowrap">
                     {selectedCategory === 'All' ? getArticleCategory(article) : selectedCategory}
                   </span>
                   <a
@@ -111,12 +109,12 @@ const NewsBanner = () => {
                   >
                     {article.title}
                   </a>
-                  <span className="text-gray-400 text-xs">
+                  <span className="text-gray-400 text-xs whitespace-nowrap">
                     - {article.source}
                   </span>
                 </div>
                 {index < news.length - 1 && (
-                  <div className="mx-4 text-amber-400">•</div>
+                  <div className="mx-2 text-amber-400">•</div>
                 )}
               </React.Fragment>
             ))}
