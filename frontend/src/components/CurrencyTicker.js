@@ -47,30 +47,35 @@ const CurrencyTicker = () => {
   const updatedRel = rel(updatedAt);
 
   return (
-    <div className="rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md p-6 hover:from-white/10 hover:to-white/[0.05] transition-all duration-300">
-      <div className="flex items-center justify-between mb-4">
-        <div className="text-white/90 font-semibold text-lg">Currency Exchange</div>
-        {err && <div className="text-sm text-red-400 font-medium">{err}</div>}
-      </div>
+    <div className="rounded-2xl border border-white/20 bg-black/50 backdrop-blur-2xl p-6 hover:bg-black/60 transition-all duration-300 shadow-xl overflow-hidden relative">
+      {/* Futuristic Background Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-pink-500/5 to-cyan-500/5 rounded-2xl"></div>
       
-      {!rates ? (
-        <div className="text-gray-400 text-sm font-medium">Loading exchange rates...</div>
-      ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          {rows.map((row) => (
-            <div key={row.code} className="text-center p-4 rounded-xl bg-black/20 border border-white/5 hover:bg-black/30 transition-all duration-200">
-              <div className="flex items-center justify-center gap-2 mb-3">
-                <img src={row.flag} alt={row.code} className="w-7 h-5 rounded-sm shadow-sm" />
-                <span className="font-semibold text-white text-sm">{row.code}</span>
-              </div>
-              <div className="text-xs text-gray-400 mb-2 font-medium">{row.pair}</div>
-              <div className="text-white font-bold text-xl">
-                R{row.zar ? row.zar.toFixed(2) : '--'}
-              </div>
-            </div>
-          ))}
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-6">
+          <div className="text-white/90 font-bold text-xl drop-shadow-lg">Currency Exchange</div>
+          {err && <div className="text-sm text-red-400 font-semibold bg-red-500/20 px-3 py-1 rounded-lg border border-red-400/30">{err}</div>}
         </div>
-      )}
+        
+        {!rates ? (
+          <div className="text-gray-400 text-sm font-semibold">Loading exchange rates...</div>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+            {rows.map((row) => (
+              <div key={row.code} className="text-center p-4 rounded-xl bg-black/40 backdrop-blur-xl border border-white/20 hover:bg-black/60 transition-all duration-300 shadow-lg group">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <img src={row.flag} alt={row.code} className="w-8 h-6 rounded-sm shadow-md border border-white/10" />
+                  <span className="font-bold text-white text-sm drop-shadow-lg">{row.code}</span>
+                </div>
+                <div className="text-xs text-gray-400 mb-3 font-semibold uppercase tracking-wider">{row.pair}</div>
+                <div className="text-white font-bold text-2xl drop-shadow-lg group-hover:text-cyan-400 transition-colors">
+                  R{row.zar ? row.zar.toFixed(2) : '--'}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
