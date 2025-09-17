@@ -47,31 +47,38 @@ const CurrencyTicker = () => {
   const updatedRel = rel(updatedAt);
 
   return (
-    <div className="rounded-xl border border-white/10 bg-neutral-800/50 backdrop-blur-sm p-4">
+    <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md p-6 hover:from-white/10 hover:to-white/[0.05] transition-all duration-300">
       <div className="flex items-center justify-between mb-4">
-        <div className="text-white/90 font-semibold">Currency Exchange</div>
-        <div className="text-xs text-gray-400">
-          {err ? err : updatedRel ? `Updated ${updatedRel}` : 'Loading...'}
-        </div>
+        <div className="text-white/90 font-semibold text-lg">Currency Exchange</div>
+        {err && <div className="text-xs text-red-400 font-medium">{err}</div>}
       </div>
       
       {!rates ? (
-        <div className="text-gray-400 text-sm">Loading exchange rates...</div>
+        <div className="text-gray-400 text-sm font-medium">Loading exchange rates...</div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-          {rows.map((row) => (
-            <div key={row.code} className="text-center p-3 rounded-lg bg-black/20 border border-white/5">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <img src={row.flag} alt={row.code} className="w-6 h-4 rounded-sm" />
-                <span className="font-semibold text-white text-sm">{row.code}</span>
+        <>
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+            {rows.map((row) => (
+              <div key={row.code} className="text-center p-4 rounded-xl bg-black/20 border border-white/5 hover:bg-black/30 transition-all duration-200">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <img src={row.flag} alt={row.code} className="w-6 h-4 rounded-sm shadow-sm" />
+                  <span className="font-semibold text-white text-sm">{row.code}</span>
+                </div>
+                <div className="text-xs text-gray-400 mb-2 font-medium">{row.pair}</div>
+                <div className="text-white font-bold text-lg">
+                  R{row.zar ? row.zar.toFixed(2) : '--'}
+                </div>
               </div>
-              <div className="text-xs text-gray-400 mb-1">{row.pair}</div>
-              <div className="text-white font-bold">
-                R{row.zar ? row.zar.toFixed(2) : '--'}
-              </div>
+            ))}
+          </div>
+
+          {/* Timestamp - Bottom Right */}
+          <div className="flex justify-end">
+            <div className="text-xs text-gray-400 font-medium">
+              Last Update {updatedRel || 'just now'} | {new Date().toLocaleDateString('en-ZA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} | {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
             </div>
-          ))}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );
