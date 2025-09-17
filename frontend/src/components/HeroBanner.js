@@ -63,65 +63,65 @@ const HeroBanner = ({ user }) => {
 
   return (
     // MAIN CARD WRAPPER
-    &lt;div className="glass-panel p-5 lg:p-6 space-y-4"&gt;
+    <div className="glass-panel p-5 lg:p-6 space-y-4">
       {/* Header: Greeting + Today's Date only (no current time) */}
-      &lt;div className="flex items-start justify-between"&gt;
-        &lt;div className="min-w-0"&gt;
-          &lt;div className="text-xl sm:text-2xl font-bold text-white/90 truncate"&gt;{greeting}&lt;/div&gt;
-          &lt;div className="text-sm text-gray-400 mt-1"&gt;{currentDate}&lt;/div&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
+      <div className="flex items-start justify-between">
+        <div className="min-w-0">
+          <div className="text-xl sm:text-2xl font-bold text-white/90 truncate">{greeting}</div>
+          <div className="text-sm text-gray-400 mt-1">{currentDate}</div>
+        </div>
+      </div>
 
       {/* Row: SA, USA, Market Status - aligned times on one line */}
-      &lt;div className="grid grid-cols-1 lg:grid-cols-3 gap-3"&gt;
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* SA Card */}
-        &lt;div className="rounded-xl border border-white/10 bg-black/50 backdrop-blur-xl p-3"&gt;
-          &lt;div className="flex items-center justify-between"&gt;
-            &lt;div className="flex items-center gap-2"&gt;
-              &lt;img src="https://flagcdn.com/za.svg" alt="South Africa" className="w-7 h-5 rounded-sm border border-white/10" /&gt;
-              &lt;div className="text-white/90 text-sm font-semibold"&gt;Paarl, South Africa&lt;/div&gt;
-            &lt;/div&gt;
-            &lt;div className="text-2xl font-mono tracking-tight text-white" style={{fontFamily:'ui-monospace, SFMono-Regular, "SF Mono"'}}&gt;{saTime}&lt;/div&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
+        <div className="rounded-xl border border-white/10 bg-black/50 backdrop-blur-xl p-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <img src="https://flagcdn.com/za.svg" alt="South Africa" className="w-7 h-5 rounded-sm border border-white/10" />
+              <div className="text-white/90 text-sm font-semibold">Paarl, South Africa</div>
+            </div>
+            <div className="text-2xl font-mono tracking-tight text-white" style={{fontFamily:'ui-monospace, SFMono-Regular, "SF Mono"'}}>{saTime}</div>
+          </div>
+        </div>
 
         {/* USA Card */}
-        &lt;div className="rounded-xl border border-white/10 bg-black/50 backdrop-blur-xl p-3"&gt;
-          &lt;div className="flex items-center justify-between"&gt;
-            &lt;div className="flex items-center gap-2"&gt;
-              &lt;img src="https://flagcdn.com/us.svg" alt="United States" className="w-7 h-5 rounded-sm border border-white/10" /&gt;
-              &lt;div className="text-white/90 text-sm font-semibold"&gt;New York, USA&lt;/div&gt;
-            &lt;/div&gt;
-            &lt;div className="text-2xl font-mono tracking-tight text-white" style={{fontFamily:'ui-monospace, SFMono-Regular, "SF Mono"'}}&gt;{usTime}&lt;/div&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
+        <div className="rounded-xl border border-white/10 bg-black/50 backdrop-blur-xl p-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <img src="https://flagcdn.com/us.svg" alt="United States" className="w-7 h-5 rounded-sm border border-white/10" />
+              <div className="text-white/90 text-sm font-semibold">New York, USA</div>
+            </div>
+            <div className="text-2xl font-mono tracking-tight text-white" style={{fontFamily:'ui-monospace, SFMono-Regular, "SF Mono"'}}>{usTime}</div>
+          </div>
+        </div>
 
         {/* Market Status */}
-        &lt;div className="rounded-xl border border-white/10 bg-black/50 backdrop-blur-xl p-3"&gt;
-          &lt;div className="flex items-center justify-between"&gt;
-            &lt;div className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${status.status === 'Open' ? 'text-green-400 bg-green-500/15 border-green-500/30' : 'text-red-400 bg-red-500/15 border-red-500/30'}`}&gt;
+        <div className="rounded-xl border border-white/10 bg-black/50 backdrop-blur-xl p-3">
+          <div className="flex items-center justify-between">
+            <div className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${status.status === 'Open' ? 'text-green-400 bg-green-500/15 border-green-500/30' : 'text-red-400 bg-red-500/15 border-red-500/30'}`}>
               ● {status.status.toUpperCase()}
-            &lt;/div&gt;
-            &lt;div className="text-2xl font-mono tracking-tight text-cyan-400" style={{fontFamily:'ui-monospace, SFMono-Regular, "SF Mono"'}}&gt;{formatHMS(status.seconds)}&lt;/div&gt;
-          &lt;/div&gt;
-          &lt;div className="text-[11px] text-gray-400 mt-1 text-right"&gt;{status.countdownLabel}&lt;/div&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
+            </div>
+            <div className="text-2xl font-mono tracking-tight text-cyan-400" style={{fontFamily:'ui-monospace, SFMono-Regular, "SF Mono"'}}>{formatHMS(status.seconds)}</div>
+          </div>
+          <div className="text-[11px] text-gray-400 mt-1 text-right">{status.countdownLabel}</div>
+        </div>
+      </div>
 
       {/* Row: Weather (compact) and Currency (compact) */}
-      &lt;div className="grid grid-cols-1 lg:grid-cols-2 gap-3"&gt;
-        &lt;WeatherWidget compact /&gt;
-        &lt;CurrencyTicker compact /&gt;
-      &lt;/div&gt;
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <WeatherWidget compact />
+        <CurrencyTicker compact />
+      </div>
 
       {/* Footer: timestamp + reload at bottom-right */}
-      &lt;div className="flex items-center justify-between pt-2"&gt;
-        &lt;div className="text-xs text-gray-500"&gt;Updated {updatedAt}&lt;/div&gt;
-        &lt;button onClick={reloadAllData} disabled={reloading} className="px-3 py-1.5 text-xs rounded-lg bg-white/5 border border-white/10 text-white hover:bg-white/10 disabled:opacity-50"&gt;
+      <div className="flex items-center justify-between pt-2">
+        <div className="text-xs text-gray-500">Updated {updatedAt}</div>
+        <button onClick={reloadAllData} disabled={reloading} className="px-3 py-1.5 text-xs rounded-lg bg-white/5 border border-white/10 text-white hover:bg-white/10 disabled:opacity-50">
           {reloading ? 'Refreshing…' : 'Reload'}
-        &lt;/button&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
+        </button>
+      </div>
+    </div>
   );
 };
 
