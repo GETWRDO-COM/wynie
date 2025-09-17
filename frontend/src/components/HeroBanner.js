@@ -90,11 +90,11 @@ const HeroBanner = ({ user }) => {
       
       // SA Time and gradient
       const saHour = new Date(now.toLocaleString('en-US', { timeZone: 'Africa/Johannesburg' })).getHours();
-      setSaTime(now.toLocaleTimeString('en-ZA', { timeZone: 'Africa/Johannesburg', hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      setSaTime(now.toLocaleTimeString('en-US', { timeZone: 'Africa/Johannesburg', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }));
       
-      // US Time and gradient
+      // US Time and gradient  
       const usHour = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' })).getHours();
-      setUsTime(now.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      setUsTime(now.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }));
       
       // Set gradients based on time
       setTimeGradients({
@@ -104,11 +104,11 @@ const HeroBanner = ({ user }) => {
 
       // Set greeting based on SA time
       const greetingData = getAfrikaansGreeting(saHour);
-      setGreeting(`${greetingData.emoji} ${greetingData.text}`);
+      setGreeting(greetingData.text);
       setGreetingGradient(greetingData.gradient);
 
-      // Set next holiday
-      setNextHoliday(getNextHoliday());
+      // Set current date and time
+      setNextHoliday(getCurrentDateTime());
     }, 1000);
     return () => clearInterval(interval);
   }, [userName]);
