@@ -155,5 +155,3 @@ const getArticleCategory = (article) => {
 };
 
 export default NewsBanner;
-
-export default NewsBanner;
