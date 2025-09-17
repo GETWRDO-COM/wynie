@@ -169,85 +169,97 @@ const HeroBanner = ({ user }) => {
   }, []);
 
   return (
-    <div className="glass-panel p-6">
-      {/* Header Section with Bigger Title and Greeting */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <div className="text-white font-extrabold text-5xl mb-3">
+    <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md p-8 hover:from-white/10 hover:to-white/[0.05] transition-all duration-300">
+      {/* Main Header Section with Greeting and Date/Time */}
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex-1">
+          <div className="text-white font-extrabold text-5xl mb-4">
             <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
               HUNT by WRDO
             </span>
           </div>
-          {/* Afrikaans Greeting with Gradient - Fixed Emoji */}
-          <div className={`text-2xl font-bold bg-gradient-to-r ${greetingGradient} bg-clip-text text-transparent`}>
+          {/* Afrikaans Greeting with Gradient and Emojis */}
+          <div className={`text-2xl font-bold bg-gradient-to-r ${greetingGradient} bg-clip-text text-transparent mb-2`}>
             {greeting}
+          </div>
+          {/* Today's Date and Time - Made Better */}
+          <div className="flex items-center gap-4">
+            <div className="text-lg text-white/90 font-semibold">
+              📅 {currentDateTime.date}
+            </div>
+            <div className="text-xl text-cyan-400 font-mono font-bold">
+              🕐 {currentDateTime.time}
+            </div>
           </div>
         </div>
         
-        {/* Current Date and Time */}
+        {/* Timestamp and Reload Button */}
         <div className="text-right">
-          <div className="text-xs text-gray-400 mb-1">Today</div>
-          <div className="text-lg text-white/90 font-semibold">
-            {currentDateTime.date && (
-              <>
-                <div>{currentDateTime.date}</div>
-                <div className="text-sm text-white/70">{currentDateTime.time}</div>
-              </>
-            )}
+          <div className="flex items-center gap-3 mb-2">
+            <button 
+              onClick={reloadAllData}
+              disabled={reloading}
+              className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white text-sm font-semibold rounded-lg transition-all hover:scale-105 disabled:opacity-50"
+            >
+              {reloading ? '🔄' : '↻'} Reload
+            </button>
+          </div>
+          <div className="text-xs text-gray-400 font-medium">
+            Last Update 1 min ago | {currentDateTime.date} | {currentDateTime.time}
           </div>
         </div>
       </div>
 
-      {/* Time Zones and Market Status - 3 Cards in Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        {/* South Africa - Geolocation Based */}
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md p-6 hover:from-white/10 hover:to-white/[0.05] transition-all duration-300">
+      {/* Line 1: Time Cards - SA, USA, Market Status */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* South Africa - Fixed Flags and Emojis */}
+        <div className="rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md p-6 hover:from-white/10 hover:to-white/[0.05] transition-all duration-300">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-yellow-400 flex items-center justify-center text-sm font-bold">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-yellow-400 flex items-center justify-center text-lg font-bold">
               🇿🇦
             </div>
             <div>
               <div className="text-white font-semibold text-lg">South Africa</div>
-              <div className="text-white/70 text-xs">SAST (UTC+2)</div>
+              <div className="text-white/70 text-sm">SAST (UTC+2)</div>
             </div>
           </div>
-          <div className={`text-3xl font-light bg-gradient-to-r ${timeGradients.sa} bg-clip-text text-transparent mb-2 tracking-wide`} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace' }}>
+          <div className={`text-4xl font-light bg-gradient-to-r ${timeGradients.sa} bg-clip-text text-transparent mb-3 tracking-wide`} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace', textShadow: '0 0 20px rgba(255,255,255,0.3)' }}>
             {saTime}
           </div>
           <div className="text-sm text-white/80 mb-3 font-medium">
             {new Date().toLocaleDateString('en-ZA', { timeZone: 'Africa/Johannesburg', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </div>
-          <div className="text-xs text-emerald-400 mb-2 font-medium">📍 Paarl, South Africa</div>
-          <div className="text-xs text-orange-400 font-semibold">
+          <div className="text-sm text-emerald-400 mb-2 font-medium">📍 Paarl, South Africa</div>
+          <div className="text-sm text-orange-400 font-semibold">
             {getHolidayMessage('SA') || '🌟 No holidays today'}
           </div>
         </div>
 
-        {/* New York, USA */}
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md p-6 hover:from-white/10 hover:to-white/[0.05] transition-all duration-300">
+        {/* New York, USA - Fixed Flags */}
+        <div className="rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md p-6 hover:from-white/10 hover:to-white/[0.05] transition-all duration-300">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-red-400 flex items-center justify-center text-sm font-bold">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-red-400 flex items-center justify-center text-lg font-bold">
               🇺🇸
             </div>
             <div>
               <div className="text-white font-semibold text-lg">New York, USA</div>
-              <div className="text-white/70 text-xs">EDT (UTC-4)</div>
+              <div className="text-white/70 text-sm">EDT (UTC-4)</div>
             </div>
           </div>
-          <div className={`text-3xl font-light bg-gradient-to-r ${timeGradients.us} bg-clip-text text-transparent mb-2 tracking-wide`} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace' }}>
+          <div className={`text-4xl font-light bg-gradient-to-r ${timeGradients.us} bg-clip-text text-transparent mb-3 tracking-wide`} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace', textShadow: '0 0 20px rgba(255,255,255,0.3)' }}>
             {usTime}
           </div>
           <div className="text-sm text-white/80 mb-3 font-medium">
             {new Date().toLocaleDateString('en-ZA', { timeZone: 'America/New_York', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </div>
-          <div className="text-xs text-cyan-400 mb-2 font-medium">📍 Eastern Time Zone</div>
-          <div className="text-xs text-amber-400 font-semibold">
+          <div className="text-sm text-cyan-400 mb-2 font-medium">📍 Eastern Time Zone</div>
+          <div className="text-sm text-amber-400 font-semibold">
             {getHolidayMessage('US') || '📈 Normal trading hours'}
           </div>
         </div>
 
         {/* Market Status */}
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md p-6 hover:from-white/10 hover:to-white/[0.05] transition-all duration-300">
+        <div className="rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md p-6 hover:from-white/10 hover:to-white/[0.05] transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <div className="text-white/90 font-semibold text-lg">Market Status</div>
             <div className={`px-4 py-2 rounded-full text-sm font-bold ${
@@ -261,28 +273,31 @@ const HeroBanner = ({ user }) => {
 
           <div className="text-center mb-4">
             <div className="text-gray-400 text-sm mb-2 font-medium">{status.countdownLabel}:</div>
-            <div className="text-3xl font-light text-cyan-300 mb-1 tracking-wide" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace' }}>
+            <div className="text-4xl font-light text-cyan-300 mb-1 tracking-wide" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace', textShadow: '0 0 20px rgba(255,255,255,0.3)' }}>
               {formatHMS(status.seconds)}
             </div>
           </div>
           
-          <div className="text-xs text-gray-400 text-center font-medium mb-2">
+          <div className="text-sm text-gray-400 text-center font-medium mb-2">
             NYSE/NASDAQ Regular Hours
           </div>
-          <div className="text-xs text-blue-400 text-center font-semibold">
+          <div className="text-sm text-blue-400 text-center font-semibold">
             🗓️ No market holidays today
           </div>
         </div>
       </div>
 
-      {/* Weather Section - Moved Below */}
-      <div className="mb-6">
-        <WeatherWidget />
-      </div>
+      {/* Line 2: Weather and Currency Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Weather Section */}
+        <div>
+          <WeatherWidget />
+        </div>
 
-      {/* Currency Exchange Section - Better Aligned */}
-      <div className="mb-6">
-        <CurrencyTicker />
+        {/* Currency Exchange Section */}
+        <div>
+          <CurrencyTicker />
+        </div>
       </div>
     </div>
   );
