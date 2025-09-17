@@ -56,9 +56,9 @@ const HeroBanner = ({ user }) => {
     return () => clearInterval(id);
   }, []);
 
-  const reloadAllData = () =&gt; {
+  const reloadAllData = () => {
     setReloading(true);
-    setTimeout(() =&gt; window.location.reload(), 400);
+    setTimeout(() => window.location.reload(), 400);
   };
 
   return (
