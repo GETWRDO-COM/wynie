@@ -7,16 +7,16 @@ const CurrencyTicker = ({ compact = false }) => {
   const [err, setErr] = useState('');
   const [updatedAt, setUpdatedAt] = useState(null);
 
-  const fetchPrimary = async () =&gt; {
-    const resp = await fetch('https://api.exchangerate.host/latest?base=ZAR&amp;symbols=USD,EUR,GBP,JPY,CNY');
+  const fetchPrimary = async () => {
+    const resp = await fetch('https://api.exchangerate.host/latest?base=ZAR&symbols=USD,EUR,GBP,JPY,CNY');
     const data = await resp.json();
     if (!data || !data.rates) throw new Error('no primary');
     return { rates: data.rates };
   };
-  const fetchFallback = async () =&gt; {
+  const fetchFallback = async () => {
     const resp = await fetch('https://open.er-api.com/v6/latest/ZAR');
     const data = await resp.json();
-    if (data &amp;&amp; data.result === 'success' &amp;&amp; data.rates) return { rates: { USD: data.rates.USD, EUR: data.rates.EUR, GBP: data.rates.GBP, JPY: data.rates.JPY, CNY: data.rates.CNY } };
+    if (data && data.result === 'success' && data.rates) return { rates: { USD: data.rates.USD, EUR: data.rates.EUR, GBP: data.rates.GBP, JPY: data.rates.JPY, CNY: data.rates.CNY } };
     throw new Error('no fallback');
   };
 
