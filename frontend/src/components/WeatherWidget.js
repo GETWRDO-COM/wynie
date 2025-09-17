@@ -118,48 +118,39 @@ const WeatherWidget = () => {
   }
 
   return (
-    <div className="rounded-2xl border border-white/20 bg-black/50 backdrop-blur-2xl p-6 hover:bg-black/60 transition-all duration-300 shadow-xl overflow-hidden relative">
-      {/* Futuristic Background Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-blue-500/5 to-purple-500/5 rounded-2xl"></div>
-      
-      <div className="relative z-10">
-        <div className="flex items-center justify-between mb-6">
-          <div className="text-white/90 font-bold text-xl drop-shadow-lg">Weather</div>
-          <div className="text-sm text-emerald-400 font-semibold bg-black/40 px-3 py-1 rounded-lg border border-white/20">
-            📍 {location}
+    <div className="glass-panel p-4">
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-white/90 font-semibold">Weather</div>
+        <div className="text-xs text-emerald-400">📍 {location}</div>
+      </div>
+
+      <div className="grid grid-cols-[auto,1fr] gap-4">
+        {/* Current Weather - Left Side */}
+        <div className="flex items-center gap-3">
+          <div className="text-4xl">{codeToEmoji(weather?.code)}</div>
+          <div>
+            <div className="text-2xl font-bold text-white">{weather?.tempC}°C</div>
+            <div className="text-xs text-gray-400">
+              H: {weather?.high}° L: {weather?.low}°
+            </div>
+            <div className="text-xs text-blue-400">💧 {weather?.rain}% rain</div>
           </div>
         </div>
 
-        <div className="grid grid-cols-[auto,1fr] gap-8">
-          {/* Current Weather - Left Side */}
-          <div className="flex items-center gap-6">
-            <div className="text-7xl drop-shadow-2xl">{codeToEmoji(weather?.code)}</div>
-            <div>
-              <div className="text-5xl font-light text-white mb-3 drop-shadow-2xl">{weather?.tempC}°C</div>
-              <div className="text-sm text-gray-300 font-semibold mb-3">
-                H: {weather?.high}° L: {weather?.low}°
-              </div>
-              <div className="text-sm text-blue-400 font-semibold bg-blue-500/20 px-3 py-1 rounded-lg border border-blue-400/30">
-                💧 {weather?.rain}% rain
-              </div>
-            </div>
-          </div>
-
-          {/* 7-Day Forecast - Right Side (Compact) */}
-          <div>
-            <div className="text-sm text-white/80 font-bold mb-4 uppercase tracking-wider">7-Day Forecast</div>
-            <div className="grid grid-cols-6 gap-3">
-              {forecast.map((day, index) => (
-                <div key={index} className="text-center p-3 rounded-xl bg-black/40 backdrop-blur-xl border border-white/20 hover:bg-black/60 transition-all duration-200 shadow-lg">
-                  <div className="text-xs text-gray-400 mb-2 font-semibold uppercase">{day.day}</div>
-                  <div className="text-xl mb-2 drop-shadow-lg">{codeToEmoji(day.code)}</div>
-                  <div className="text-xs font-semibold">
-                    <div className="text-white drop-shadow-lg">{day.high}°</div>
-                    <div className="text-gray-400">{day.low}°</div>
-                  </div>
+        {/* 7-Day Forecast - Right Side (Compact) */}
+        <div>
+          <div className="text-xs text-white/70 font-semibold mb-2">7-Day Forecast</div>
+          <div className="grid grid-cols-6 gap-1">
+            {forecast.map((day, index) => (
+              <div key={index} className="text-center p-1 rounded bg-black/20">
+                <div className="text-xs text-gray-400 mb-1">{day.day}</div>
+                <div className="text-sm mb-1">{codeToEmoji(day.code)}</div>
+                <div className="text-xs text-white">
+                  <div>{day.high}°</div>
+                  <div className="text-gray-400">{day.low}°</div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
