@@ -118,39 +118,48 @@ const WeatherWidget = () => {
   }
 
   return (
-    <div className="rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md p-6 hover:from-white/10 hover:to-white/[0.05] transition-all duration-300">
-      <div className="flex items-center justify-between mb-4">
-        <div className="text-white/90 font-semibold text-lg">Weather</div>
-        <div className="text-sm text-emerald-400 font-medium">📍 {location}</div>
-      </div>
-
-      <div className="grid grid-cols-[auto,1fr] gap-6">
-        {/* Current Weather - Left Side */}
-        <div className="flex items-center gap-4">
-          <div className="text-6xl">{codeToEmoji(weather?.code)}</div>
-          <div>
-            <div className="text-4xl font-light text-white mb-2">{weather?.tempC}°C</div>
-            <div className="text-sm text-gray-300 font-medium mb-2">
-              H: {weather?.high}° L: {weather?.low}°
-            </div>
-            <div className="text-sm text-blue-400 font-medium">💧 {weather?.rain}% rain</div>
+    <div className="rounded-2xl border border-white/20 bg-black/50 backdrop-blur-2xl p-6 hover:bg-black/60 transition-all duration-300 shadow-xl overflow-hidden relative">
+      {/* Futuristic Background Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-blue-500/5 to-purple-500/5 rounded-2xl"></div>
+      
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-6">
+          <div className="text-white/90 font-bold text-xl drop-shadow-lg">Weather</div>
+          <div className="text-sm text-emerald-400 font-semibold bg-black/40 px-3 py-1 rounded-lg border border-white/20">
+            📍 {location}
           </div>
         </div>
 
-        {/* 7-Day Forecast - Right Side (Compact) */}
-        <div>
-          <div className="text-sm text-white/70 font-semibold mb-3">7-Day Forecast</div>
-          <div className="grid grid-cols-6 gap-2">
-            {forecast.map((day, index) => (
-              <div key={index} className="text-center p-2 rounded-lg bg-black/20 hover:bg-black/30 transition-colors border border-white/5">
-                <div className="text-xs text-gray-400 mb-1 font-medium">{day.day}</div>
-                <div className="text-lg mb-1">{codeToEmoji(day.code)}</div>
-                <div className="text-xs text-white font-medium">
-                  <div className="text-white">{day.high}°</div>
-                  <div className="text-gray-400">{day.low}°</div>
-                </div>
+        <div className="grid grid-cols-[auto,1fr] gap-8">
+          {/* Current Weather - Left Side */}
+          <div className="flex items-center gap-6">
+            <div className="text-7xl drop-shadow-2xl">{codeToEmoji(weather?.code)}</div>
+            <div>
+              <div className="text-5xl font-light text-white mb-3 drop-shadow-2xl">{weather?.tempC}°C</div>
+              <div className="text-sm text-gray-300 font-semibold mb-3">
+                H: {weather?.high}° L: {weather?.low}°
               </div>
-            ))}
+              <div className="text-sm text-blue-400 font-semibold bg-blue-500/20 px-3 py-1 rounded-lg border border-blue-400/30">
+                💧 {weather?.rain}% rain
+              </div>
+            </div>
+          </div>
+
+          {/* 7-Day Forecast - Right Side (Compact) */}
+          <div>
+            <div className="text-sm text-white/80 font-bold mb-4 uppercase tracking-wider">7-Day Forecast</div>
+            <div className="grid grid-cols-6 gap-3">
+              {forecast.map((day, index) => (
+                <div key={index} className="text-center p-3 rounded-xl bg-black/40 backdrop-blur-xl border border-white/20 hover:bg-black/60 transition-all duration-200 shadow-lg">
+                  <div className="text-xs text-gray-400 mb-2 font-semibold uppercase">{day.day}</div>
+                  <div className="text-xl mb-2 drop-shadow-lg">{codeToEmoji(day.code)}</div>
+                  <div className="text-xs font-semibold">
+                    <div className="text-white drop-shadow-lg">{day.high}°</div>
+                    <div className="text-gray-400">{day.low}°</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
