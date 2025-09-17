@@ -128,7 +128,7 @@ const WeatherWidget = ({ compact = false }) =&gt; {
 
         &lt;div className="flex items-center justify-between mb-2"&gt;
           &lt;div className="text-white text-xl font-bold"&gt;{weather?.tempC}°C&lt;/div&gt;
-          &lt;div className="text-xs text-gray-400"&gt;H:{weather?.high}° · L:{weather?.low}° · 💧{weather?.rain}%&lt;/div&gt;
+          &lt;div className="text-xs text-gray-400"&gt;H:{weather?.high}° · L:{weather?.low}° · Rain {weather?.rain}%&lt;/div&gt;
         &lt;/div&gt;
 
         &lt;div className="divide-y divide-white/10"&gt;
