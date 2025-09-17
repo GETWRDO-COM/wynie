@@ -74,36 +74,36 @@ const CurrencyTicker = ({ compact = false }) => {
   }
 
   return (
-    &lt;div className="rounded-2xl border border-white/20 bg-black/50 backdrop-blur-2xl p-6 hover:bg-black/60 transition-all duration-300 shadow-xl overflow-hidden relative"&gt;
+    <div className="rounded-2xl border border-white/20 bg-black/50 backdrop-blur-2xl p-6 hover:bg-black/60 transition-all duration-300 shadow-xl overflow-hidden relative">
       {/* Futuristic Background Gradient */}
-      &lt;div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-pink-500/5 to-cyan-500/5 rounded-2xl"&gt;&lt;/div&gt;
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-pink-500/5 to-cyan-500/5 rounded-2xl"></div>
       
-      &lt;div className="relative z-10"&gt;
-        &lt;div className="flex items-center justify-between mb-6"&gt;
-          &lt;div className="text-white/90 font-bold text-xl drop-shadow-lg"&gt;Currency Exchange&lt;/div&gt;
-          {err &amp;&amp; &lt;div className="text-sm text-red-400 font-semibold bg-red-500/20 px-3 py-1 rounded-lg border border-red-400/30"&gt;{err}&lt;/div&gt;}
-        &lt;/div&gt;
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-6">
+          <div className="text-white/90 font-bold text-xl drop-shadow-lg">Currency Exchange</div>
+          {err && <div className="text-sm text-red-400 font-semibold bg-red-500/20 px-3 py-1 rounded-lg border border-red-400/30">{err}</div>}
+        </div>
         
         {!rates ? (
-          &lt;div className="text-gray-400 text-sm font-semibold"&gt;Loading exchange rates...&lt;/div&gt;
+          <div className="text-gray-400 text-sm font-semibold">Loading exchange rates...</div>
         ) : (
-          &lt;div className="grid grid-cols-2 lg:grid-cols-5 gap-4"&gt;
-            {rows.map((row) =&gt; (
-              &lt;div key={row.code} className="text-center p-4 rounded-xl bg-black/40 backdrop-blur-xl border border-white/20 hover:bg-black/60 transition-all duration-300 shadow-lg group"&gt;
-                &lt;div className="flex items-center justify-center gap-3 mb-4"&gt;
-                  &lt;img src={row.flag} alt={row.code} className="w-8 h-6 rounded-sm shadow-md border border-white/10" /&gt;
-                  &lt;span className="font-bold text-white text-sm drop-shadow-lg"&gt;{row.code}&lt;/span&gt;
-                &lt;/div&gt;
-                &lt;div className="text-xs text-gray-400 mb-3 font-semibold uppercase tracking-wider"&gt;{row.pair}&lt;/div&gt;
-                &lt;div className="text-white font-bold text-2xl drop-shadow-lg group-hover:text-cyan-400 transition-colors"&gt;
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+            {rows.map((row) => (
+              <div key={row.code} className="text-center p-4 rounded-xl bg-black/40 backdrop-blur-xl border border-white/20 hover:bg-black/60 transition-all duration-300 shadow-lg group">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <img src={row.flag} alt={row.code} className="w-8 h-6 rounded-sm shadow-md border border-white/10" />
+                  <span className="font-bold text-white text-sm drop-shadow-lg">{row.code}</span>
+                </div>
+                <div className="text-xs text-gray-400 mb-3 font-semibold uppercase tracking-wider">{row.pair}</div>
+                <div className="text-white font-bold text-2xl drop-shadow-lg group-hover:text-cyan-400 transition-colors">
                   R{row.zar ? row.zar.toFixed(2) : '--'}
-                &lt;/div&gt;
-              &lt;/div&gt;
+                </div>
+              </div>
             ))}
-          &lt;/div&gt;
+          </div>
         )}
-      &lt;/div&gt;
-    &lt;/div&gt;
+      </div>
+    </div>
   );
 };
 
