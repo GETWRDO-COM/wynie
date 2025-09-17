@@ -29,7 +29,7 @@ async function fetchWeather(lat, lon) {
   
   // 7-day forecast
   const forecast = [];
-  for (let i = 1; i < 7; i++) {
+  for (let i = 1; i &lt; 7; i++) {
     forecast.push({
       day: new Date(Date.now() + i * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { weekday: 'short' }),
       high: Math.round(json?.daily?.temperature_2m_max?.[i] ?? 0),
@@ -52,14 +52,14 @@ async function reverseGeocode(lat, lon) {
   }
 }
 
-const WeatherWidget = ({ compact = false }) => {
+const WeatherWidget = ({ compact = false }) =&gt; {
   const [weather, setWeather] = useState(null);
   const [forecast, setForecast] = useState([]);
   const [location, setLocation] = useState('Paarl'); // Default to never show unknown
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadWeather = async () => {
+  useEffect(() =&gt; {
+    const loadWeather = async () =&gt; {
       try {
         setLoading(true);
         let coords = FALLBACK;
@@ -68,7 +68,7 @@ const WeatherWidget = ({ compact = false }) => {
         // Try to get user's actual location
         if (navigator.geolocation) {
           try {
-            const pos = await new Promise((resolve, reject) => {
+            const pos = await new Promise((resolve, reject) =&gt; {
               navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
             });
             coords = {
@@ -110,51 +110,78 @@ const WeatherWidget = ({ compact = false }) => {
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md p-6">
-        <div className="text-white/90 font-semibold mb-2 text-lg">Weather</div>
-        <div className="text-gray-400 text-sm">Loading weather data...</div>
-      </div>
+      &lt;div className="rounded-xl border border-white/10 bg-black/50 backdrop-blur-md p-4"&gt;
+        &lt;div className="text-white/90 font-semibold mb-2 text-base"&gt;Weather&lt;/div&gt;
+        &lt;div className="text-gray-400 text-sm"&gt;Loading weather data...&lt;/div&gt;
+      &lt;/div&gt;
+    );
+  }
+
+  // Compact layout per user: smaller, no emojis, vertical forecast list
+  if (compact) {
+    return (
+      &lt;div className="rounded-xl border border-white/10 bg-black/50 backdrop-blur-xl p-3"&gt;
+        &lt;div className="flex items-center justify-between mb-2"&gt;
+          &lt;div className="text-white/90 font-semibold text-sm"&gt;Weather&lt;/div&gt;
+          &lt;div className="text-[11px] text-emerald-400"&gt;{location}&lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div className="flex items-center justify-between mb-2"&gt;
+          &lt;div className="text-white text-xl font-bold"&gt;{weather?.tempC}°C&lt;/div&gt;
+          &lt;div className="text-xs text-gray-400"&gt;H:{weather?.high}° · L:{weather?.low}° · 💧{weather?.rain}%&lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div className="divide-y divide-white/10"&gt;
+          {forecast.map((d, i) =&gt; (
+            &lt;div key={i} className="py-1.5 flex items-center justify-between text-xs"&gt;
+              &lt;div className="text-gray-300"&gt;{d.day}&lt;/div&gt;
+              &lt;div className="text-white/90"&gt;{d.high}° / &lt;span className="text-gray-400"&gt;{d.low}°&lt;/span&gt;&lt;/div&gt;
+              &lt;div className="text-blue-400"&gt;{d.rain}%&lt;/div&gt;
+            &lt;/div&gt;
+          ))}
+        &lt;/div&gt;
+      &lt;/div&gt;
     );
   }
 
   return (
-    <div className="glass-panel p-4">
-      <div className="flex items-center justify-between mb-3">
-        <div className="text-white/90 font-semibold">Weather</div>
-        <div className="text-xs text-emerald-400">📍 {location}</div>
-      </div>
+    &lt;div className="glass-panel p-4"&gt;
+      &lt;div className="flex items-center justify-between mb-3"&gt;
+        &lt;div className="text-white/90 font-semibold"&gt;Weather&lt;/div&gt;
+        &lt;div className="text-xs text-emerald-400"&gt;📍 {location}&lt;/div&gt;
+      &lt;/div&gt;
 
-      <div className="grid grid-cols-[auto,1fr] gap-4">
+      &lt;div className="grid grid-cols-[auto,1fr] gap-4"&gt;
         {/* Current Weather - Left Side */}
-        <div className="flex items-center gap-3">
-          <div className="text-4xl">{codeToEmoji(weather?.code)}</div>
-          <div>
-            <div className="text-2xl font-bold text-white">{weather?.tempC}°C</div>
-            <div className="text-xs text-gray-400">
+        &lt;div className="flex items-center gap-3"&gt;
+          &lt;div className="text-4xl"&gt;{codeToEmoji(weather?.code)}&lt;/div&gt;
+          &lt;div&gt;
+            &lt;div className="text-2xl font-bold text-white"&gt;{weather?.tempC}°C&lt;/div&gt;
+            &lt;div className="text-xs text-gray-400"&gt;
               H: {weather?.high}° L: {weather?.low}°
-            </div>
-            <div className="text-xs text-blue-400">💧 {weather?.rain}% rain</div>
-          </div>
-        </div>
+            &lt;/div&gt;
+            &lt;div className="text-xs text-blue-400"&gt;💧 {weather?.rain}% rain&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
 
         {/* 7-Day Forecast - Right Side (Compact) */}
-        <div>
-          <div className="text-xs text-white/70 font-semibold mb-2">7-Day Forecast</div>
-          <div className="grid grid-cols-6 gap-1">
-            {forecast.map((day, index) => (
-              <div key={index} className="text-center p-1 rounded bg-black/20">
-                <div className="text-xs text-gray-400 mb-1">{day.day}</div>
-                <div className="text-sm mb-1">{codeToEmoji(day.code)}</div>
-                <div className="text-xs text-white">
-                  <div>{day.high}°</div>
-                  <div className="text-gray-400">{day.low}°</div>
-                </div>
-              </div>
+        &lt;div&gt;
+          &lt;div className="text-xs text-white/70 font-semibold mb-2"&gt;7-Day Forecast&lt;/div&gt;
+          &lt;div className="grid grid-cols-6 gap-1"&gt;
+            {forecast.map((day, index) =&gt; (
+              &lt;div key={index} className="text-center p-1 rounded bg-black/20"&gt;
+                &lt;div className="text-xs text-gray-400 mb-1"&gt;{day.day}&lt;/div&gt;
+                &lt;div className="text-sm mb-1"&gt;{codeToEmoji(day.code)}&lt;/div&gt;
+                &lt;div className="text-xs text-white"&gt;
+                  &lt;div&gt;{day.high}°&lt;/div&gt;
+                  &lt;div className="text-gray-400"&gt;{day.low}°&lt;/div&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
             ))}
-          </div>
-        </div>
-      </div>
-    </div>
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
   );
 };
 
