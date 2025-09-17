@@ -48,28 +48,28 @@ const CurrencyTicker = ({ compact = false }) => {
 
   if (compact) {
     return (
-      &lt;div className="rounded-xl border border-white/10 bg-black/50 backdrop-blur-xl p-3"&gt;
-        &lt;div className="flex items-center justify-between mb-2"&gt;
-          &lt;div className="text-white/90 font-semibold text-sm"&gt;Currency&lt;/div&gt;
-          {err &amp;&amp; &lt;div className="text-[11px] text-red-400"&gt;{err}&lt;/div&gt;}
-        &lt;/div&gt;
+      <div className="rounded-xl border border-white/10 bg-black/50 backdrop-blur-xl p-3">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-white/90 font-semibold text-sm">Currency</div>
+          {err && <div className="text-[11px] text-red-400">{err}</div>}
+        </div>
         {!rates ? (
-          &lt;div className="text-gray-400 text-sm"&gt;Loading exchange rates...&lt;/div&gt;
+          <div className="text-gray-400 text-sm">Loading exchange rates...</div>
         ) : (
-          &lt;div className="grid grid-cols-5 gap-2"&gt;
-            {rows.map((row) =&gt; (
-              &lt;div key={row.code} className="text-center p-2 rounded-lg bg-black/40 border border-white/10"&gt;
-                &lt;div className="flex items-center justify-center gap-1 mb-1"&gt;
-                  &lt;img src={row.flag} alt={row.code} className="w-5 h-4 rounded-sm border border-white/10" /&gt;
-                  &lt;span className="font-semibold text-white text-xs"&gt;{row.code}&lt;/span&gt;
-                &lt;/div&gt;
-                &lt;div className="text-[10px] text-gray-400 mb-1 uppercase"&gt;{row.pair}&lt;/div&gt;
-                &lt;div className="text-white font-bold text-base"&gt;R{row.zar ? row.zar.toFixed(2) : '--'}&lt;/div&gt;
-              &lt;/div&gt;
+          <div className="grid grid-cols-5 gap-2">
+            {rows.map((row) => (
+              <div key={row.code} className="text-center p-2 rounded-lg bg-black/40 border border-white/10">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <img src={row.flag} alt={row.code} className="w-5 h-4 rounded-sm border border-white/10" />
+                  <span className="font-semibold text-white text-xs">{row.code}</span>
+                </div>
+                <div className="text-[10px] text-gray-400 mb-1 uppercase">{row.pair}</div>
+                <div className="text-white font-bold text-base">R{row.zar ? row.zar.toFixed(2) : '--'}</div>
+              </div>
             ))}
-          &lt;/div&gt;
+          </div>
         )}
-      &lt;/div&gt;
+      </div>
     );
   }
 
