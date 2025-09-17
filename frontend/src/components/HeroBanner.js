@@ -29,8 +29,8 @@ const HeroBanner = ({ user }) => {
   });
 
   // Simple market compute
-  useEffect(() =&gt; {
-    const compute = () =&gt; {
+  useEffect(() => {
+    const compute = () => {
       const now = new Date();
       const saT = now.toLocaleTimeString('en-US', { timeZone: 'Africa/Johannesburg', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
       const usT = now.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
@@ -45,15 +45,15 @@ const HeroBanner = ({ user }) => {
       const open = new Date(etNow); open.setHours(9,30,0,0);
       const close = new Date(etNow); close.setHours(16,0,0,0);
       let st = 'Closed'; let seconds = 0; let label = 'Opens in';
-      if (etNow &gt;= open &amp;&amp; etNow &lt;= close) { st = 'Open'; seconds = Math.max(0, Math.floor((close - etNow)/1000)); label = 'Closes in'; }
-      else if (etNow &lt; open) { seconds = Math.max(0, Math.floor((open - etNow)/1000)); }
+      if (etNow >= open && etNow <= close) { st = 'Open'; seconds = Math.max(0, Math.floor((close - etNow)/1000)); label = 'Closes in'; }
+      else if (etNow < open) { seconds = Math.max(0, Math.floor((open - etNow)/1000)); }
       else { const tmr = new Date(etNow); tmr.setDate(tmr.getDate()+1); tmr.setHours(9,30,0,0); seconds = Math.max(0, Math.floor((tmr - etNow)/1000)); }
       setStatus({ status: st, seconds, countdownLabel: label });
       setUpdatedAt(new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }));
     };
     compute();
     const id = setInterval(compute, 1000);
-    return () =&gt; clearInterval(id);
+    return () => clearInterval(id);
   }, []);
 
   const reloadAllData = () =&gt; {
