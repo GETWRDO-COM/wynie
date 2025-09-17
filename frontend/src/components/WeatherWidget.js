@@ -52,7 +52,7 @@ async function reverseGeocode(lat, lon) {
   }
 }
 
-const WeatherWidget = () => {
+const WeatherWidget = ({ compact = false }) => {
   const [weather, setWeather] = useState(null);
   const [forecast, setForecast] = useState([]);
   const [location, setLocation] = useState('Paarl'); // Default to never show unknown
