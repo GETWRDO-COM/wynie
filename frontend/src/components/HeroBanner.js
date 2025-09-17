@@ -187,7 +187,14 @@ const HeroBanner = ({ user }) => {
         {/* Current Date and Time */}
         <div className="text-right">
           <div className="text-xs text-gray-400 mb-1">Today</div>
-          <div className="text-lg text-white/90 font-semibold">{nextHoliday}</div>
+          <div className="text-lg text-white/90 font-semibold">
+            {currentDateTime.date && (
+              <>
+                <div>{currentDateTime.date}</div>
+                <div className="text-sm text-white/70">{currentDateTime.time}</div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
