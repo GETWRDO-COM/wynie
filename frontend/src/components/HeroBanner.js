@@ -14,8 +14,11 @@ const HeroBanner = ({ user }) => {
   const [timeGradients, setTimeGradients] = useState({ sa: '', us: '' });
   const [nextHoliday, setNextHoliday] = useState('');
 
-  // Get username from user email
-  const userName = user?.email ? user.email.split('@')[0].charAt(0).toUpperCase() + user.email.split('@')[0].slice(1) : 'User';
+  // Get username - should be Alwyn
+  const userName = 'Alwyn';
+  
+  // User's birthday for special greetings
+  const userBirthday = { month: 10, day: 13 }; // October 13, 1954
 
   // Time-based gradient generator
   const getTimeGradient = (hour) => {
@@ -25,31 +28,60 @@ const HeroBanner = ({ user }) => {
     return 'from-purple-900 via-blue-900 to-black'; // Night
   };
 
-  // Afrikaans greeting generator
+  // Enhanced Afrikaans greeting generator with special occasions
   const getAfrikaansGreeting = (hour) => {
-    if (hour >= 5 && hour < 12) return { text: `Goeie Môre ${userName}!`, emoji: '🌅', gradient: 'from-yellow-400 via-orange-400 to-red-400' };
-    if (hour >= 12 && hour < 17) return { text: `Goeie Middag ${userName}!`, emoji: '☀️', gradient: 'from-blue-400 via-cyan-400 to-teal-400' };
-    if (hour >= 17 && hour < 21) return { text: `Goeie Aand ${userName}!`, emoji: '🌆', gradient: 'from-orange-400 via-pink-400 to-purple-400' };
-    return { text: `Goeie Nag ${userName}!`, emoji: '🌙', gradient: 'from-purple-400 via-blue-400 to-indigo-400' };
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const day = now.getDate();
+    
+    // Check for special occasions
+    if (month === userBirthday.month && day === userBirthday.day) {
+      return { text: `🎉 Gelukkige Verjaarsdag ${userName}!`, gradient: 'from-yellow-400 via-pink-400 to-purple-400' };
+    }
+    
+    if (month === 12 && day === 25) {
+      return { text: `🎄 Geseënde Kersfees ${userName}!`, gradient: 'from-red-400 via-green-400 to-gold' };
+    }
+    
+    if (month === 12 && (day >= 24 && day <= 26)) {
+      return { text: `🎄 Geseënde Kersfees ${userName}!`, gradient: 'from-red-400 via-green-400 to-gold' };
+    }
+    
+    // Easter is complex to calculate, so we'll check approximate dates
+    if (month === 3 || month === 4) {
+      // Simple Easter check for common dates
+      if ((month === 3 && day >= 25) || (month === 4 && day <= 25)) {
+        const easterDates = [28, 29, 30, 31, 1, 2, 3, 4, 5]; // Common Easter range
+        if (easterDates.includes(day)) {
+          return { text: `🐰 Geseënde Paasfees ${userName}!`, gradient: 'from-yellow-400 via-pink-400 to-purple-400' };
+        }
+      }
+    }
+    
+    // Regular time-based greetings
+    if (hour >= 5 && hour < 12) return { text: `Goeie Môre ${userName}!`, gradient: 'from-yellow-400 via-orange-400 to-red-400' };
+    if (hour >= 12 && hour < 17) return { text: `Goeie Middag ${userName}!`, gradient: 'from-blue-400 via-cyan-400 to-teal-400' };
+    if (hour >= 17 && hour < 21) return { text: `Goeie Aand ${userName}!`, gradient: 'from-orange-400 via-pink-400 to-purple-400' };
+    return { text: `Goeie Nag ${userName}!`, gradient: 'from-purple-400 via-blue-400 to-indigo-400' };
   };
 
-  // Calculate next holiday
-  const getNextHoliday = () => {
+  // Format current date and time
+  const getCurrentDateTime = () => {
     const now = new Date();
-    const holidays = [
-      { name: 'Heritage Day', date: new Date(2025, 8, 24) },
-      { name: 'Day of Reconciliation', date: new Date(2025, 11, 16) },
-      { name: 'Christmas Day', date: new Date(2025, 11, 25) },
-      { name: 'Day of Goodwill', date: new Date(2025, 11, 26) },
-      { name: 'New Year\'s Day', date: new Date(2026, 0, 1) },
-    ];
-
-    const upcoming = holidays.find(h => h.date > now);
-    if (upcoming) {
-      const days = Math.ceil((upcoming.date - now) / (1000 * 60 * 60 * 24));
-      return `${upcoming.name} in ${days} days`;
-    }
-    return '';
+    const options = { 
+      weekday: 'long', 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    };
+    const dateStr = now.toLocaleDateString('en-US', options);
+    const timeStr = now.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit',
+      hour12: true 
+    });
+    return `${dateStr} ${timeStr}`;
   };
 
   useEffect(() => {
