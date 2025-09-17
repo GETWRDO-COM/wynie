@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 # Configuration from review request
-BACKEND_URL = "https://trade-dashboard-37.preview.emergentagent.com"
+BACKEND_URL = "https://premium-fintech-2.preview.emergentagent.com"
 LOGIN_EMAIL = "beetge@mwebbiz.co.za"
 LOGIN_PASSWORD = "Albee1990!"
 
