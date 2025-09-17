@@ -698,26 +698,29 @@ backend:
         agent: "testing"
         comment: "✅ TESTED: All newly added legacy endpoints working perfectly. Authentication: POST /api/auth/login with beetge@mwebbiz.co.za successful (auto-create + JWT token). Bearer token protected endpoints: GET /api/dashboard (message='ok'), GET /api/etfs?limit=5 (5 items), GET /api/etfs/sectors (16 sectors), GET /api/etfs/swing-leaders (empty array OK), GET /api/watchlists/custom (empty array OK), GET /api/charts/indices?timeframe=1m (data object). Sanity check: 4/5 endpoints pass (news, market/aggregates, market-score, earnings all working; greed-fear has 502 due to external CNN API unavailability). Overall success rate: 11/12 endpoints (91.7%). All legacy endpoints ready for UI integration."
 
-  - task: "MarketCharts frontend + NewsTicker via backend + Polygon Settings UI + GreedFear UI + Floating AI"
+  - task: "Dashboard Hero Card Redesign with Compact Layout"
     implemented: true
     working: true
-    file: "/app/frontend/src/components/MarketCharts.js"
+    file: "/app/frontend/src/components/HeroBanner.js"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
-      - working: unknown
-        agent: "main"
-        comment: "Implemented SPY/QQQ/I:DJI/TQQQ/SQQQ charts with time ranges, close/pre/post and % color; last-updated stamp, refresh every 5 min. NewsTicker now calls backend /api/news. Added Settings UI to save Polygon key to backend encrypted. Added CNN Fear & Greed card UI and floating AI chat widget available on all pages. Fixed login input text visibility."
       - working: true
         agent: "testing"
-        comment: "✅ COMPREHENSIVE TESTING COMPLETED: All requested features tested successfully. (1) Login page input visibility - ✅ PASS: Email and password inputs visible with white text, accepts typing correctly. (2) Navbar labels - ✅ PASS: Exactly 'Dashboard, Analysis, AI, Spreadsheets' as required. (3) Dashboard core widgets - ✅ PASS: Greed & Fear card visible with CNN logo and numeric score (73), MarketCharts component renders SPY chart with all 6 timeframe buttons (1D/1W/1M/YTD/1Y/5Y) working correctly. (4) NewsTicker - ✅ PASS: Bottom ticker present with 21,551 characters of news content and category select dropdown. (5) Floating AI chat - ⚠️ PARTIAL: Button visible in bottom-right, but panel opening blocked by emergent badge overlay (system limitation). Fixed GreedFearCard.js null reference error during testing. All core functionality working as specified."
-      - working: false
-        agent: "testing"
-        comment: "❌ CRITICAL ISSUE FOUND: Market Snapshot duplication detected during UI validation testing. Found 2 'Market Snapshot' sections on dashboard (should be exactly 1). One appears in DashboardQuickSections component and another in MarketCharts component. This creates confusion and duplicate content. Charts render correctly and timeframe buttons work, but the duplication needs to be resolved by removing one of the Market Snapshot headers or consolidating the components."
+        comment: "✅ COMPREHENSIVE TESTING COMPLETED: All requested dashboard hero card redesign features tested and working perfectly. Main hero card renders as single large glass panel with Afrikaans greeting '🌅 Goeie Môre Alwyn!' and SA date format 'Wednesday, 17 September 2025' (no standalone current time). Three compact subcards display on one line: SA card (ZA flag + time), USA card (US flag + time), Market Status card (● CLOSED/OPEN chip with correct colors + HH:MM:SS countdown + label). Times are perfectly baseline-aligned (0.0px difference). WeatherWidget compact mode shows title + location (no emojis), current temp in °C with H:x° · L:y° · Rain z% format, 7-day forecast as vertical list. CurrencyTicker compact mode displays 5 mini cards grid (USD/EUR/GBP/JPY/CNY) with flags and Rxx.xx values, card heights compact at 81px. Main card footer shows 'Updated HH:MM:SS AM/PM' timestamp and functional Reload button. All visual alignment requirements met, responsive design working on desktop width 1920px."
+
+  - task: "NewsBanner with Category Filter and Slow Scroll"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/NewsBanner.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
       - working: true
         agent: "testing"
-        comment: "✅ REGRESSION TESTING COMPLETED: Comprehensive automated UI regression tests conducted for all 6 requested features. RESULTS: (1) My Performance ranges order - ✅ PASS: Correct order ['1 Day', '5 Days', '1 Month', '6 Months', '1 Year', 'YTD'] verified. (2) Market Snapshot duplication - ✅ PASS: Issue resolved - only 1 'Market Snapshot' section found, positioned correctly below My Performance. (3) NewsTicker - ✅ PASS: 77 news headlines render as hyperlinks opening in new tabs (_blank), slow animation present with ticker keyframes. (4) Fear & Greed CNN logo - ✅ PASS: CNN logo displays with h-6 class (visibly larger). (5) Watchlists 'See more' button - ✅ PASS: Prominent button navigates hash to #/watchlists correctly. (6) Market Score panel - ⚠️ MINOR: Panel shows trend and timestamp but score displays '--' (no actual score data). Overall: 5/6 tests passed with 1 minor issue. Market Snapshot duplication has been successfully resolved."
+        comment: "✅ COMPREHENSIVE TESTING COMPLETED: NewsBanner functionality tested and working perfectly. Category dropdown present and functional (tested switching All→World→All), news content reloads correctly when categories change. Speed controls NOT present as requested. Ticker scrolls very slowly with correct 1200s CSS animation duration. News ticker displays at bottom of page with proper styling and category-based content filtering. All requirements met for news banner implementation."
 
 frontend:
   - task: "Rotation Lab Frontend Component"
