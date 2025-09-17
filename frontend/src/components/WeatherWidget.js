@@ -53,40 +53,94 @@ async function reverseGeocode(lat, lon) {
 }
 
 const WeatherWidget = () => {
-  const [data, setData] = useState(null);
-  const [place, setPlace] = useState(FALLBACK.name);
-
-  // Load fallback first, then try geolocation
-  useEffect(() => {
-    (async () => {
-      try { const w = await fetchWeather(FALLBACK.latitude, FALLBACK.longitude); setData(w); }
-      catch { setData({ tempC: 0, code: 1, high: 0, low: 0, rain: 0 }); }
-    })();
-  }, []);
+  const [weather, setWeather] = useState(null);
+  const [forecast, setForecast] = useState([]);
+  const [location, setLocation] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const tryGeo = async () => {
-      if (!navigator.geolocation) return;
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        try { const { latitude, longitude } = pos.coords; const w = await fetchWeather(latitude, longitude); setData(w); const n = await reverseGeocode(latitude, longitude); setPlace(n); } catch {}
-      });
+    const loadWeather = async () => {
+      try {
+        setLoading(true);
+        let coords = FALLBACK;
+        let locationName = FALLBACK.name;
+
+        // Try to get user's actual location
+        if (navigator.geolocation) {
+          try {
+            const pos = await new Promise((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+            });
+            coords = {
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude
+            };
+            locationName = await reverseGeocode(coords.latitude, coords.longitude);
+          } catch (e) {
+            console.warn('Geolocation failed, using fallback:', e);
+          }
+        }
+
+        const { current, forecast: forecastData } = await fetchWeather(coords.latitude, coords.longitude);
+        setWeather(current);
+        setForecast(forecastData);
+        setLocation(locationName);
+      } catch (error) {
+        console.error('Weather fetch failed:', error);
+        setWeather({ tempC: 15, code: 1, high: 20, low: 10, rain: 20 });
+        setForecast([]);
+        setLocation('Paarl');
+      } finally {
+        setLoading(false);
+      }
     };
-    tryGeo();
+
+    loadWeather();
   }, []);
 
-  if (!data) return <div className="glass-panel p-3 text-xs text-gray-300">Weather: -- °C</div>;
+  if (loading) {
+    return (
+      <div className="rounded-xl border border-white/10 bg-neutral-800/50 backdrop-blur-sm p-4">
+        <div className="text-white/90 font-semibold mb-2">Weather</div>
+        <div className="text-gray-400 text-sm">Loading weather data...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="glass-panel px-4 py-3 flex items-center gap-4">
-      <div className="text-3xl leading-none">{codeToEmoji(data.code)}</div>
-      <div className="flex-1">
-        <div className="text-xs text-gray-400">Current Location</div>
-        <div className="text-white text-sm font-semibold mb-1">{place === 'Unknown' ? 'Nearby' : place}</div>
-        <div className="text-white text-2xl font-bold">{data.tempC}°C</div>
-        <div className="mt-2 flex flex-wrap gap-2">
-          <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-xs text-white/90">H {data.high}°</span>
-          <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-xs text-white/90">L {data.low}°</span>
-          <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-xs text-white/90">{data.rain}% rain</span>
+    <div className="rounded-xl border border-white/10 bg-neutral-800/50 backdrop-blur-sm p-4">
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-white/90 font-semibold">Weather</div>
+        <div className="text-xs text-gray-400">📍 {location}</div>
+      </div>
+
+      {/* Current Weather */}
+      <div className="flex items-center gap-4 mb-4 pb-4 border-b border-white/10">
+        <div className="text-4xl">{codeToEmoji(weather?.code)}</div>
+        <div>
+          <div className="text-2xl font-bold text-white">{weather?.tempC}°C</div>
+          <div className="text-sm text-gray-400">
+            H: {weather?.high}° L: {weather?.low}°
+          </div>
+          <div className="text-xs text-blue-400">💧 {weather?.rain}% rain</div>
+        </div>
+      </div>
+
+      {/* 7-Day Forecast */}
+      <div>
+        <div className="text-sm text-white/80 font-semibold mb-2">7-Day Forecast</div>
+        <div className="grid grid-cols-3 lg:grid-cols-6 gap-2">
+          {forecast.map((day, index) => (
+            <div key={index} className="text-center p-2 rounded-lg bg-black/20">
+              <div className="text-xs text-gray-400 mb-1">{day.day}</div>
+              <div className="text-lg mb-1">{codeToEmoji(day.code)}</div>
+              <div className="text-xs text-white">
+                <div>{day.high}°</div>
+                <div className="text-gray-400">{day.low}°</div>
+              </div>
+              <div className="text-xs text-blue-400 mt-1">{day.rain}%</div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
