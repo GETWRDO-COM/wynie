@@ -185,68 +185,76 @@ const HeroBanner = ({ user }) => {
       {/* Time Zones and Market Status - 3 Cards in Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         {/* South Africa - Geolocation Based */}
-        <div className="rounded-xl border border-white/10 bg-neutral-800/50 backdrop-blur-sm p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="text-2xl">🇿🇦</span>
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md p-6 hover:from-white/10 hover:to-white/[0.05] transition-all duration-300">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-yellow-400 flex items-center justify-center text-sm font-bold">
+              🇿🇦
+            </div>
             <div>
-              <div className="text-white font-semibold">South Africa</div>
+              <div className="text-white font-semibold text-lg">South Africa</div>
               <div className="text-white/70 text-xs">SAST (UTC+2)</div>
             </div>
           </div>
-          <div className={`text-2xl font-mono font-bold bg-gradient-to-r ${timeGradients.sa} bg-clip-text text-transparent mb-1`}>
+          <div className={`text-3xl font-light bg-gradient-to-r ${timeGradients.sa} bg-clip-text text-transparent mb-2 tracking-wide`} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace' }}>
             {saTime}
           </div>
-          <div className="text-sm text-white/80 mb-2">
-            {new Date().toLocaleDateString('en-US', { timeZone: 'Africa/Johannesburg', weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+          <div className="text-sm text-white/80 mb-3 font-medium">
+            {new Date().toLocaleDateString('en-ZA', { timeZone: 'Africa/Johannesburg', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </div>
-          <div className="text-xs text-green-400">📍 Paarl, South Africa</div>
-          <div className="text-xs text-blue-400 mt-1">🎉 Heritage Day in 8 days</div>
+          <div className="text-xs text-emerald-400 mb-2 font-medium">📍 Paarl, South Africa</div>
+          <div className="text-xs text-orange-400 font-semibold">
+            {getHolidayMessage('SA') || '🌟 No holidays today'}
+          </div>
         </div>
 
         {/* New York, USA */}
-        <div className="rounded-xl border border-white/10 bg-neutral-800/50 backdrop-blur-sm p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="text-2xl">🇺🇸</span>
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md p-6 hover:from-white/10 hover:to-white/[0.05] transition-all duration-300">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-red-400 flex items-center justify-center text-sm font-bold">
+              🇺🇸
+            </div>
             <div>
-              <div className="text-white font-semibold">New York, USA</div>
+              <div className="text-white font-semibold text-lg">New York, USA</div>
               <div className="text-white/70 text-xs">EDT (UTC-4)</div>
             </div>
           </div>
-          <div className={`text-2xl font-mono font-bold bg-gradient-to-r ${timeGradients.us} bg-clip-text text-transparent mb-1`}>
+          <div className={`text-3xl font-light bg-gradient-to-r ${timeGradients.us} bg-clip-text text-transparent mb-2 tracking-wide`} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace' }}>
             {usTime}
           </div>
-          <div className="text-sm text-white/80 mb-2">
-            {new Date().toLocaleDateString('en-US', { timeZone: 'America/New_York', weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+          <div className="text-sm text-white/80 mb-3 font-medium">
+            {new Date().toLocaleDateString('en-ZA', { timeZone: 'America/New_York', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </div>
-          <div className="text-xs text-gray-400">📍 Eastern Time Zone</div>
-          <div className="text-xs text-orange-400 mt-1">🍂 Columbus Day affects trading</div>
+          <div className="text-xs text-cyan-400 mb-2 font-medium">📍 Eastern Time Zone</div>
+          <div className="text-xs text-amber-400 font-semibold">
+            {getHolidayMessage('US') || '📈 Normal trading hours'}
+          </div>
         </div>
 
         {/* Market Status */}
-        <div className="rounded-xl border border-white/10 bg-neutral-800/50 backdrop-blur-sm p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-white/90 font-semibold">Market Status</div>
-            <div className={`px-3 py-1.5 rounded-lg text-sm font-semibold ${
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md p-6 hover:from-white/10 hover:to-white/[0.05] transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-white/90 font-semibold text-lg">Market Status</div>
+            <div className={`px-4 py-2 rounded-full text-sm font-bold ${
               status.status === 'Open' 
-                ? 'text-green-400 bg-green-500/20 border border-green-500/30' 
-                : 'text-red-400 bg-red-500/20 border border-red-500/30'
+                ? 'text-green-300 bg-green-500/20 border border-green-400/40' 
+                : 'text-red-300 bg-red-500/20 border border-red-400/40'
             }`}>
               ● {status.status.toUpperCase()}
             </div>
           </div>
 
-          <div className="text-center mb-3">
-            <div className="text-gray-400 text-sm mb-1">{status.countdownLabel}:</div>
-            <div className="text-2xl font-mono font-bold text-cyan-400">
+          <div className="text-center mb-4">
+            <div className="text-gray-400 text-sm mb-2 font-medium">{status.countdownLabel}:</div>
+            <div className="text-3xl font-light text-cyan-300 mb-1 tracking-wide" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace' }}>
               {formatHMS(status.seconds)}
             </div>
           </div>
           
-          <div className="text-xs text-gray-400 text-center">
+          <div className="text-xs text-gray-400 text-center font-medium mb-2">
             NYSE/NASDAQ Regular Hours
           </div>
-          <div className="text-xs text-blue-400 text-center mt-1">
-            🗓️ No holidays today
+          <div className="text-xs text-blue-400 text-center font-semibold">
+            🗓️ No market holidays today
           </div>
         </div>
       </div>
