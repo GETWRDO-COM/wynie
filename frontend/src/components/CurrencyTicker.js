@@ -20,7 +20,7 @@ const CurrencyTicker = ({ compact = false }) => {
     throw new Error('no fallback');
   };
 
-  const fetchRates = async () =&gt; {
+  const fetchRates = async () => {
     try {
       setErr('');
       try { const r = await fetchPrimary(); setRates(r.rates); setUpdatedAt(new Date()); }
