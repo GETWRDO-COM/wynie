@@ -5,7 +5,7 @@ import CurrencyTicker from './CurrencyTicker';
 function pad(n){ return n.toString().padStart(2,'0'); }
 function formatHMS(s){ if(s==null) return '--:--:--'; const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60; return `${pad(h)}:${pad(m)}:${pad(sec)}`; }
 
-const HeroBanner = ({ user }) =&gt; {
+const HeroBanner = ({ user }) => {
   const [saTime, setSaTime] = useState('');
   const [usTime, setUsTime] = useState('');
   const [status, setStatus] = useState({ status: 'Loading…', seconds: 0, countdownLabel: 'Opens in' });
