@@ -14,16 +14,32 @@ function codeToEmoji(code) {
 }
 
 async function fetchWeather(lat, lon) {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=1&timezone=auto`;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code&forecast_days=7&timezone=auto`;
   const resp = await fetch(url);
   const json = await resp.json();
-  return {
+  
+  // Current weather
+  const current = {
     tempC: Math.round(json?.current?.temperature_2m ?? 0),
     code: json?.current?.weather_code,
     high: Math.round(json?.daily?.temperature_2m_max?.[0] ?? 0),
     low: Math.round(json?.daily?.temperature_2m_min?.[0] ?? 0),
     rain: Math.round(json?.daily?.precipitation_probability_max?.[0] ?? 0),
   };
+  
+  // 7-day forecast
+  const forecast = [];
+  for (let i = 1; i < 7; i++) {
+    forecast.push({
+      day: new Date(Date.now() + i * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { weekday: 'short' }),
+      high: Math.round(json?.daily?.temperature_2m_max?.[i] ?? 0),
+      low: Math.round(json?.daily?.temperature_2m_min?.[i] ?? 0),
+      code: json?.daily?.weather_code?.[i],
+      rain: Math.round(json?.daily?.precipitation_probability_max?.[i] ?? 0),
+    });
+  }
+  
+  return { current, forecast };
 }
 
 async function reverseGeocode(lat, lon) {
