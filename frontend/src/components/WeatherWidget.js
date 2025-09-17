@@ -108,39 +108,47 @@ const WeatherWidget = () => {
   }
 
   return (
-    <div className="rounded-xl border border-white/10 bg-neutral-800/50 backdrop-blur-sm p-4">
+    <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md p-6 hover:from-white/10 hover:to-white/[0.05] transition-all duration-300">
       <div className="flex items-center justify-between mb-4">
-        <div className="text-white/90 font-semibold">Weather</div>
-        <div className="text-xs text-gray-400">📍 {location}</div>
+        <div className="text-white/90 font-semibold text-lg">Weather</div>
+        <div className="text-xs text-emerald-400 font-medium">📍 {location}</div>
       </div>
 
-      {/* Current Weather */}
-      <div className="flex items-center gap-4 mb-4 pb-4 border-b border-white/10">
-        <div className="text-4xl">{codeToEmoji(weather?.code)}</div>
-        <div>
-          <div className="text-2xl font-bold text-white">{weather?.tempC}°C</div>
-          <div className="text-sm text-gray-400">
-            H: {weather?.high}° L: {weather?.low}°
+      <div className="grid grid-cols-[auto,1fr] gap-6">
+        {/* Current Weather - Left Side */}
+        <div className="flex items-center gap-4">
+          <div className="text-5xl">{codeToEmoji(weather?.code)}</div>
+          <div>
+            <div className="text-3xl font-light text-white mb-1">{weather?.tempC}°C</div>
+            <div className="text-sm text-gray-300 font-medium mb-1">
+              H: {weather?.high}° L: {weather?.low}°
+            </div>
+            <div className="text-xs text-blue-400 font-medium">💧 {weather?.rain}% rain</div>
           </div>
-          <div className="text-xs text-blue-400">💧 {weather?.rain}% rain</div>
+        </div>
+
+        {/* 7-Day Forecast - Right Side (Compact) */}
+        <div>
+          <div className="text-sm text-white/70 font-semibold mb-3">7-Day Forecast</div>
+          <div className="grid grid-cols-7 gap-1">
+            {forecast.map((day, index) => (
+              <div key={index} className="text-center p-1.5 rounded-lg bg-black/20 hover:bg-black/30 transition-colors">
+                <div className="text-xs text-gray-400 mb-1 font-medium">{day.day}</div>
+                <div className="text-sm mb-1">{codeToEmoji(day.code)}</div>
+                <div className="text-xs text-white font-medium">
+                  <div>{day.high}°</div>
+                  <div className="text-gray-400">{day.low}°</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* 7-Day Forecast */}
-      <div>
-        <div className="text-sm text-white/80 font-semibold mb-2">7-Day Forecast</div>
-        <div className="grid grid-cols-3 lg:grid-cols-6 gap-2">
-          {forecast.map((day, index) => (
-            <div key={index} className="text-center p-2 rounded-lg bg-black/20">
-              <div className="text-xs text-gray-400 mb-1">{day.day}</div>
-              <div className="text-lg mb-1">{codeToEmoji(day.code)}</div>
-              <div className="text-xs text-white">
-                <div>{day.high}°</div>
-                <div className="text-gray-400">{day.low}°</div>
-              </div>
-              <div className="text-xs text-blue-400 mt-1">{day.rain}%</div>
-            </div>
-          ))}
+      {/* Timestamp - Bottom Right */}
+      <div className="flex justify-end mt-4">
+        <div className="text-xs text-gray-400 font-medium">
+          Last Update 1 min ago | {new Date().toLocaleDateString('en-ZA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} | {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
         </div>
       </div>
     </div>
