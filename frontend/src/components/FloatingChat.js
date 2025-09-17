@@ -49,9 +49,24 @@ const FloatingChat = ({ api, user }) => {
           </div>
         </div>
       )}
-      <button title="WRDO (Ctrl+K)" onClick={() => { setOpen((v)=>!v); setTimeout(()=>document.getElementById('wrdo-chat-input')?.focus(), 60); }} className="fixed bottom-28 right-6 z-[10050] w-14 h-14 rounded-full flex items-center justify-center btn-primary shadow-xl animate-pulse">
-        <FaComments />
-      </button>
+      {/* Floating Button - Always Visible */}
+      <div className="fixed z-[10000] right-6 bottom-20" style={{ right: 16 + pos.x, bottom: 80 + pos.y }}>
+        <button
+          onClick={() => { setOpen(!open); if (!open) setTimeout(() => document.getElementById('wrdo-chat-input')?.focus(), 100); }}
+          className="group relative flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+        >
+          <FaComments className="text-lg" />
+          <span className="text-sm font-bold">Hey WRDO!</span>
+          
+          {/* Pulse Animation */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-500 to-purple-500 opacity-30 animate-ping"></div>
+          
+          {/* Tooltip */}
+          <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-black/80 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            Open WRDO AI Assistant (Ctrl+K)
+          </div>
+        </button>
+      </div>
     </>
   );
 };
