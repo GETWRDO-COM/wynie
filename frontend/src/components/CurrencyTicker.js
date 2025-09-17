@@ -47,23 +47,32 @@ const CurrencyTicker = () => {
   const updatedRel = rel(updatedAt);
 
   return (
-    <div className="glass-panel p-4">
-      <div className="flex items-center justify-between mb-3">
-        <div className="text-white/90 font-semibold">FX (ZAR conversions)</div>
-        <div className="flex items-center gap-2 text-xs text-gray-400">Updated {updatedRel || '--'} <button onClick={fetchRates} className="btn btn-outline text-[10px] py-0.5 px-2">Reload</button></div>
+    <div className="rounded-xl border border-white/10 bg-neutral-800/50 backdrop-blur-sm p-4">
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-white/90 font-semibold">Currency Exchange</div>
+        <div className="text-xs text-gray-400">
+          {err ? err : updatedRel ? `Updated ${updatedRel}` : 'Loading...'}
+        </div>
       </div>
-      {err && <div className="text-xs text-red-300 mb-2">{err}</div>}
-      <div className="divide-y divide-white/10">
-        {rows.map((r, i) => (
-          <div key={i} className="grid grid-cols-[20px,auto,auto,1fr,auto] items-center gap-3 py-2">
-            <img src={r.flag} alt="flag" className="w-5 h-4 rounded-sm" />
-            <div className="text-sm text-white/90">{r.pair}</div>
-            <div className="text-xs text-gray-400">{r.code}</div>
-            <div />
-            <div className="text-sm text-white font-semibold">R{r.zar != null ? r.zar.toFixed(2) : '--'}</div>
-          </div>
-        ))}
-      </div>
+      
+      {!rates ? (
+        <div className="text-gray-400 text-sm">Loading exchange rates...</div>
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+          {rows.map((row) => (
+            <div key={row.code} className="text-center p-3 rounded-lg bg-black/20 border border-white/5">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <img src={row.flag} alt={row.code} className="w-6 h-4 rounded-sm" />
+                <span className="font-semibold text-white text-sm">{row.code}</span>
+              </div>
+              <div className="text-xs text-gray-400 mb-1">{row.pair}</div>
+              <div className="text-white font-bold">
+                R{row.zar ? row.zar.toFixed(2) : '--'}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
