@@ -12,7 +12,8 @@ const HeroBanner = ({ user }) => {
   const [greeting, setGreeting] = useState('');
   const [greetingGradient, setGreetingGradient] = useState('');
   const [timeGradients, setTimeGradients] = useState({ sa: '', us: '' });
-  const [nextHoliday, setNextHoliday] = useState('');
+  const [currentDateTime, setCurrentDateTime] = useState('');
+  const [reloading, setReloading] = useState(false);
 
   // Get username - should be Alwyn
   const userName = 'Alwyn';
@@ -65,23 +66,22 @@ const HeroBanner = ({ user }) => {
     return { text: `🌙 Goeie Nag ${userName}!`, gradient: 'from-purple-400 via-blue-400 to-indigo-400' };
   };
 
-  // Format current date and time in SA format
+  // Format current date and time in SA format - make it look better
   const getCurrentDateTime = () => {
     const now = new Date();
-    const options = { 
+    const dateStr = now.toLocaleDateString('en-ZA', { 
       weekday: 'long', 
       day: 'numeric', 
       month: 'long', 
       year: 'numeric' 
-    };
-    const dateStr = now.toLocaleDateString('en-ZA', options);
+    });
     const timeStr = now.toLocaleTimeString('en-US', { 
       hour: '2-digit', 
       minute: '2-digit', 
       second: '2-digit',
       hour12: true 
     });
-    return `${dateStr} ${timeStr}`;
+    return { date: dateStr, time: timeStr };
   };
 
   // Get holiday messages
@@ -113,6 +113,15 @@ const HeroBanner = ({ user }) => {
     return null;
   };
 
+  // Reload all data
+  const reloadAllData = async () => {
+    setReloading(true);
+    // Trigger a page refresh or reload all components
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
+  };
+
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
@@ -137,7 +146,7 @@ const HeroBanner = ({ user }) => {
       setGreetingGradient(greetingData.gradient);
 
       // Set current date and time
-      setNextHoliday(getCurrentDateTime());
+      setCurrentDateTime(getCurrentDateTime());
     }, 1000);
     return () => clearInterval(interval);
   }, [userName]);
