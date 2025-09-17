@@ -30,7 +30,7 @@ const CurrencyTicker = ({ compact = false }) => {
     }
   };
 
-  useEffect(() =&gt; { fetchRates(); const id = setInterval(fetchRates, 900000); return () =&gt; clearInterval(id); }, []);
+  useEffect(() => { fetchRates(); const id = setInterval(fetchRates, 900000); return () => clearInterval(id); }, []);
 
   const rows = useMemo(() =&gt; {
     if (!rates) return [];
