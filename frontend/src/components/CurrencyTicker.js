@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 function rel(ts){ if(!ts) return ''; const d=(ts instanceof Date? ts.getTime(): new Date(ts).getTime()); const diff=Math.round((d-Date.now())/60000); const rtf=new Intl.RelativeTimeFormat('en',{numeric:'auto'}); if(Math.abs(diff)<60) return rtf.format(diff,'minute'); const dh=Math.round(diff/60); if(Math.abs(dh)<24) return rtf.format(dh,'hour'); const dd=Math.round(dh/24); return rtf.format(dd,'day'); }
 
-const CurrencyTicker = () => {
+const CurrencyTicker = ({ compact = false }) => {
   const [rates, setRates] = useState(null);
   const [err, setErr] = useState('');
   const [updatedAt, setUpdatedAt] = useState(null);
