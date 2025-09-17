@@ -448,17 +448,20 @@ frontend:
 metadata:
   created_by: "main_agent"
   version: "4.0-FINAL"
-  test_sequence: 5
-  run_ui: false
+  test_sequence: 6
+  run_ui: true
   completion_status: "FULLY_COMPLETE"
   production_ready: true
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Main Hero Card compact redesign (greeting + SA date, no current time)"
+    - "SA/USA/Market row with aligned times on one line"
+    - "WeatherWidget compact: vertical 7-day (no emojis), smaller"
+    - "CurrencyTicker compact: concise 5-currency grid"
+    - "Footer timestamp bottom-right + Reload button"
+    - "NewsBanner: fixed 1200s slow scroll, category filter works, speed controls removed"
   stuck_tasks: []
-- agent: "main"
-  message: "Patched backend to add /api/auth/login, /api/auth/forgot-password, /api/auth/me directly in server_enhanced.py to resolve 404 during login. Removed lock glyph from login page UI. Added frontend .eslintrc.json with plugin:react-hooks/recommended to enable react-hooks/exhaustive-deps rule."
-
   test_all: false
   test_priority: "high_first"
 
