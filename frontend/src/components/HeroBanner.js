@@ -24,7 +24,7 @@ const HeroBanner = ({ user }) => {
     return `🌙 Goeie Nag ${userName}!`;
   };
 
-  const formatDateSA = () =&gt; new Date().toLocaleDateString('en-ZA', {
+  const formatDateSA = () => new Date().toLocaleDateString('en-ZA', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
   });
 
