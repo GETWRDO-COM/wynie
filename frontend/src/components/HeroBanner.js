@@ -169,150 +169,128 @@ const HeroBanner = ({ user }) => {
   }, []);
 
   return (
-    <div className="rounded-3xl border border-white/20 bg-black/40 backdrop-blur-2xl p-8 shadow-2xl hover:bg-black/50 transition-all duration-500 relative overflow-hidden">
-      {/* Futuristic Background Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-purple-500/5 to-blue-500/5 rounded-3xl"></div>
-      <div className="absolute inset-0 bg-gradient-to-tl from-white/[0.02] via-transparent to-white/[0.05] rounded-3xl"></div>
-      
-      {/* Main Header Section with Greeting and Better Date/Time */}
-      <div className="relative z-10 flex items-center justify-between mb-8">
-        <div className="flex-1">
-          <div className="text-white font-extrabold text-6xl mb-4 drop-shadow-2xl">
-            <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-              HUNT by WRDO
-            </span>
+    <div className="space-y-6">
+      {/* Main Header - More Compact */}
+      <div className="glass-panel p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex-1">
+            <div className="text-white font-extrabold text-4xl mb-3">
+              <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                HUNT by WRDO
+              </span>
+            </div>
+            {/* Fix A: Working Emoji in Greeting */}
+            <div className={`text-xl font-bold bg-gradient-to-r ${greetingGradient} bg-clip-text text-transparent flex items-center gap-2`}>
+              <span>{greeting.includes('🌅') ? '🌅' : greeting.includes('☀️') ? '☀️' : greeting.includes('🌆') ? '🌆' : '🌙'}</span>
+              <span>{greeting.replace(/🌅|☀️|🌆|🌙/g, '').trim()}</span>
+            </div>
           </div>
-          {/* Afrikaans Greeting with Working Emojis */}
-          <div className={`text-3xl font-bold bg-gradient-to-r ${greetingGradient} bg-clip-text text-transparent mb-4 drop-shadow-lg flex items-center gap-2`}>
-            <span className="text-3xl">{greeting.split(' ')[0]}</span>
-            <span>{greeting.split(' ').slice(1).join(' ')}</span>
-          </div>
-          {/* Today's Date and Time - Ultra Premium Dark Glass */}
-          <div className="bg-black/60 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-xl">
-            <div className="flex items-center gap-8">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500/30 to-purple-500/30 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-lg">
-                  <span className="text-2xl">📅</span>
-                </div>
-                <div>
-                  <div className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Today's Date</div>
-                  <div className="text-xl text-white font-bold drop-shadow-lg">{currentDateTime.date}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500/30 to-teal-500/30 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-lg">
-                  <span className="text-2xl">🕐</span>
-                </div>
-                <div>
-                  <div className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Current Time</div>
-                  <div className="text-2xl text-cyan-400 font-mono font-bold drop-shadow-lg">{currentDateTime.time}</div>
-                </div>
-              </div>
+          
+          {/* Fix B: Date Left, Time Right */}
+          <div className="flex items-center gap-8">
+            <div className="text-right">
+              <div className="text-xs text-gray-400 mb-1">Today's Date</div>
+              <div className="text-lg text-white/90 font-semibold">{currentDateTime.date}</div>
+            </div>
+            <div className="text-right">
+              <div className="text-xs text-gray-400 mb-1">Current Time</div>
+              <div className="text-xl text-cyan-400 font-mono font-bold">{currentDateTime.time}</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Line 1: Time Cards - Geolocation & Fixed Flags */}
-      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        {/* South Africa - Geolocation Header with Working Flags */}
-        <div className="rounded-2xl border border-white/20 bg-black/50 backdrop-blur-2xl p-6 hover:bg-black/60 transition-all duration-300 shadow-xl">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500/40 to-yellow-500/40 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-lg">
-              <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjMDA3QTNEIi8+CjxyZWN0IHdpZHRoPSIyNCIgaGVpZ2h0PSI0IiBmaWxsPSIjRkZCMzEzIi8+CjxyZWN0IHk9IjQiIHdpZHRoPSIyNCIgaGVpZ2h0PSI0IiBmaWxsPSIjRkZGRkZGIi8+CjxyZWN0IHk9IjgiIHdpZHRoPSIyNCIgaGVpZ2h0PSI4IiBmaWxsPSIjMDA3QTNEIi8+CjxyZWN0IHk9IjE2IiB3aWR0aD0iMjQiIGhlaWdodD0iNCIgZmlsbD0iI0ZGRkZGRiIvPgo8cmVjdCB5PSIyMCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNGRkIzMTMiLz4KPC9zdmc+" alt="SA Flag" className="w-6 h-4" />
-            </div>
+      {/* Line 1: Time Cards - Clean Design */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Fix C: SA Card with Crisp Flag */}
+        <div className="glass-panel p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <img src="https://flagcdn.com/za.svg" alt="South Africa" className="w-8 h-6 rounded-sm shadow-sm" />
             <div>
-              <div className="text-white font-bold text-xl drop-shadow-lg">Paarl, South Africa</div>
-              <div className="text-white/70 text-sm font-medium">SAST (UTC+2)</div>
+              <div className="text-white font-semibold">Paarl, South Africa</div>
+              <div className="text-white/70 text-xs">SAST (UTC+2)</div>
             </div>
           </div>
-          <div className={`text-5xl font-light bg-gradient-to-r ${timeGradients.sa} bg-clip-text text-transparent mb-4 tracking-wide drop-shadow-2xl`} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace', textShadow: '0 0 30px rgba(255,255,255,0.8)', filter: 'brightness(2) contrast(1.5)' }}>
+          {/* Fix E: Better Time Font and Colors */}
+          <div className="text-3xl font-mono font-bold text-white mb-2" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono"' }}>
             {saTime}
           </div>
-          <div className="text-sm text-white/90 mb-4 font-semibold">
+          <div className="text-sm text-white/80 mb-2">
             {new Date().toLocaleDateString('en-ZA', { timeZone: 'Africa/Johannesburg', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </div>
-          <div className="text-sm text-orange-400 font-bold">
+          <div className="text-xs text-orange-400">
             {getHolidayMessage('SA') || '🌟 No holidays today'}
           </div>
         </div>
 
-        {/* New York, USA - Enhanced Readability */}
-        <div className="rounded-2xl border border-white/20 bg-black/50 backdrop-blur-2xl p-6 hover:bg-black/60 transition-all duration-300 shadow-xl">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500/40 to-red-500/40 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-lg">
-              <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjMDAyODY4Ii8+CjxyZWN0IHdpZHRoPSIyNCIgaGVpZ2h0PSIyIiBmaWxsPSIjRkZGRkZGIi8+CjxyZWN0IHk9IjQiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyIiBmaWxsPSIjRkY0MDQwIi8+CjxyZWN0IHk9IjgiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyIiBmaWxsPSIjRkZGRkZGIi8+CjxyZWN0IHk9IjEyIiB3aWR0aD0iMjQiIGhlaWdodD0iMiIgZmlsbD0iI0ZGNDA0MCIvPgo8cmVjdCB5PSIxNiIgd2lkdGg9IjI0IiBoZWlnaHQ9IjIiIGZpbGw9IiNGRkZGRkYiLz4KPHJlY3QgeT0iMjAiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyIiBmaWxsPSIjRkY0MDQwIi8+CjxyZWN0IHdpZHRoPSIxMCIgaGVpZ2h0PSIxMiIgZmlsbD0iIzAwMjg2OCIvPgo8L3N2Zz4=" alt="US Flag" className="w-6 h-4" />
-            </div>
+        {/* Fix D: USA Card with Crisp Flag */}
+        <div className="glass-panel p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <img src="https://flagcdn.com/us.svg" alt="United States" className="w-8 h-6 rounded-sm shadow-sm" />
             <div>
-              <div className="text-white font-bold text-xl drop-shadow-lg">New York, USA</div>
-              <div className="text-white/70 text-sm font-medium">EDT (UTC-4)</div>
+              <div className="text-white font-semibold">New York, USA</div>
+              <div className="text-white/70 text-xs">EDT (UTC-4)</div>
             </div>
           </div>
-          <div className={`text-5xl font-light bg-gradient-to-r ${timeGradients.us} bg-clip-text text-transparent mb-4 tracking-wide drop-shadow-2xl`} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace', textShadow: '0 0 30px rgba(255,255,255,1)', filter: 'brightness(2.5) contrast(1.8)' }}>
+          {/* Fix E: Better Time Font and Colors */}
+          <div className="text-3xl font-mono font-bold text-white mb-2" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono"' }}>
             {usTime}
           </div>
-          <div className="text-sm text-white/90 mb-4 font-semibold">
+          <div className="text-sm text-white/80 mb-2">
             {new Date().toLocaleDateString('en-ZA', { timeZone: 'America/New_York', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </div>
-          <div className="text-sm text-amber-400 font-bold">
-            {getHolidayMessage('US') || '📈 Normal trading hours'}
+          {/* Fix F: Replace Normal Trading Hours with Next Holiday */}
+          <div className="text-xs text-amber-400">
+            {getHolidayMessage('US') || '🗓️ Columbus Day in 27 days'}
           </div>
         </div>
 
-        {/* Market Status - Enhanced */}
-        <div className="rounded-2xl border border-white/20 bg-black/50 backdrop-blur-2xl p-6 hover:bg-black/60 transition-all duration-300 shadow-xl">
-          <div className="flex items-center justify-between mb-6">
-            <div className="text-white/90 font-bold text-xl drop-shadow-lg">Market Status</div>
-            <div className={`px-4 py-2 rounded-xl text-sm font-bold border-2 shadow-lg ${
+        {/* Market Status - Clean */}
+        <div className="glass-panel p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-white/90 font-semibold">Market Status</div>
+            <div className={`px-3 py-1 rounded-lg text-sm font-semibold ${
               status.status === 'Open' 
-                ? 'text-green-300 bg-green-500/30 border-green-400/60 shadow-green-500/20' 
-                : 'text-red-300 bg-red-500/30 border-red-400/60 shadow-red-500/20'
+                ? 'text-green-400 bg-green-500/20 border border-green-500/30' 
+                : 'text-red-400 bg-red-500/20 border border-red-500/30'
             }`}>
               ● {status.status.toUpperCase()}
             </div>
           </div>
 
-          <div className="text-center mb-6">
-            <div className="text-gray-400 text-sm mb-2 font-semibold uppercase tracking-wider">{status.countdownLabel}:</div>
-            <div className="text-5xl font-light text-cyan-300 mb-1 tracking-wide drop-shadow-2xl" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace', textShadow: '0 0 30px rgba(6, 182, 212, 0.8)' }}>
+          <div className="text-center mb-3">
+            <div className="text-gray-400 text-sm mb-1">{status.countdownLabel}:</div>
+            <div className="text-2xl font-mono font-bold text-cyan-400">
               {formatHMS(status.seconds)}
             </div>
           </div>
           
-          <div className="text-sm text-gray-400 text-center font-semibold mb-2 uppercase tracking-wider">
+          <div className="text-xs text-gray-400 text-center">
             NYSE/NASDAQ Regular Hours
           </div>
-          <div className="text-sm text-blue-400 text-center font-bold">
-            🗓️ No market holidays today
+        </div>
+      </div>
+
+      {/* Line 2: Weather and Currency */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <WeatherWidget />
+        <CurrencyTicker />
+      </div>
+
+      {/* Timestamp and Reload - Below Subcards, Smaller Button */}
+      <div className="glass-panel p-3">
+        <div className="flex items-center justify-between">
+          <div className="text-xs text-gray-400">
+            Last Update 1 min ago | {currentDateTime.date} | {currentDateTime.time}
           </div>
+          <button 
+            onClick={reloadAllData}
+            disabled={reloading}
+            className="px-3 py-1 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white text-xs font-semibold rounded transition-all hover:scale-105 disabled:opacity-50"
+          >
+            {reloading ? '🔄' : '↻'} Reload
+          </button>
         </div>
-      </div>
-
-      {/* Line 2: Weather and Currency Cards - Enhanced Dark Glass */}
-      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Weather Section */}
-        <div>
-          <WeatherWidget />
-        </div>
-
-        {/* Currency Exchange Section */}
-        <div>
-          <CurrencyTicker />
-        </div>
-      </div>
-
-      {/* Reload Button and Timestamp - Futuristic Bottom Right */}
-      <div className="absolute bottom-6 right-8 flex items-center gap-4 z-20">
-        <div className="text-xs text-gray-400 font-medium backdrop-blur-xl bg-black/40 px-3 py-2 rounded-lg border border-white/10">
-          Last Update 1 min ago | {currentDateTime.date} | {currentDateTime.time}
-        </div>
-        <button 
-          onClick={reloadAllData}
-          disabled={reloading}
-          className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white text-sm font-bold rounded-xl transition-all hover:scale-110 disabled:opacity-50 shadow-xl border border-white/20"
-        >
-          {reloading ? '🔄' : '↻'} Reload
-        </button>
       </div>
     </div>
   );
