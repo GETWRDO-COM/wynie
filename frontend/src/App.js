@@ -155,7 +155,6 @@ function App() {
           {activeTab === 'ai-chat' && (<div className="animate-fade-in"><AIChat api={api} user={user} /></div>)}
         </main>
       </div>
-      <GlobalClock />
       <NewsBanner />
       <FloatingChat api={api} user={user} />
     </ThemeWrapper>
