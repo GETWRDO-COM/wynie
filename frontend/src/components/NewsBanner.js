@@ -4,7 +4,6 @@ const NewsBanner = () => {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [scrollSpeed, setScrollSpeed] = useState(80); // seconds for full scroll
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
   const categories = ['All', 'USA', 'South Africa', 'World', 'Stock Market', 'Finance'];
@@ -68,31 +67,13 @@ const NewsBanner = () => {
             ))}
           </select>
         </div>
-        
-        {/* Speed Controls */}
-        <div className="flex items-center gap-1 px-3 bg-black/80 border-r border-white/10">
-          <button
-            onClick={() => setScrollSpeed(Math.min(scrollSpeed + 20, 160))}
-            className="text-sm bg-white/10 text-white border border-white/20 rounded px-2 py-1 hover:bg-white/20 transition-colors"
-            title="Slow down"
-          >
-            🐌
-          </button>
-          <button
-            onClick={() => setScrollSpeed(Math.max(scrollSpeed - 20, 40))}
-            className="text-sm bg-white/10 text-white border border-white/20 rounded px-2 py-1 hover:bg-white/20 transition-colors"
-            title="Speed up"
-          >
-            🚀
-          </button>
-        </div>
 
         {/* News Ticker */}
         <div className="flex-1 overflow-hidden relative">
           <div 
             className="flex items-center whitespace-nowrap text-white text-sm animate-marquee"
             style={{
-              animation: `marquee ${scrollSpeed}s linear infinite`
+              animation: `marquee 1200s linear infinite`
             }}
           >
             {news.map((article, index) => (
@@ -128,7 +109,7 @@ const NewsBanner = () => {
           100% { transform: translateX(-100%); }
         }
         .animate-marquee {
-          animation: marquee ${scrollSpeed}s linear infinite;
+          animation: marquee 1200s linear infinite;
         }
       `}</style>
     </div>
