@@ -455,12 +455,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Main Hero Card compact redesign (greeting + SA date, no current time)"
-    - "SA/USA/Market row with aligned times on one line"
-    - "WeatherWidget compact: vertical 7-day (no emojis), smaller"
-    - "CurrencyTicker compact: concise 5-currency grid"
-    - "Footer timestamp bottom-right + Reload button"
-    - "NewsBanner: fixed 1200s slow scroll, category filter works, speed controls removed"
+    - "Dashboard Hero Card Redesign with Compact Layout"
+    - "NewsBanner with Category Filter and Slow Scroll"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
