@@ -17,10 +17,10 @@ const HeroBanner = ({ user }) => {
   const userName = 'Alwyn';
 
   // Greeting in Afrikaans with emoji kept subtle
-  const getAfrikaansGreeting = (hour) =&gt; {
-    if (hour &gt;= 5 &amp;&amp; hour &lt; 12) return `🌅 Goeie Môre ${userName}!`;
-    if (hour &gt;= 12 &amp;&amp; hour &lt; 17) return `☀️ Goeie Middag ${userName}!`;
-    if (hour &gt;= 17 &amp;&amp; hour &lt; 21) return `🌆 Goeie Aand ${userName}!`;
+  const getAfrikaansGreeting = (hour) => {
+    if (hour >= 5 && hour < 12) return `🌅 Goeie Môre ${userName}!`;
+    if (hour >= 12 && hour < 17) return `☀️ Goeie Middag ${userName}!`;
+    if (hour >= 17 && hour < 21) return `🌆 Goeie Aand ${userName}!`;
     return `🌙 Goeie Nag ${userName}!`;
   };
 
